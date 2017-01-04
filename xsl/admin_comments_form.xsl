@@ -1,0 +1,58 @@
+<?xml version="1.0"?>
+<xsl:stylesheet version="1.0"
+xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+<xsl:output method="xml" indent="yes" omit-xml-declaration="yes" />
+
+<xsl:template name="break">
+  <xsl:param name="text" select="string(.)"/>
+  <xsl:choose>
+    <xsl:when test="contains($text, '&#xa;')">
+      <xsl:value-of select="substring-before($text, '&#xa;')"/>
+      <br />
+      <xsl:call-template name="break">
+        <xsl:with-param 
+          name="text" 
+          select="substring-after($text, '&#xa;')"
+        />
+      </xsl:call-template>
+    </xsl:when>
+    <xsl:otherwise>
+      <xsl:value-of select="$text"/>
+    </xsl:otherwise>
+  </xsl:choose>
+</xsl:template>
+
+<xsl:template match="comment">
+    <p>
+        <input type="hidden" name="comment_id[]">
+            <xsl:attribute name="value">
+                <xsl:value-of select="@id"/>
+            </xsl:attribute>
+        </input>
+        <input type="checkbox" name="approved[]">
+            <xsl:attribute name="checked">
+            </xsl:attribute>        
+            <xsl:attribute name="value">
+                <xsl:value-of select="@id"/>
+            </xsl:attribute>
+        </input>
+        <a target="_blank">
+            <xsl:attribute name="href">/?page=unit&amp;id=<xsl:value-of select="@unit_id" />
+            </xsl:attribute>        
+            <xsl:call-template name="break">
+                <xsl:with-param name="text" select="text()" />
+            </xsl:call-template><br />
+        </a>
+    </p>
+</xsl:template>
+
+
+<xsl:template match="root">
+<form method="POST">
+    <xsl:apply-templates select="comment"/>
+    <input type="submit" />
+</form>
+</xsl:template>
+
+
+</xsl:stylesheet>
