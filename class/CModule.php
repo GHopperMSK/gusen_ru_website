@@ -38,6 +38,9 @@ EOF
  * 
  * %{MOD_NAME&XSL_TEMPLATE[&PARAM_1[&PARAM_2]]}%
  * 
+ * If XSL_TEMPLATE is null, it means that the module will not make 
+ * any XSL-transformations.
+ * 
  * @param CDataBase $hDbConn
  * @param string $modName
  * @param string $xslFile
@@ -462,7 +465,7 @@ class CModule
         
         $xmlTop = $this->xmlDoc->createElement("page", $this->param1);
         $xmlTop = $this->eRoot->appendChild($xmlTop);
-
+        
         $xmlTop = $this->xmlDoc->createElement("categories");
         $xmlTop = $this->eRoot->appendChild($xmlTop);
         $q = "SELECT cat.id,cat.name FROM categories cat ".
@@ -526,6 +529,7 @@ class CModule
         switch ($page) {
             case "page_search":
                 $bFirst = true;
+
                 if ($_GET['vType'] != 0) {
                     $stmt = $this->hDbConn->prepare('SELECT name FROM categories WHERE id=:id');
                     $stmt->bindValue(':id', $_GET['vType'], PDO::PARAM_INT);
@@ -734,7 +738,7 @@ class CModule
         if (isset($_SESSION["user"])) {
             $this->fillUser();
         }        
-        
+
         $sUnitId = $this->xmlDoc->createElement("unit_id", $_GET['id']);
         $this->eRoot->appendChild($sUnitId);
         
