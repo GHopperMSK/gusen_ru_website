@@ -24,12 +24,12 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 
 <xsl:template match="unit">
     <div id="thumbImg">
-        <xsl:for-each select="images">
+        <xsl:for-each select="images/img">
             <a data-lightbox="lb_image">
-                <xsl:attribute name="href">/images/<xsl:value-of select="img"/>
+                <xsl:attribute name="href">/images/<xsl:value-of select="text()"/>
                 </xsl:attribute>
                 <img>
-                    <xsl:attribute name="src">/images/tmb/<xsl:value-of select="img"/>
+                    <xsl:attribute name="src">/images/tmb/<xsl:value-of select="text()"/>
                     </xsl:attribute>
                     <xsl:attribute name="alt"><xsl:value-of select="/root/unit/manufacturer"/><xsl:text> </xsl:text><xsl:value-of select="/root/unit/@name"/>
                     </xsl:attribute>                    

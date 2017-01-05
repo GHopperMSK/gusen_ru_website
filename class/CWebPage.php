@@ -74,7 +74,11 @@ class CWebPage
                 break;
             case 'unit':
                 // if unit_id doesn't exists in the DB, send 404 page
-                $stmt = $this->hDbConn->prepare('SELECT COUNT(*) as cnt FROM units WHERE id=:id');
+                $stmt = $this->hDbConn->prepare('SELECT 
+                										COUNT(*) as cnt 
+                									FROM units 
+                									WHERE id=:id'
+                								);
                 $stmt->bindValue(
                     ':id',
                     $_GET['id'],
@@ -85,7 +89,7 @@ class CWebPage
                     $this->setTemplate('tpl/unit.tpl');
                 }
                 else {
-                    header('Location: /?page=404');
+                    header('Location: ?page=404');
                     exit;
                 }                    
                 break;
@@ -112,6 +116,24 @@ class CWebPage
                 $this->setTemplate('tpl/main.tpl');
         }        
     }
+    
+    /**
+     * Applies filter_var for each member of given array
+     * with specified validate filter
+     * 
+     * @param array $aVar
+     * @param int $secKey
+     * 
+     * @return bool
+     */
+    function varValid($aVar, $secKey) {
+        foreach ($aVar as $var) {
+            if (filter_var($var, $secKey) === FALSE) {
+                return false;
+            }
+        }
+        return true;
+    }    
     
     // WBMP->resourse convertor
     function ImageCreateFromBMP($filename) { 
@@ -334,12 +356,9 @@ class CWebPage
         if (isset($this->tpl)) {
             $sPage = file_get_contents($this->tpl);
             
-            preg_match_all('/(%{)(.+)(}%)/', $sPage, $matches);
+            preg_match_all('/%{(.+)}%/', $sPage, $matches);
             
-            $patterns = array();
-            $replacements = array();
-            
-            foreach ($matches[2] as $key => $value) {
+            foreach ($matches[1] as $key => $value) {
                 list($modName, $xslFile, $param1, $param2) = explode('&', $value);
 
                 $hMod = new CModule($this->hDbConn, $modName, $xslFile, $param1, $param2);
@@ -409,10 +428,10 @@ class CWebPage
                 break;
             case 'fb':
                 $params = array(
-                    'client_id' => FB_CLIENT_ID,
+                    'client_id'     => FB_CLIENT_ID,
                     'client_secret' => FB_SECRET,
-                    'code' => $_REQUEST['code'],
-                    'redirect_uri' => $cur_link
+                    'code'          => $_REQUEST['code'],
+                    'redirect_uri'  => $cur_link
                 );
                 
                 $str = parse_str(@file_get_contents('https://graph.facebook.com/oauth/access_token'.
@@ -496,11 +515,20 @@ class CWebPage
     
     function commentAdd() {
         if (isset($_POST['user_id'])) {
-            if (!$this->varValid($_POST['unit_id'])) {
+            if (!filter_var($_POST['unit_id'], FILTER_VALIDATE_INT)) {
                 echo 'Wrong parameters were passed!';
             }
             else {        
-                $q = 'INSERT INTO comments (unit_id,user_id,p_com_id,type,name,comment) VALUES (%d,\'%s\',%s,\'%s\',\'%s\',\'%s\')';
+                $q = "INSERT 
+                		INTO comments (
+                			unit_id,
+                			user_id,
+                			p_com_id,
+                			type,
+                			name,
+                			comment
+                		) 
+                		VALUES (%d,'%s',%s,'%s','%s','%s')";
                 $q = sprintf($q,
                     $_POST['unit_id'],
                     $_POST['user_id'],
@@ -604,7 +632,7 @@ class CWebPage
                         (md5($_POST['password']) === ADMIN_PASS))
                     {
                         $_SESSION['username']=$_POST['username'];
-                        header('location:?page=admin&act=main');
+                        header('location: ?page=admin&act=main');
                     }
                     else {
                         header('Location: ?page=admin&act=login_form'.
@@ -614,60 +642,60 @@ class CWebPage
                     ob_end_flush();
                 }
                 else {
-                    header('location:?page=admin&act=main');
+                    header('Location: ?page=admin&act=main');
                 }
                 break;
             case 'logout':
                 session_destroy();
                 $_SESSION = array();
-                header('location:?page=admin&act=login_form&msg=just_logout');
+                header('Location: ?page=admin&act=login_form&msg=just_logout');
                 break;
             case 'admin_unit_form':
                 if ($this->isAuth())
                     $this->setTemplate('tpl/admin_unit_form.tpl');
                 else
-                    header('location:?page=admin&act=login_form&msg=access_denied');
+                    header('Location: ?page=admin&act=login_form&msg=access_denied');
                 break;
             case 'unit_edit':
                 if ($this->isAuth())
                     $this->editUnit();
                 else
-                    header('location:?page=admin&act=login_form&msg=access_denied');
+                    header('Location: ?page=admin&act=login_form&msg=access_denied');
                 break;
             case 'unit_add':
                 if ($this->isAuth())
                     $this->addUnit();
                 else
-                    header('location:?page=admin&act=login_form&msg=access_denied');                
+                    header('Location: ?page=admin&act=login_form&msg=access_denied');                
                 break;
             case 'unit_del':
                 if ($this->isAuth())
                     $this->deleteUnit($_GET['id']);
                 else
-                    header('location:?page=admin&act=login_form&msg=access_denied');
+                    header('Location: ?page=admin&act=login_form&msg=access_denied');
                 break;
             case 'unit_arch':
                 if ($this->isAuth())
                     $this->archUnit($_GET['id']);
                 else
-                    header('location:?page=admin&act=login_form&msg=access_denied');
+                    header('Location: ?page=admin&act=login_form&msg=access_denied');
                 break;
             case 'main':
                 if ($this->isAuth())
                     $this->setTemplate('tpl/admin.tpl');
                 else
-                    header('location:?page=admin&act=login_form&msg=access_denied');
+                    header('Location: ?page=admin&act=login_form&msg=access_denied');
                 break;
             case 'unapproved_comments':
                 if ($this->isAuth())
                     $this->setTemplate('tpl/admin_unapproved_comments_list.tpl');
                 else
-                    header('location:?page=admin&act=login_form&msg=access_denied');
+                    header('Location: ?page=admin&act=login_form&msg=access_denied');
                 break;
             case 'login_form':
             default:
                 if ($this->isAuth()) {
-                    header('location:?page=admin&act=main');
+                    header('Location: ?page=admin&act=main');
                 }
                 else {
                     $this->setTemplate('tpl/admin_login.tpl');
@@ -677,14 +705,37 @@ class CWebPage
     }
     
     function addUnit() {
-        $aImportantInt = array($_POST['category'], 
+        $aImportantInt = array(
+            $_POST['category'], 
             $_POST['city'], 
             $_POST['manufacturer']
         );
 
         if ($this->varValid($aImportantInt, FILTER_VALIDATE_INT)) {
-            $stmt = $this->hDbConn->prepare('INSERT INTO units(cat_id,city_id,manufacturer_id,name,description,price,year,mileage,op_time) '.
-                'VALUES(:cat_id,:city_id,:manufacturer_id,:name,:description,:price,:year,:mileage,:op_time)');
+            $stmt = $this->hDbConn->prepare('INSERT 
+            									INTO units(
+            										cat_id,
+            										city_id,
+            										manufacturer_id,
+            										name,
+            										description,
+            										price,
+            										year,
+            										mileage,
+            										op_time
+            									)
+                								VALUES (
+                									:cat_id,
+                									:city_id,
+                									:manufacturer_id,
+                									:name,
+                									:description,
+                									:price,
+                									:year,
+                									:mileage,
+                									:op_time
+                								)'
+                							);
             $stmt->bindValue(':cat_id', $_POST['category'], PDO::PARAM_INT);
             $stmt->bindValue(':city_id', $_POST['city'], PDO::PARAM_INT);    
             $stmt->bindValue(':manufacturer_id', $_POST['manufacturer'], PDO::PARAM_INT);    
@@ -699,7 +750,18 @@ class CWebPage
             $stmt->execute();
             $id = $this->hDbConn->lastInsertId();
     
-            $stmt = $this->hDbConn->prepare('INSERT INTO images (unit_id, img, `order`) VALUES (:uid, :img, :ord)');
+            $stmt = $this->hDbConn->prepare('INSERT
+            									INTO images (
+            										unit_id,
+            										img,
+            										`order`
+            									) 
+            									VALUES (
+            										:uid,
+            										:img,
+            										:ord
+            									)'
+            								);
             $stmt->bindValue(':uid', $id, PDO::PARAM_INT);
             $stmt->bindParam(':img', $img, PDO::PARAM_STR);
             $stmt->bindParam(':ord', $ord, PDO::PARAM_INT);
@@ -721,17 +783,27 @@ class CWebPage
     }
     
     function editUnit() {
-        $aImportantInt = array($_POST['category'], 
+        $aImportantInt = array(
+            $_POST['category'], 
             $_POST['city'], 
             $_POST['manufacturer'],
             $_POST['id']
         );
 
         if ($this->varValid($aImportantInt, FILTER_VALIDATE_INT)) {
-            $stmt = $this->hDbConn->prepare('UPDATE units SET cat_id=:cat_id,'.
-                'city_id=:city_id,manufacturer_id=:manufacturer_id,name=:name,'.
-                'description=:description,price=:price,year=:year,'.
-                'mileage=:mileage,op_time=:op_time WHERE id=:id');
+            $stmt = $this->hDbConn->prepare('UPDATE units 
+            									SET 
+	            									cat_id=:cat_id,
+	            									city_id=:city_id,
+	            									manufacturer_id=:manufacturer_id,
+	            									name=:name,
+	            									description=:description,
+	            									price=:price,year=:year,
+	            									mileage=:mileage,
+	            									op_time=:op_time 
+            									WHERE 
+            										id=:id'
+            								);
             $stmt->bindValue(':cat_id', $_POST['category'], PDO::PARAM_INT);
             $stmt->bindValue(':city_id', $_POST['city'], PDO::PARAM_INT);    
             $stmt->bindValue(':manufacturer_id', $_POST['manufacturer'], PDO::PARAM_INT);    
@@ -759,19 +831,35 @@ class CWebPage
                 $_POST['available_images'] = array();
                 
             
-            $stmt = $this->hDbConn->prepare('DELETE FROM images WHERE unit_id=:id');
+            $stmt = $this->hDbConn->prepare('DELETE 
+            									FROM images 
+            									WHERE unit_id=:id'
+            								);
             $stmt->bindValue(':id', $_POST['id'], PDO::PARAM_INT);
             $stmt->execute();
             
-            $stmt = $this->hDbConn->prepare('INSERT INTO images (unit_id, img, `order`) VALUES (:uid, :img, :ord)');
+            $stmt = $this->hDbConn->prepare('INSERT 
+            									INTO images (
+            										unit_id,
+            										img,
+            										`order`
+            									) 
+            									VALUES (
+            										:uid,
+            										:img,
+            										:ord)'
+            								);
             $stmt->bindValue(':uid', $_POST['id'], PDO::PARAM_INT);
             $stmt->bindParam(':img', $img, PDO::PARAM_STR);
             $stmt->bindParam(':ord', $ord, PDO::PARAM_INT);
             
             for ($i = 0; $i < count($_POST['images']); $i++) {
-                if (array_search($_POST['images'][$i], $_POST['available_images']) === FALSE) {
-                    rename('tmp_images/'.$_POST['images'][$i], 'images/'.$_POST['images'][$i]);
-                    rename('tmp_images/tmb/'.$_POST['images'][$i], 'images/tmb/'.$_POST['images'][$i]);
+                if (array_search($_POST['images'][$i],
+                		$_POST['available_images']) === FALSE) {
+                    rename('tmp_images/'.$_POST['images'][$i], 
+                    	'images/'.$_POST['images'][$i]);
+                    rename('tmp_images/tmb/'.$_POST['images'][$i],
+                    	'images/tmb/'.$_POST['images'][$i]);
                 }
                 $img = $_POST['images'][$i];
                 $ord = $i + 1;
@@ -787,7 +875,10 @@ class CWebPage
     }
     
     function deleteUnit($u_id) {
-        $q = sprintf('SELECT img FROM images WHERE unit_id=%d', $u_id);
+        $q = sprintf('SELECT img 
+        				FROM images 
+        				WHERE unit_id=%d',
+        				$u_id);
         $imagesRes = $this->hDbConn->query($q);
         while ($ir = $imagesRes->fetch(PDO::FETCH_ASSOC)) {
             unlink('/images/tbm/'.$ir['name']);
@@ -816,8 +907,16 @@ class CWebPage
         switch ($mode) {
             case 'city':
                 $json = array();
-                $q = sprintf('SELECT id,name FROM `cities` WHERE `rd_id` IN '.
-                        '(SELECT id FROM `regions` WHERE fd_id=%d) ORDER BY name;', 
+                $q = sprintf('SELECT 
+                					id,
+                					name 
+                				FROM `cities` 
+                				WHERE `rd_id` IN (
+                					SELECT id 
+                					FROM `regions` 
+                					WHERE fd_id=%d
+                				) 
+                				ORDER BY name', 
                     filter_var($_GET['fdid'], FILTER_SANITIZE_NUMBER_INT)
                 );
                 if ($res = $this->hDbConn->query($q)) {

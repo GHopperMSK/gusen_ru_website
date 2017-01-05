@@ -1,4 +1,219 @@
 <?php
+
+class CUnit
+{
+	private $id = null;
+	private $name;
+	private $description;
+	private $price;
+	private $year;
+	private $mileage;
+	private $op_time;
+	private $city = array();
+	private $cat_id;
+	private $category;
+	private $manuf_id;
+	private $manufacturer;
+	private $img = array();
+	
+	private $hDbConn = null;
+	
+	function __construct(&$hDbConn, $id=NULL) {
+        if ($hDbConn instanceof CDataBase) {
+            $this->hDbConn = $hDbConn;
+        }
+        else {
+            echo 'Wrong MySQLi connection was passed!';
+            exit;
+        }
+        if ($id) {
+        	$this->id = $id;
+        	$this->fillUnitData();
+        }
+    }
+    
+    function fillUnitData() {
+    	// add check $this->id
+        $q = 'SELECT 
+					u.id AS id,
+					u.name AS name,
+					u.description AS description,
+					u.price AS price,
+					u.year AS year,
+					u.mileage AS mileage,
+					u.op_time AS op_time,
+					cities.id AS city_id,
+					cities.name AS city,
+					regions.id AS region_id,
+					regions.name AS region,
+					fdistricts.id AS fd_id,
+					fdistricts.name AS fdistrict,
+					fdistricts.short_name AS fdistrict_short,
+					categories.id AS cat_id,
+					categories.name AS category,
+					manufacturers.id AS manufacturer_id,
+					manufacturers.name AS manufacturer,
+					(SELECT img 
+						FROM images i 
+						WHERE i.unit_id=u.id 
+						ORDER BY `ORDER` ASC
+						LIMIT 1) as img
+				FROM units u
+				JOIN cities ON u.city_id=cities.id
+				JOIN regions ON cities.rd_id=regions.id
+				JOIN fdistricts ON regions.fd_id=fdistricts.id
+				JOIN categories ON u.cat_id=categories.id
+				JOIN manufacturers ON manufacturers.id=u.manufacturer_id
+				WHERE u.id=%d';
+
+        $q = sprintf($q, $this->id);
+        $res = $this->hDbConn->query($q);
+        $ur = $res->fetch(PDO::FETCH_ASSOC);
+        
+		$this->name = isset($ur['name']) ? $ur['name'] : NULL;
+		$this->description = isset($ur['description']) ? 
+			$ur['description']: NULL;
+		$this->price = isset($ur['price']) ? $ur['price'] : NULL;
+		$this->year = isset($ur['year']) ? $ur['year'] : NULL;
+		$this->mileage = isset($ur['milage']) ? $ur['milage'] : NULL;
+		$this->op_time = isset($ur['op_time']) ? $ur['op_time'] : NULL;
+		$this->cat_id = isset($ur['cat_id']) ? $ur['cat_id'] : NULL;
+		$this->category = isset($ur['category']) ? $ur['category'] : NULL;
+		$this->manuf_id = isset($ur['manufacturer_id']) ? 
+			$ur['manufacturer_id']: NULL;
+		$this->manufacturer= isset($ur['manufacturer']) ? 
+			$ur['manufacturer'] : NULL;
+
+		$aCityData = array();
+		$this->city['id'] = $ur['city_id'];
+		$this->city['name'] = $ur['city'];
+		$this->city['reg_id'] = $ur['region_id'];
+		$this->city['region'] = $ur['region'];
+		$this->city['fdist_id'] = $ur['fd_id'];
+		$this->city['fdistrict'] = $ur['fdistrict'];
+		$this->city['fdistrict_short'] = $ur['fdistrict_short'];
+
+        $q = "SELECT img 
+        		FROM images 
+        		WHERE images.unit_id=%d
+        		ORDER BY `order`";
+
+        $q = sprintf($q, $this->id);
+        $res = $this->hDbConn->query($q);
+        while ($ir = $res->fetch(PDO::FETCH_ASSOC)) {
+        	$this->img[] = $ir['img'];
+        } 
+        
+    }
+    
+    /**
+     * Returns a DOMDocument with unit data
+     * <?xml version="1.0" encoding="utf-8"?>
+     * <root>
+     *	<unit id="UNIT_ID" name="UNIT_NAME">
+     *		<description>UNIT_DESCRIPTION</description>
+     *		<price>UNIT_PRICE</price>
+     *		<year>UNIT_YEAR</year>
+     *		<category id="CAT_ID">UNIT_CATEGORY</category>
+     *		<fdistrict id="FD_ID" short="УФО">Уральский федеральный округ</fdistrict>
+     *		<region id="REG_ID">Свердловская обл.</region>
+     *		<city id="CITY_ID">CITY_NAME</city>
+     *		<manufacturer id="MANUF_ID">LIEBHERR</manufacturer>
+     *		<images>
+     *			<img>584da0e1f350c.jpeg</img>
+     *			<img>584da0e225549.jpeg</img>
+     *			<img>584da0e24bc40.jpeg</img>
+     *		</images>
+     *	</unit>
+     * </root>
+     * 
+     */
+    function getUnitXML() {
+        $xmlDoc = new DOMDocument('1.0', 'utf-8');
+        $eRoot = $xmlDoc->createElement('root');
+        $eRoot = $xmlDoc->appendChild($eRoot);
+
+        $top = $xmlDoc->createElement('unit');
+        $top = $eRoot->appendChild($top);
+        $topAttr = $xmlDoc->createAttribute('id');
+        $topAttr->value = htmlentities($this->id);
+        $top->appendChild($topAttr);
+        $topAttr = $xmlDoc->createAttribute('name');
+        $topAttr->value = htmlentities($this->name);
+        $top->appendChild($topAttr);
+
+        $sub = $xmlDoc->createElement('description',
+            htmlentities($this->descrtiprion));
+        $top->appendChild($sub);
+        $sub = $xmlDoc->createElement('price',
+            htmlentities($this->price));
+        $top->appendChild($sub);
+        $sub = $xmlDoc->createElement('year',
+            htmlentities($this->year));
+        $top->appendChild($sub);
+
+        $sub = $xmlDoc->createElement('category',
+            htmlentities($this->category));
+        $subAttr = $xmlDoc->createAttribute('id');
+        $subAttr->value = htmlentities($this->cat_id);
+        $sub->appendChild($subAttr);
+        $top->appendChild($sub);
+        
+        $sub = $xmlDoc->createElement('fdistrict',
+            htmlentities($this->city['fdistrict']));
+        $subAttr = $xmlDoc->createAttribute('id');
+        $subAttr->value = htmlentities($this->city['fdist_id']);
+        $sub->appendChild($subAttr);
+        $subAttr = $xmlDoc->createAttribute('short');
+        $subAttr->value = htmlentities($this->city['fdistrict_short']);
+        $sub->appendChild($subAttr);
+        $top->appendChild($sub);
+  
+        $sub = $xmlDoc->createElement('region',
+            htmlentities($this->city['region']));
+        $subAttr = $xmlDoc->createAttribute('id');
+        $subAttr->value = htmlentities($this->city['reg_id']);
+        $sub->appendChild($subAttr);
+        $top->appendChild($sub);
+  
+        $sub = $xmlDoc->createElement('city',
+            htmlentities($this->city['name']));
+        $subAttr = $xmlDoc->createAttribute('id');
+        $subAttr->value = htmlentities($this->city['id']);
+        $sub->appendChild($subAttr);
+        $top->appendChild($sub);
+
+        $sub = $xmlDoc->createElement('manufacturer',
+            htmlentities($this->manufacturer));
+        $subAttr = $xmlDoc->createAttribute('id');
+        $subAttr->value = htmlentities($this->manuf_id);
+        $sub->appendChild($subAttr);
+        $top->appendChild($sub);
+
+        if (isset($dbRes['mileage'])) {
+            $sub = $xmlDoc->createElement('mileage',
+                htmlentities($this->mileage));
+            $top->appendChild($sub);
+        }
+        if (isset($dbRes['op_time'])) {
+            $sub = $xmlDoc->createElement('op_time',
+                htmlentities($this->op_time));
+            $top->appendChild($sub);
+        }
+        
+        $eImages = $xmlDoc->createElement('images');
+        $eImages = $top->appendChild($eImages);
+        foreach ($this->img as $img) {
+
+            $eImg = $xmlDoc->createElement('img', htmlentities($img));
+            $eImages->appendChild($eImg);
+        }
+
+		return $top;
+    }
+	
+}
+
 define('UNIT_QUERY', <<<EOF
 SELECT 
 u.id AS id,
@@ -51,8 +266,8 @@ EOF
  */
 class CModule
 {
-    protected $xslDoc = null;
-    protected $xmlDoc = null;
+    protected $xslDoc;
+    protected $xmlDoc;
 
     function __construct(&$hDbConn, $modName, $xslFile, $param1, $param2) {
         $this->hDbConn = $hDbConn;
@@ -83,7 +298,9 @@ class CModule
                 $this->mainPageList();
                 break;
             case "unit_page_unit":
-                $this->unitPageMain();
+		    	$unit = new CUnit($this->hDbConn, $_GET['id']);
+		    	$unit = $this->xmlDoc->importNode($unit->getUnitXML(), true);
+				$this->eRoot->appendChild($unit);
                 break;
             case "search_page_unit_list":
                 $this->searchPageMain();
@@ -218,7 +435,6 @@ class CModule
     }
 
     function fillUnit($dbRes) {
-  
         $top = $this->xmlDoc->createElement('unit');
         $top = $this->eRoot->appendChild($top);
         $topAttr = $this->xmlDoc->createAttribute('id');
@@ -462,7 +678,6 @@ class CModule
     }
     
     function searchForm() {
-        
         $xmlTop = $this->xmlDoc->createElement("page", $this->param1);
         $xmlTop = $this->eRoot->appendChild($xmlTop);
         
@@ -530,15 +745,21 @@ class CModule
             case "page_search":
                 $bFirst = true;
 
-                if ($_GET['vType'] != 0) {
-                    $stmt = $this->hDbConn->prepare('SELECT name FROM categories WHERE id=:id');
+                if ($_GET['vType'] > 0) {
+                    $stmt = $this->hDbConn->prepare('SELECT name 
+                    									FROM categories 
+                    									WHERE id=:id'
+                    								);
                     $stmt->bindValue(':id', $_GET['vType'], PDO::PARAM_INT);
                     $stmt->execute();
                     $this->content = $stmt->fetch(PDO::FETCH_ASSOC)['name'];
                     $bFirst = false;
                 }
-                if ($_GET['vManuf']) {
-                    $stmt = $this->hDbConn->prepare('SELECT name FROM manufacturers WHERE id=:id');
+                if ($_GET['vManuf'] > 0) {
+                    $stmt = $this->hDbConn->prepare('SELECT name
+                    									FROM manufacturers
+                    									WHERE id=:id'
+                    								);
                     $stmt->bindValue(':id', $_GET['vManuf'], PDO::PARAM_INT);
                     $stmt->execute();
                     if (!$bFirst)
@@ -547,8 +768,11 @@ class CModule
                         $bFirst = false;
                     $this->content .= $stmt->fetch(PDO::FETCH_ASSOC)['name'];
                 }
-                if ($_GET['vFedDistr']) {
-                    $stmt = $this->hDbConn->prepare('SELECT name FROM fdistricts WHERE id=:id');
+                if ($_GET['vFedDistr'] > 0) {
+                    $stmt = $this->hDbConn->prepare('SELECT name 
+                    									FROM fdistricts 
+                    									WHERE id=:id'
+                    								);
                     $stmt->bindValue(':id', $_GET['vFedDistr'], PDO::PARAM_INT);
                     $stmt->execute();
                     if (!$bFirst)
@@ -562,9 +786,12 @@ class CModule
                 break;
             case "page_unit":
                 if ($_GET['id'] != 0) {
-                    $q = sprintf("SELECT CONCAT(m.name,' ', u.name) as name ".
-                        "FROM units u JOIN manufacturers m ON ".
-                        "u.manufacturer_id=m.id WHERE u.id=%d",
+                    $q = sprintf("SELECT
+                    				CONCAT(m.name,' ', u.name) as name 
+                        			FROM units u
+                        			JOIN manufacturers m
+                        				ON u.manufacturer_id=m.id
+                        			WHERE u.id=%d",
                         $_GET['id']);
                     $res = $this->hDbConn->query($q);
                     $this->content = $res->fetch(PDO::FETCH_ASSOC)['name'];
@@ -588,7 +815,8 @@ class CModule
             $res = $this->hDbConn->query($q);
             $curUnit = $res->fetch(PDO::FETCH_ASSOC);
             
-            $q = sprintf("SELECT img FROM images WHERE unit_id=%d", $_GET['id']);
+            $q = sprintf("SELECT img FROM images WHERE unit_id=%d",
+            	$_GET['id']);
             $imgRes = $this->hDbConn->query($q);
 
             $xmlTop = $this->xmlDoc->createElement("id", 
@@ -743,8 +971,18 @@ class CModule
         $this->eRoot->appendChild($sUnitId);
         
         // fill comments list
-        $q = "SELECT id,user_id,type,name,comment,approved FROM comments ".
-            "WHERE unit_id=%d AND p_com_id IS NULL ORDER BY date ASC";
+        $q = "SELECT 
+	        		id,
+	        		user_id,
+	        		type,
+	        		name,
+	        		comment,
+	        		approved
+        		FROM comments
+            	WHERE 
+            		unit_id=%d AND
+            		p_com_id IS NULL 
+            	ORDER BY date ASC";
         $q = sprintf($q, $_GET['id']);
         $res = $this->hDbConn->query($q);
         if ($res->num_rows > 0) {
@@ -774,8 +1012,15 @@ class CModule
                     $attr->value = 'false';
                 $sComent->appendChild($attr);
 
-                $q = "SELECT id,user_id,type,name,comment,approved FROM comments ".
-                    "WHERE p_com_id=%d ORDER BY date ASC";
+                $q = "SELECT 
+                			id,
+                			user_id,
+                			type,name,
+                			comment,
+                			approved
+                		FROM comments
+                    	WHERE p_com_id=%d
+                    	ORDER BY date ASC";
                 $q = sprintf($q, $row['id']);
                 $subRes = $this->hDbConn->query($q);
                 while ($subRow = $subRes->fetch(PDO::FETCH_ASSOC)) {
@@ -804,33 +1049,28 @@ class CModule
 
             }
         }
-//echo $this->xmlDoc->saveXML();
-//exit;
-        
     }
 
     function searchPaginator($page) {
-        $q = <<<EOT
-SELECT
-COUNT(*) AS total
-FROM units
-JOIN cities ON units.city_id=cities.id
-JOIN regions ON cities.rd_id=regions.id
-JOIN fdistricts ON regions.fd_id=fdistricts.id
-JOIN categories ON units.cat_id=categories.id
-JOIN manufacturers ON manufacturers.id=units.manufacturer_id
-WHERE is_arch=FALSE
-EOT;
+        $q = 'SELECT
+				COUNT(*) AS total
+				FROM units
+				JOIN cities ON units.city_id=cities.id
+				JOIN regions ON cities.rd_id=regions.id
+				JOIN fdistricts ON regions.fd_id=fdistricts.id
+				JOIN categories ON units.cat_id=categories.id
+				JOIN manufacturers ON manufacturers.id=units.manufacturer_id
+				WHERE is_arch=FALSE';
 
         $bNeedAND = false;
         if ($_GET['vType'] != 0) {
-            $q .= sprintf(" AND cat_id=%d", $_GET['vType']);
+            $q .= sprintf(' AND cat_id=%d', $_GET['vType']);
         }
         if ($_GET['vManuf']) {
-            $q .= sprintf(" AND manufacturer_id=%d", $_GET[vManuf]);
+            $q .= sprintf(' AND manufacturer_id=%d', $_GET[vManuf]);
         }
         if ($_GET['vFedDistr']) {
-            $q .= sprintf(" AND fd_id=%d", $_GET[vFedDistr]);
+            $q .= sprintf(' AND fd_id=%d', $_GET[vFedDistr]);
         }
 
         $countRes = $this->hDbConn->query($q);
@@ -848,13 +1088,19 @@ EOT;
         $vFedDistr = isset($_GET['vFedDistr']) ? $_GET['vFedDistr'] : 0;
         switch ($page) {
             case "search":
-                $sLinkPattern = htmlentities("/search/$vType/$vManuf/$vFedDistr/%d");
+            	$aVar = ['search', $vType, $vManuf, $vFedDistr, '%d'];
+            	$sLinkPattern = htmlentities("/".implode("/", $aVar));
                 break;
             case "admin":
-                $sLinkPattern = htmlentities("?page=admin&act=main&vType=".
-                    $vType."&vManuf=".$vManuf."&vFedDistr=".
-                    $vFedDistr."&offset=%d"
-                );
+            	$aVar = array(
+            		'page'		=> 'admin',
+            		'act'		=> 'main',
+            		'vType'		=> $vType,
+            		'vManut'	=> $vManuf,
+            		'vFedDistr'	=> $vFedDistr,
+            		'offset'	=> '%d'
+            	);
+            	$sLinkPattern = htmlentities('?'.http_build_query($aVar));
                 break;
         }
 
@@ -897,7 +1143,15 @@ EOT;
         }
     }
 
-    function unitPageMain() {
+    function DEL_unitPageMain() {
+    	$unit = new CUnit($this->hDbConn, $_GET['id']);
+		$this->xmlDoc = $unit->saveXML();
+//		echo($this->xmlDoc->saveXML());
+//		exit;
+		return;
+    	var_dump($unit);
+    	exit;
+    	
         $q = UNIT_QUERY." WHERE u.id=%d";
 
         $q = sprintf($q, $_GET['id']);
@@ -909,17 +1163,23 @@ EOT;
 
         $q = sprintf($q, $_GET['id']);
         $res = $this->hDbConn->query($q);
+        $eImages = $this->xmlDoc->createElement('images');
+        $eImages = $eUnit->appendChild($eImages);
         while ($ir = $res->fetch(PDO::FETCH_ASSOC)) {
-            $eImages = $this->xmlDoc->createElement('images');
-            $eImages = $eUnit->appendChild($eImages);
             $eImg = $this->xmlDoc->createElement('img', htmlentities($ir['img']));
             $eImages->appendChild($eImg);
         }
     }
     
     function mainPageList() {
-        $q = "SELECT cat.id, cat.name FROM categories cat JOIN units u ".
-            "ON cat.id=u.cat_id GROUP By cat.id HAVING count(cat.id)>0";
+        $q = 'SELECT 
+        			cat.id,
+        			cat.name
+        		FROM 
+        			categories cat 
+        		JOIN units u ON cat.id=u.cat_id 
+        		GROUP By cat.id 
+        		HAVING COUNT(cat.id)>0';
         $cat_res = $this->hDbConn->query($q);
         while ($cr = $cat_res->fetch(PDO::FETCH_ASSOC)) {
             $eCat = $this->xmlDoc->createElement('category');
@@ -932,11 +1192,22 @@ EOT;
             $eCat = $this->eRoot->appendChild($eCat);
             $q = UNIT_QUERY." WHERE is_arch=FALSE AND cat_id=%d ORDER BY u.date DESC LIMIT 4";
 
+			$q = 'SELECT id
+					FROM units
+					WHERE
+						is_arch=FALSE AND
+						cat_id=%d
+					ORDER BY date DESC
+					LIMIT 4';
+
             $q = sprintf($q, $cr['id']);
             $unit_res = $this->hDbConn->query($q);
             while ($ur = $unit_res->fetch(PDO::FETCH_ASSOC)) {
-                $eCat->appendChild($this->fillUnit($ur));
-                
+            	$unit = new CUnit($this->hDbConn, $ur['id']);
+            	$unit = $unit->getUnitXML();
+				$unit = $this->xmlDoc->importNode($unit, true);
+				$eCat->appendChild($unit);
+				unset($unit);
             }
         }
     }

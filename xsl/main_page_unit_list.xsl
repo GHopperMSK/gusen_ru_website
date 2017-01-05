@@ -19,7 +19,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
                         <img>
                             <xsl:attribute name="alt"><xsl:value-of select="manufacturer"/><xsl:text> </xsl:text><xsl:value-of select="@name"/>
                             </xsl:attribute>
-                            <xsl:attribute name="src">images/tmb/<xsl:value-of select="img"/>
+                            <xsl:attribute name="src">images/tmb/<xsl:value-of select="images/img"/>
                             </xsl:attribute>
                         </img>
                         <a>
