@@ -1,4 +1,6 @@
 <?php
+namespace gusenru;
+
 /**
   * PDO wrapper
   *
@@ -20,7 +22,7 @@ class CDataBase
 
     function __construct($host, $user, $pass, $db) {
 
-        $this->hDbConn = new PDO("mysql:host=$host;dbname=$db;charset=".DB_CHARSET, 
+        $this->hDbConn = new \PDO("mysql:host=$host;dbname=$db;charset=".DB_CHARSET, 
             $user,
             $pass
         );

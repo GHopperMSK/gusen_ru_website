@@ -1,249 +1,5 @@
 <?php
-
-class CUnit
-{
-	private $id = null;
-	private $name;
-	private $description;
-	private $price;
-	private $year;
-	private $mileage;
-	private $op_time;
-	private $city = array();
-	private $cat_id;
-	private $category;
-	private $manuf_id;
-	private $manufacturer;
-	private $img = array();
-	
-	private $hDbConn = null;
-	
-	function __construct(&$hDbConn, $id=NULL) {
-        if ($hDbConn instanceof CDataBase) {
-            $this->hDbConn = $hDbConn;
-        }
-        else {
-            echo 'Wrong MySQLi connection was passed!';
-            exit;
-        }
-        if ($id) {
-        	$this->id = $id;
-        	$this->fillUnitData();
-        }
-    }
-    
-    function fillUnitData() {
-    	// add check $this->id
-        $q = 'SELECT 
-					u.id AS id,
-					u.name AS name,
-					u.description AS description,
-					u.price AS price,
-					u.year AS year,
-					u.mileage AS mileage,
-					u.op_time AS op_time,
-					cities.id AS city_id,
-					cities.name AS city,
-					regions.id AS region_id,
-					regions.name AS region,
-					fdistricts.id AS fd_id,
-					fdistricts.name AS fdistrict,
-					fdistricts.short_name AS fdistrict_short,
-					categories.id AS cat_id,
-					categories.name AS category,
-					manufacturers.id AS manufacturer_id,
-					manufacturers.name AS manufacturer,
-					(SELECT img 
-						FROM images i 
-						WHERE i.unit_id=u.id 
-						ORDER BY `ORDER` ASC
-						LIMIT 1) as img
-				FROM units u
-				JOIN cities ON u.city_id=cities.id
-				JOIN regions ON cities.rd_id=regions.id
-				JOIN fdistricts ON regions.fd_id=fdistricts.id
-				JOIN categories ON u.cat_id=categories.id
-				JOIN manufacturers ON manufacturers.id=u.manufacturer_id
-				WHERE u.id=%d';
-
-        $q = sprintf($q, $this->id);
-        $res = $this->hDbConn->query($q);
-        $ur = $res->fetch(PDO::FETCH_ASSOC);
-        
-		$this->name = isset($ur['name']) ? $ur['name'] : NULL;
-		$this->description = isset($ur['description']) ? 
-			$ur['description']: NULL;
-		$this->price = isset($ur['price']) ? $ur['price'] : NULL;
-		$this->year = isset($ur['year']) ? $ur['year'] : NULL;
-		$this->mileage = isset($ur['milage']) ? $ur['milage'] : NULL;
-		$this->op_time = isset($ur['op_time']) ? $ur['op_time'] : NULL;
-		$this->cat_id = isset($ur['cat_id']) ? $ur['cat_id'] : NULL;
-		$this->category = isset($ur['category']) ? $ur['category'] : NULL;
-		$this->manuf_id = isset($ur['manufacturer_id']) ? 
-			$ur['manufacturer_id']: NULL;
-		$this->manufacturer= isset($ur['manufacturer']) ? 
-			$ur['manufacturer'] : NULL;
-
-		$aCityData = array();
-		$this->city['id'] = $ur['city_id'];
-		$this->city['name'] = $ur['city'];
-		$this->city['reg_id'] = $ur['region_id'];
-		$this->city['region'] = $ur['region'];
-		$this->city['fdist_id'] = $ur['fd_id'];
-		$this->city['fdistrict'] = $ur['fdistrict'];
-		$this->city['fdistrict_short'] = $ur['fdistrict_short'];
-
-        $q = "SELECT img 
-        		FROM images 
-        		WHERE images.unit_id=%d
-        		ORDER BY `order`";
-
-        $q = sprintf($q, $this->id);
-        $res = $this->hDbConn->query($q);
-        while ($ir = $res->fetch(PDO::FETCH_ASSOC)) {
-        	$this->img[] = $ir['img'];
-        } 
-        
-    }
-    
-    /**
-     * Returns a DOMDocument with unit data
-     * <?xml version="1.0" encoding="utf-8"?>
-     * <root>
-     *	<unit id="UNIT_ID" name="UNIT_NAME">
-     *		<description>UNIT_DESCRIPTION</description>
-     *		<price>UNIT_PRICE</price>
-     *		<year>UNIT_YEAR</year>
-     *		<category id="CAT_ID">UNIT_CATEGORY</category>
-     *		<fdistrict id="FD_ID" short="УФО">Уральский федеральный округ</fdistrict>
-     *		<region id="REG_ID">Свердловская обл.</region>
-     *		<city id="CITY_ID">CITY_NAME</city>
-     *		<manufacturer id="MANUF_ID">LIEBHERR</manufacturer>
-     *		<images>
-     *			<img>584da0e1f350c.jpeg</img>
-     *			<img>584da0e225549.jpeg</img>
-     *			<img>584da0e24bc40.jpeg</img>
-     *		</images>
-     *	</unit>
-     * </root>
-     * 
-     */
-    function getUnitXML() {
-        $xmlDoc = new DOMDocument('1.0', 'utf-8');
-        $eRoot = $xmlDoc->createElement('root');
-        $eRoot = $xmlDoc->appendChild($eRoot);
-
-        $top = $xmlDoc->createElement('unit');
-        $top = $eRoot->appendChild($top);
-        $topAttr = $xmlDoc->createAttribute('id');
-        $topAttr->value = htmlentities($this->id);
-        $top->appendChild($topAttr);
-        $topAttr = $xmlDoc->createAttribute('name');
-        $topAttr->value = htmlentities($this->name);
-        $top->appendChild($topAttr);
-
-        $sub = $xmlDoc->createElement('description',
-            htmlentities($this->descrtiprion));
-        $top->appendChild($sub);
-        $sub = $xmlDoc->createElement('price',
-            htmlentities($this->price));
-        $top->appendChild($sub);
-        $sub = $xmlDoc->createElement('year',
-            htmlentities($this->year));
-        $top->appendChild($sub);
-
-        $sub = $xmlDoc->createElement('category',
-            htmlentities($this->category));
-        $subAttr = $xmlDoc->createAttribute('id');
-        $subAttr->value = htmlentities($this->cat_id);
-        $sub->appendChild($subAttr);
-        $top->appendChild($sub);
-        
-        $sub = $xmlDoc->createElement('fdistrict',
-            htmlentities($this->city['fdistrict']));
-        $subAttr = $xmlDoc->createAttribute('id');
-        $subAttr->value = htmlentities($this->city['fdist_id']);
-        $sub->appendChild($subAttr);
-        $subAttr = $xmlDoc->createAttribute('short');
-        $subAttr->value = htmlentities($this->city['fdistrict_short']);
-        $sub->appendChild($subAttr);
-        $top->appendChild($sub);
-  
-        $sub = $xmlDoc->createElement('region',
-            htmlentities($this->city['region']));
-        $subAttr = $xmlDoc->createAttribute('id');
-        $subAttr->value = htmlentities($this->city['reg_id']);
-        $sub->appendChild($subAttr);
-        $top->appendChild($sub);
-  
-        $sub = $xmlDoc->createElement('city',
-            htmlentities($this->city['name']));
-        $subAttr = $xmlDoc->createAttribute('id');
-        $subAttr->value = htmlentities($this->city['id']);
-        $sub->appendChild($subAttr);
-        $top->appendChild($sub);
-
-        $sub = $xmlDoc->createElement('manufacturer',
-            htmlentities($this->manufacturer));
-        $subAttr = $xmlDoc->createAttribute('id');
-        $subAttr->value = htmlentities($this->manuf_id);
-        $sub->appendChild($subAttr);
-        $top->appendChild($sub);
-
-        if (isset($dbRes['mileage'])) {
-            $sub = $xmlDoc->createElement('mileage',
-                htmlentities($this->mileage));
-            $top->appendChild($sub);
-        }
-        if (isset($dbRes['op_time'])) {
-            $sub = $xmlDoc->createElement('op_time',
-                htmlentities($this->op_time));
-            $top->appendChild($sub);
-        }
-        
-        $eImages = $xmlDoc->createElement('images');
-        $eImages = $top->appendChild($eImages);
-        foreach ($this->img as $img) {
-
-            $eImg = $xmlDoc->createElement('img', htmlentities($img));
-            $eImages->appendChild($eImg);
-        }
-
-		return $top;
-    }
-	
-}
-
-define('UNIT_QUERY', <<<EOF
-SELECT 
-u.id AS id,
-u.name AS name,
-u.description AS description,
-u.price AS price,
-u.year AS year,
-u.mileage AS mileage,
-u.op_time AS op_time,
-cities.id AS city_id,
-cities.name AS city,
-regions.id AS region_id,
-regions.name AS region,
-fdistricts.id AS fd_id,
-fdistricts.name AS fdistrict,
-fdistricts.short_name AS fdistrict_short,
-categories.id AS cat_id,
-categories.name AS category,
-manufacturers.id AS manufacturer_id,
-manufacturers.name AS manufacturer,
-(SELECT img FROM images i WHERE i.unit_id=u.id ORDER BY `ORDER` ASC LIMIT 1) as img
-FROM units u
-JOIN cities ON u.city_id=cities.id
-JOIN regions ON cities.rd_id=regions.id
-JOIN fdistricts ON regions.fd_id=fdistricts.id
-JOIN categories ON u.cat_id=categories.id
-JOIN manufacturers ON manufacturers.id=u.manufacturer_id
-EOF
-);
-
+namespace gusenru;
 
 /**
  * CModule class
@@ -280,10 +36,10 @@ class CModule
         
         if ($this->xslFile != 'null') {
             if (file_exists("xsl/".$this->xslFile)) {
-                $this->xslDoc = new DOMDocument();
+                $this->xslDoc = new \DOMDocument();
                 $this->xslDoc->load("xsl/".$this->xslFile);
     
-                $this->xmlDoc = new DOMDocument('1.0', 'utf-8');
+                $this->xmlDoc = new \DOMDocument('1.0', 'utf-8');
                 $eRoot = $this->xmlDoc->createElement('root');
                 $this->eRoot = $this->xmlDoc->appendChild($eRoot);
             }
@@ -299,7 +55,7 @@ class CModule
                 break;
             case "unit_page_unit":
 		    	$unit = new CUnit($this->hDbConn, $_GET['id']);
-		    	$unit = $this->xmlDoc->importNode($unit->getUnitXML(), true);
+		    	$unit = $this->xmlDoc->importNode($unit->getUnitDom(), true);
 				$this->eRoot->appendChild($unit);
                 break;
             case "search_page_unit_list":
@@ -434,83 +190,6 @@ class CModule
         }
     }
 
-    function fillUnit($dbRes) {
-        $top = $this->xmlDoc->createElement('unit');
-        $top = $this->eRoot->appendChild($top);
-        $topAttr = $this->xmlDoc->createAttribute('id');
-        $topAttr->value = htmlentities($dbRes['id']);
-        $top->appendChild($topAttr);
-        $topAttr = $this->xmlDoc->createAttribute('name');
-        $topAttr->value = htmlentities($dbRes['name']);
-        $top->appendChild($topAttr);
-
-        $sub = $this->xmlDoc->createElement('description',
-            htmlentities($dbRes['description']));
-        $top->appendChild($sub);
-        $sub = $this->xmlDoc->createElement('price',
-            htmlentities($dbRes['price']));
-        $top->appendChild($sub);
-        $sub = $this->xmlDoc->createElement('year',
-            htmlentities($dbRes['year']));
-        $top->appendChild($sub);
-
-
-        $sub = $this->xmlDoc->createElement('category',
-            htmlentities($dbRes['category']));
-        $subAttr = $this->xmlDoc->createAttribute('id');
-        $subAttr->value = htmlentities($dbRes['cat_id']);
-        $sub->appendChild($subAttr);
-        $top->appendChild($sub);
-        
-        $sub = $this->xmlDoc->createElement('fdistrict',
-            htmlentities($dbRes['fdistrict']));
-        $subAttr = $this->xmlDoc->createAttribute('id');
-        $subAttr->value = htmlentities($dbRes['fd_id']);
-        $sub->appendChild($subAttr);
-        $subAttr = $this->xmlDoc->createAttribute('short');
-        $subAttr->value = htmlentities($dbRes['fdistrict_short']);
-        $sub->appendChild($subAttr);
-        $top->appendChild($sub);
-  
-        $sub = $this->xmlDoc->createElement('region',
-            htmlentities($dbRes['region']));
-        $subAttr = $this->xmlDoc->createAttribute('id');
-        $subAttr->value = htmlentities($dbRes['region_id']);
-        $sub->appendChild($subAttr);
-        $top->appendChild($sub);
-  
-        $sub = $this->xmlDoc->createElement('city',
-            htmlentities($dbRes['city']));
-        $subAttr = $this->xmlDoc->createAttribute('id');
-        $subAttr->value = htmlentities($dbRes['city_id']);
-        $sub->appendChild($subAttr);
-        $top->appendChild($sub);
-
-        $sub = $this->xmlDoc->createElement('manufacturer',
-            htmlentities($dbRes['manufacturer']));
-        $subAttr = $this->xmlDoc->createAttribute('id');
-        $subAttr->value = htmlentities($dbRes['manufacturer_id']);
-        $sub->appendChild($subAttr);
-        $top->appendChild($sub);
-
-        if (isset($dbRes['mileage'])) {
-            $sub = $this->xmlDoc->createElement('mileage',
-                htmlentities($dbRes['mileage']));
-            $top->appendChild($sub);
-        }
-        if (isset($dbRes['op_time'])) {
-            $sub = $this->xmlDoc->createElement('op_time',
-                htmlentities($dbRes['op_time']));
-            $top->appendChild($sub);
-        }
-
-        $sub = $this->xmlDoc->createElement('img',
-            htmlentities($dbRes['img']));
-        $top->appendChild($sub);
-        
-        return $top;
-    }    
-    
     function fillUser() {
         $sUser = $this->xmlDoc->createElement("user");
         $sUser = $this->eRoot->appendChild($sUser);
@@ -532,7 +211,7 @@ class CModule
     
     function execute() {
         if ($this->xslFile != 'null') {
-            $hProc = new XSLTProcessor();
+            $hProc = new \XSLTProcessor();
             $hProc->importStylesheet($this->xslDoc);
             return $hProc->transformToXML($this->xmlDoc);
         }
@@ -629,7 +308,7 @@ class CModule
     function commentsUnapprovedTotal() {
         $q = "SELECT count(*) AS total FROM comments WHERE approved IS NULL";
         $res = $this->hDbConn->query($q);
-        $row = $res->fetch(PDO::FETCH_ASSOC);
+        $row = $res->fetch(\PDO::FETCH_ASSOC);
         
         $this->content = $row['total'];
     }
@@ -653,8 +332,8 @@ class CModule
     function adminCommentsList() {
         if (isset($_POST['comment_id'])) {
             $stmt = $this->hDbConn->prepare('UPDATE comments SET approved=:approve WHERE id=:id');
-            $stmt->bindParam(':approve', $approve, PDO::PARAM_STR);
-            $stmt->bindParam(':id', $com_id, PDO::PARAM_INT);
+            $stmt->bindParam(':approve', $approve, \PDO::PARAM_STR);
+            $stmt->bindParam(':id', $com_id, \PDO::PARAM_INT);
             foreach ($_POST['comment_id'] as $com_id) {
                 $approve = in_array($com_id, $_POST['approved']) ? 'TRUE' : 'FALSE';
                 $stmt->execute();
@@ -664,7 +343,7 @@ class CModule
             "JOIN units un ON cm.unit_id=un.id ".
             "WHERE approved IS NULL ORDER BY cm.date ASC LIMIT 200";
         $res = $this->hDbConn->query($q);
-        while ($row = $res->fetch(PDO::FETCH_ASSOC)) {
+        while ($row = $res->fetch(\PDO::FETCH_ASSOC)) {
             $sComent = $this->xmlDoc->createElement("comment",
                 htmlentities($row['comment']));
             $sComent = $this->eRoot->appendChild($sComent);
@@ -688,7 +367,7 @@ class CModule
             "GROUP BY cat.id HAVING count(cat.id) > 0 ".
             "ORDER BY name";
         $res = $this->hDbConn->query($q);
-        while ($row = $res->fetch(PDO::FETCH_ASSOC)) {
+        while ($row = $res->fetch(\PDO::FETCH_ASSOC)) {
             $xmlSubTop = $this->xmlDoc->createElement("category",
                 htmlentities($row['name']));
             $xmlSubTopAttr = $this->xmlDoc->createAttribute('id');
@@ -703,11 +382,16 @@ class CModule
         }
         $xmlTop = $this->xmlDoc->createElement("manufacturers");
         $xmlTop = $this->eRoot->appendChild($xmlTop);
-        $q = "SELECT m.id,m.name FROM manufacturers m ".
-            "JOIN units u ON m.id=u.manufacturer_id ".
-            "GROUP BY m.id HAVING count(m.id)>0 ORDER BY name;";
+        $q = 'SELECT
+        			m.id,
+        			m.name
+        		FROM manufacturers m
+        		JOIN units u ON m.id=u.manufacturer_id
+        		GROUP BY m.id 
+        		HAVING count(m.id)>0 
+        		ORDER BY name';
         $res = $this->hDbConn->query($q);
-        while ($row = $res->fetch(PDO::FETCH_ASSOC)) {
+        while ($row = $res->fetch(\PDO::FETCH_ASSOC)) {
             $xmlSubTop = $this->xmlDoc->createElement("manufacturer",
                 htmlentities($row['name']));
             $xmlSubTopAttr = $this->xmlDoc->createAttribute('id');
@@ -722,9 +406,9 @@ class CModule
         }
         $xmlTop = $this->xmlDoc->createElement("fdistricts");
         $xmlTop = $this->eRoot->appendChild($xmlTop);
-        $q = "SELECT id,name FROM `fdistricts` ORDER BY name";
+        $q = 'SELECT id,name FROM `fdistricts` ORDER BY name';
         $res = $this->hDbConn->query($q);
-        while ($row = $res->fetch(PDO::FETCH_ASSOC)) {
+        while ($row = $res->fetch(\PDO::FETCH_ASSOC)) {
             $xmlSubTop = $this->xmlDoc->createElement("fdistrict",
                 htmlentities($row['name']));
             $xmlSubTopAttr = $this->xmlDoc->createAttribute('id');
@@ -750,9 +434,9 @@ class CModule
                     									FROM categories 
                     									WHERE id=:id'
                     								);
-                    $stmt->bindValue(':id', $_GET['vType'], PDO::PARAM_INT);
+                    $stmt->bindValue(':id', $_GET['vType'], \PDO::PARAM_INT);
                     $stmt->execute();
-                    $this->content = $stmt->fetch(PDO::FETCH_ASSOC)['name'];
+                    $this->content = $stmt->fetch(\PDO::FETCH_ASSOC)['name'];
                     $bFirst = false;
                 }
                 if ($_GET['vManuf'] > 0) {
@@ -760,26 +444,26 @@ class CModule
                     									FROM manufacturers
                     									WHERE id=:id'
                     								);
-                    $stmt->bindValue(':id', $_GET['vManuf'], PDO::PARAM_INT);
+                    $stmt->bindValue(':id', $_GET['vManuf'], \PDO::PARAM_INT);
                     $stmt->execute();
                     if (!$bFirst)
                         $this->content .= ' / ';
                     else
                         $bFirst = false;
-                    $this->content .= $stmt->fetch(PDO::FETCH_ASSOC)['name'];
+                    $this->content .= $stmt->fetch(\PDO::FETCH_ASSOC)['name'];
                 }
                 if ($_GET['vFedDistr'] > 0) {
                     $stmt = $this->hDbConn->prepare('SELECT name 
                     									FROM fdistricts 
                     									WHERE id=:id'
                     								);
-                    $stmt->bindValue(':id', $_GET['vFedDistr'], PDO::PARAM_INT);
+                    $stmt->bindValue(':id', $_GET['vFedDistr'], \PDO::PARAM_INT);
                     $stmt->execute();
                     if (!$bFirst)
                         $this->content .= ' / ';
                     else
                         $bFirst = false;
-                    $this->content .= $stmt->fetch(PDO::FETCH_ASSOC)['name'];
+                    $this->content .= $stmt->fetch(\PDO::FETCH_ASSOC)['name'];
                 }    
                 if ($bFirst)
                     $this->content = "Агенство спецтехники Гусеница";
@@ -794,14 +478,14 @@ class CModule
                         			WHERE u.id=%d",
                         $_GET['id']);
                     $res = $this->hDbConn->query($q);
-                    $this->content = $res->fetch(PDO::FETCH_ASSOC)['name'];
+                    $this->content = $res->fetch(\PDO::FETCH_ASSOC)['name'];
                 }
                 break;
         }
     }
 
     /**
-     * Generates XML for unit form content. Later we will combine it with XSL 
+     * Generates XML-data for unit form content. It will be combined with XSL 
      * file to get empty form for unit adding or filled form for unit editing.
      * 
      * @return void
@@ -811,16 +495,9 @@ class CModule
         if (isset($_GET['id'])) {
             $isEdit = true;
             
-            $q = UNIT_QUERY.sprintf(" WHERE u.id=%d", $_GET['id']);
-            $res = $this->hDbConn->query($q);
-            $curUnit = $res->fetch(PDO::FETCH_ASSOC);
-            
-            $q = sprintf("SELECT img FROM images WHERE unit_id=%d",
-            	$_GET['id']);
-            $imgRes = $this->hDbConn->query($q);
-
+            $unit = new CUnit($this->hDbConn, $_GET['id']);
             $xmlTop = $this->xmlDoc->createElement("id", 
-                htmlentities($curUnit['id']));
+                htmlentities($_GET['id']));
             $xmlTop = $this->eRoot->appendChild($xmlTop);
             
             $actType = "unit_edit";            
@@ -838,14 +515,14 @@ class CModule
         $xmlTop = $this->eRoot->appendChild($xmlTop);
         $q = "SELECT id,name FROM categories ORDER BY name";
         $res = $this->hDbConn->query($q);
-        while ($qrow = $res->fetch(PDO::FETCH_ASSOC)) {
+        while ($qrow = $res->fetch(\PDO::FETCH_ASSOC)) {
             $xmlSubTop = $this->xmlDoc->createElement("category",
                 htmlentities($qrow['name']));
             $xmlSubTopAttr = $this->xmlDoc->createAttribute('id');
             $xmlSubTopAttr->value = $qrow['id']; 
             $xmlSubTop->appendChild($xmlSubTopAttr);
-            if (($isEdit) AND
-                    ($curUnit['cat_id'] == $qrow['id'])) {
+            if (($isEdit) &&
+                    ($unit->getParam('cat_id') === $qrow['id'])) {
                 $xmlSubTopAttr = $this->xmlDoc->createAttribute('selected');
                 $xmlSubTopAttr->value = 'true'; 
                 $xmlSubTop->appendChild($xmlSubTopAttr);                
@@ -856,14 +533,14 @@ class CModule
         $xmlTop = $this->eRoot->appendChild($xmlTop);
         $q = "SELECT id,name FROM fdistricts ORDER BY name";
         $res = $this->hDbConn->query($q);
-        while ($qrow = $res->fetch(PDO::FETCH_ASSOC)) {
+        while ($qrow = $res->fetch(\PDO::FETCH_ASSOC)) {
             $xmlSubTop = $this->xmlDoc->createElement("fdistrict",
                 htmlentities($qrow['name']));
             $xmlSubTopAttr = $this->xmlDoc->createAttribute('id');
             $xmlSubTopAttr->value = $qrow['id']; 
             $xmlSubTop->appendChild($xmlSubTopAttr);
             if (($isEdit) AND
-                    ($curUnit['fd_id'] == $qrow['id'])) {
+                    ($unit->getCityParam('fdist_id') === $qrow['id'])) {
                 $xmlSubTopAttr = $this->xmlDoc->createAttribute('selected');
                 $xmlSubTopAttr->value = 'true'; 
                 $xmlSubTop->appendChild($xmlSubTopAttr);                
@@ -873,16 +550,16 @@ class CModule
         $xmlTop = $this->xmlDoc->createElement("cities");
         $xmlTop = $this->eRoot->appendChild($xmlTop);
         $q = sprintf("SELECT id,name FROM cities WHERE rd_id=%d",
-            $curUnit['region_id']);
+            $unit->getCityParam('reg_id'));
         $res = $this->hDbConn->query($q);
-        while ($qrow = $res->fetch(PDO::FETCH_ASSOC)) {
+        while ($qrow = $res->fetch(\PDO::FETCH_ASSOC)) {
             $xmlSubTop = $this->xmlDoc->createElement("city",
                 htmlentities($qrow['name']));
             $xmlSubTopAttr = $this->xmlDoc->createAttribute('id');
             $xmlSubTopAttr->value = $qrow['id']; 
             $xmlSubTop->appendChild($xmlSubTopAttr);
             if (($isEdit) AND
-                    ($curUnit['city_id'] == $qrow['id'])) {
+                    ($unit->getCityParam('id') === $qrow['id'])) {
                 $xmlSubTopAttr = $this->xmlDoc->createAttribute('selected');
                 $xmlSubTopAttr->value = 'true'; 
                 $xmlSubTop->appendChild($xmlSubTopAttr);                
@@ -893,14 +570,14 @@ class CModule
         $xmlTop = $this->eRoot->appendChild($xmlTop);
         $q = "SELECT id,name FROM manufacturers ORDER BY name";
         $res = $this->hDbConn->query($q);
-        while ($qrow = $res->fetch(PDO::FETCH_ASSOC)) {
+        while ($qrow = $res->fetch(\PDO::FETCH_ASSOC)) {
             $xmlSubTop = $this->xmlDoc->createElement("manufacturer",
                 htmlentities($qrow['name']));
             $xmlSubTopAttr = $this->xmlDoc->createAttribute('id');
             $xmlSubTopAttr->value = $qrow['id']; 
             $xmlSubTop->appendChild($xmlSubTopAttr);
             if (($isEdit) AND
-                    ($curUnit['manufacturer_id'] == $qrow['id'])) {
+                    ($unit->getParam('manuf_id') === $qrow['id'])) {
                 $xmlSubTopAttr = $this->xmlDoc->createAttribute('selected');
                 $xmlSubTopAttr->value = 'true'; 
                 $xmlSubTop->appendChild($xmlSubTopAttr);                
@@ -910,33 +587,36 @@ class CModule
 
         if ($isEdit) {
             $xmlTop = $this->xmlDoc->createElement("name", 
-                htmlentities($curUnit['name']));
+                htmlentities($unit->getParam('name')));
             $xmlTop = $this->eRoot->appendChild($xmlTop);
             $xmlTop = $this->xmlDoc->createElement("description", 
-                htmlentities($curUnit['description']));
+                htmlentities($unit->getParam('description')));
             $xmlTop = $this->eRoot->appendChild($xmlTop);
             $xmlTop = $this->xmlDoc->createElement("year", 
-                htmlentities($curUnit['year']));
+                htmlentities($unit->getParam('year')));
             $xmlTop = $this->eRoot->appendChild($xmlTop);
             $xmlTop = $this->xmlDoc->createElement("price", 
-                htmlentities($curUnit['price']));
+                htmlentities($unit->getParam('price')));
             $xmlTop = $this->eRoot->appendChild($xmlTop);
-            if (isset($curUnit['mileage'])) {
+
+            if ($unit->isSetParam('mileage')) {
                 $xmlTop = $this->xmlDoc->createElement("mileage", 
-                    $curUnit['mileage']);
+                    $unit->getParam('mileage'));
                 $xmlTop = $this->eRoot->appendChild($xmlTop);
             }
-            if (isset($curUnit['op_time'])) {
+
+            if ($unit->isSetParam('op_time')) {
                 $xmlTop = $this->xmlDoc->createElement("op_time", 
-                    $curUnit['op_time']);
+                    $unit->getParam('op_time'));
                 $xmlTop = $this->eRoot->appendChild($xmlTop);
             }
     
             $xmlTop = $this->xmlDoc->createElement("images");
-            $xmlTop = $this->eRoot->appendChild($xmlTop);                
-            while ($imgRow = $imgRes->fetch(PDO::FETCH_ASSOC)) {
+            $xmlTop = $this->eRoot->appendChild($xmlTop);
+            $aImg = $unit->getParam('img');
+            foreach ($aImg as $img) {
                 $xmlSubTop = $this->xmlDoc->createElement("img",
-                    htmlentities($imgRow['img']));
+                    htmlentities($img));
                 $xmlTop->appendChild($xmlSubTop);
             }
         }
@@ -989,7 +669,7 @@ class CModule
             $sComents = $this->xmlDoc->createElement("comments");
             $sComents = $this->eRoot->appendChild($sComents);
             
-            while ($row = $res->fetch(PDO::FETCH_ASSOC)) {
+            while ($row = $res->fetch(\PDO::FETCH_ASSOC)) {
                 $sComent = $this->xmlDoc->createElement("comment",
                     htmlentities($row['comment']));
                 $sComent = $sComents->appendChild($sComent);
@@ -1023,7 +703,7 @@ class CModule
                     	ORDER BY date ASC";
                 $q = sprintf($q, $row['id']);
                 $subRes = $this->hDbConn->query($q);
-                while ($subRow = $subRes->fetch(PDO::FETCH_ASSOC)) {
+                while ($subRow = $subRes->fetch(\PDO::FETCH_ASSOC)) {
                     $sSubComent = $this->xmlDoc->createElement("comment",
                         htmlentities($subRow['comment']));
                     $sSubComent = $sComent->appendChild($sSubComent);
@@ -1074,7 +754,7 @@ class CModule
         }
 
         $countRes = $this->hDbConn->query($q);
-        $iTotal = $countRes->fetch(PDO::FETCH_ASSOC)['total'];
+        $iTotal = $countRes->fetch(\PDO::FETCH_ASSOC)['total'];
 
         // current page number
         if (isset($_GET['offset'])) {
@@ -1114,7 +794,9 @@ class CModule
     }
     
     function searchPageMain() {
-        $q = UNIT_QUERY . " WHERE is_arch=FALSE";
+        $q = 'SELECT id 
+        		FROM units
+        		WHERE is_arch=FALSE';
 
         if ($_GET['vType'] != 0) {
             $q .= sprintf(" AND cat_id=%d", $_GET['vType']);
@@ -1132,45 +814,21 @@ class CModule
             $iOffset = 1;
         }        
         
-        $q .= sprintf(" ORDER BY u.date DESC LIMIT %d,%d",
+        $q .= sprintf(" ORDER BY date DESC LIMIT %d,%d",
             ($iOffset-1)*PAGINATOR_SHOW_ON_PAGE,
             PAGINATOR_SHOW_ON_PAGE
         );
 
         $res = $this->hDbConn->query($q);
-        while ($ur = $res->fetch(PDO::FETCH_ASSOC)) {
-            $this->fillUnit($ur);
+        while ($ur = $res->fetch(\PDO::FETCH_ASSOC)) {
+        	$unit = new CUnit($this->hDbConn, $ur['id']);
+        	$unit = $unit->getUnitDom();
+			$unit = $this->xmlDoc->importNode($unit, true);
+			$this->eRoot->appendChild($unit);
+			unset($unit);
         }
     }
 
-    function DEL_unitPageMain() {
-    	$unit = new CUnit($this->hDbConn, $_GET['id']);
-		$this->xmlDoc = $unit->saveXML();
-//		echo($this->xmlDoc->saveXML());
-//		exit;
-		return;
-    	var_dump($unit);
-    	exit;
-    	
-        $q = UNIT_QUERY." WHERE u.id=%d";
-
-        $q = sprintf($q, $_GET['id']);
-        $res = $this->hDbConn->query($q);
-        $ur = $res->fetch(PDO::FETCH_ASSOC);
-        $eUnit = $this->fillUnit($ur);
-
-        $q = "SELECT img FROM images WHERE images.unit_id=%d ORDER BY `order`";
-
-        $q = sprintf($q, $_GET['id']);
-        $res = $this->hDbConn->query($q);
-        $eImages = $this->xmlDoc->createElement('images');
-        $eImages = $eUnit->appendChild($eImages);
-        while ($ir = $res->fetch(PDO::FETCH_ASSOC)) {
-            $eImg = $this->xmlDoc->createElement('img', htmlentities($ir['img']));
-            $eImages->appendChild($eImg);
-        }
-    }
-    
     function mainPageList() {
         $q = 'SELECT 
         			cat.id,
@@ -1181,7 +839,7 @@ class CModule
         		GROUP By cat.id 
         		HAVING COUNT(cat.id)>0';
         $cat_res = $this->hDbConn->query($q);
-        while ($cr = $cat_res->fetch(PDO::FETCH_ASSOC)) {
+        while ($cr = $cat_res->fetch(\PDO::FETCH_ASSOC)) {
             $eCat = $this->xmlDoc->createElement('category');
             $eCatId = $this->xmlDoc->createAttribute('id');
             $eCatId->value = htmlentities($cr['id']);
@@ -1190,7 +848,6 @@ class CModule
             $eCatName->value = htmlentities($cr['name']);
             $eCat->appendChild($eCatName);              
             $eCat = $this->eRoot->appendChild($eCat);
-            $q = UNIT_QUERY." WHERE is_arch=FALSE AND cat_id=%d ORDER BY u.date DESC LIMIT 4";
 
 			$q = 'SELECT id
 					FROM units
@@ -1202,9 +859,9 @@ class CModule
 
             $q = sprintf($q, $cr['id']);
             $unit_res = $this->hDbConn->query($q);
-            while ($ur = $unit_res->fetch(PDO::FETCH_ASSOC)) {
+            while ($ur = $unit_res->fetch(\PDO::FETCH_ASSOC)) {
             	$unit = new CUnit($this->hDbConn, $ur['id']);
-            	$unit = $unit->getUnitXML();
+            	$unit = $unit->getUnitDom();
 				$unit = $this->xmlDoc->importNode($unit, true);
 				$eCat->appendChild($unit);
 				unset($unit);

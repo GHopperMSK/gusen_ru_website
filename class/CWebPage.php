@@ -1,4 +1,5 @@
 <?php
+namespace gusenru;
 
 /**
  * CWebPage class
@@ -24,11 +25,12 @@ class CWebPage
     protected $sPageContent = ''; // whole page content
     
     function __construct($hDbConn) {
+    	
         if ($hDbConn instanceof CDataBase) {
             $this->hDbConn = $hDbConn;
         }
         else {
-            echo 'Wrong MySQLi connection was passed!';
+            echo 'Wrong CDataBase connection was passed!';
             exit;
         }
 
@@ -82,10 +84,10 @@ class CWebPage
                 $stmt->bindValue(
                     ':id',
                     $_GET['id'],
-                    PDO::PARAM_INT
+                    \PDO::PARAM_INT
                 );
                 $stmt->execute();
-                if ($stmt->fetch(PDO::FETCH_ASSOC)['cnt'] == 1) {
+                if ($stmt->fetch(\PDO::FETCH_ASSOC)['cnt'] == 1) {
                     $this->setTemplate('tpl/unit.tpl');
                 }
                 else {
@@ -554,7 +556,7 @@ class CWebPage
 
         $q = 'SELECT date FROM units ORDER BY date LIMIT 1';
         $res = $this->hDbConn->query($q);
-        $row = $res->fetch(PDO::FETCH_ASSOC);
+        $row = $res->fetch(\PDO::FETCH_ASSOC);
 
         $url = $xml->createElement('url');
         $l = $xml->createElement('loc',
@@ -592,7 +594,7 @@ class CWebPage
 
         $q = 'SELECT id,date FROM units';
         $res = $this->hDbConn->query($q);
-        while ($row = $res->fetch(PDO::FETCH_ASSOC)) {
+        while ($row = $res->fetch(\PDO::FETCH_ASSOC)) {
             $url = $xml->createElement('url');
             $l = $xml->createElement('loc',
                     htmlentities(
@@ -736,17 +738,17 @@ class CWebPage
                 									:op_time
                 								)'
                 							);
-            $stmt->bindValue(':cat_id', $_POST['category'], PDO::PARAM_INT);
-            $stmt->bindValue(':city_id', $_POST['city'], PDO::PARAM_INT);    
-            $stmt->bindValue(':manufacturer_id', $_POST['manufacturer'], PDO::PARAM_INT);    
-            $stmt->bindValue(':name', $_POST['name'], PDO::PARAM_STR);
-            $stmt->bindValue(':description', $_POST['description'], PDO::PARAM_STR);
-            $stmt->bindValue(':price', $_POST['price'], PDO::PARAM_INT);
-            $stmt->bindValue(':year', $_POST['year'], PDO::PARAM_INT);
+            $stmt->bindValue(':cat_id', $_POST['category'], \PDO::PARAM_INT);
+            $stmt->bindValue(':city_id', $_POST['city'], \PDO::PARAM_INT);    
+            $stmt->bindValue(':manufacturer_id', $_POST['manufacturer'], \PDO::PARAM_INT);    
+            $stmt->bindValue(':name', $_POST['name'], \PDO::PARAM_STR);
+            $stmt->bindValue(':description', $_POST['description'], \PDO::PARAM_STR);
+            $stmt->bindValue(':price', $_POST['price'], \PDO::PARAM_INT);
+            $stmt->bindValue(':year', $_POST['year'], \PDO::PARAM_INT);
             $mileage = ctype_digit($_POST['mileage']) ? $_POST['mileage'] : 'NULL';
-            $stmt->bindValue(':mileage', $mileage, PDO::PARAM_STR);
+            $stmt->bindValue(':mileage', $mileage, \PDO::PARAM_STR);
             $op_time =  ctype_digit($_POST['op_time']) ? $_POST['op_time'] : 'NULL';
-            $stmt->bindValue(':op_time', $op_time, PDO::PARAM_STR);
+            $stmt->bindValue(':op_time', $op_time, \PDO::PARAM_STR);
             $stmt->execute();
             $id = $this->hDbConn->lastInsertId();
     
@@ -762,9 +764,9 @@ class CWebPage
             										:ord
             									)'
             								);
-            $stmt->bindValue(':uid', $id, PDO::PARAM_INT);
-            $stmt->bindParam(':img', $img, PDO::PARAM_STR);
-            $stmt->bindParam(':ord', $ord, PDO::PARAM_INT);
+            $stmt->bindValue(':uid', $id, \PDO::PARAM_INT);
+            $stmt->bindParam(':img', $img, \PDO::PARAM_STR);
+            $stmt->bindParam(':ord', $ord, \PDO::PARAM_INT);
             
             for ($i = 0; $i < count($_POST['images']); $i++) {
                 rename('tmp_images/'.$_POST['images'][$i], 'images/'.$_POST['images'][$i]);
@@ -804,20 +806,20 @@ class CWebPage
             									WHERE 
             										id=:id'
             								);
-            $stmt->bindValue(':cat_id', $_POST['category'], PDO::PARAM_INT);
-            $stmt->bindValue(':city_id', $_POST['city'], PDO::PARAM_INT);    
-            $stmt->bindValue(':manufacturer_id', $_POST['manufacturer'], PDO::PARAM_INT);    
-            $stmt->bindValue(':name', $_POST['name'], PDO::PARAM_STR);
-            $stmt->bindValue(':description', $_POST['description'], PDO::PARAM_STR);
-            $stmt->bindValue(':price', $_POST['price'], PDO::PARAM_INT);
-            $stmt->bindValue(':year', $_POST['year'], PDO::PARAM_INT);
+            $stmt->bindValue(':cat_id', $_POST['category'], \PDO::PARAM_INT);
+            $stmt->bindValue(':city_id', $_POST['city'], \PDO::PARAM_INT);    
+            $stmt->bindValue(':manufacturer_id', $_POST['manufacturer'], \PDO::PARAM_INT);    
+            $stmt->bindValue(':name', $_POST['name'], \PDO::PARAM_STR);
+            $stmt->bindValue(':description', $_POST['description'], \PDO::PARAM_STR);
+            $stmt->bindValue(':price', $_POST['price'], \PDO::PARAM_INT);
+            $stmt->bindValue(':year', $_POST['year'], \PDO::PARAM_INT);
             $mileage = ctype_digit($_POST['mileage']) ? $_POST['mileage'] : 'NULL';
-            $stmt->bindValue(':mileage', $mileage, PDO::PARAM_STR);
+            $stmt->bindValue(':mileage', $mileage, \PDO::PARAM_INT);
             $op_time =  ctype_digit($_POST['op_time']) ? $_POST['op_time'] : 'NULL';
-            $stmt->bindValue(':op_time', $op_time, PDO::PARAM_STR);
-            $stmt->bindValue(':id', $_POST['id'], PDO::PARAM_INT);
+            $stmt->bindValue(':op_time', $op_time, \PDO::PARAM_INT);
+            $stmt->bindValue(':id', $_POST['id'], \PDO::PARAM_INT);
             $stmt->execute();
-    
+
             // delete present images which were removed 
             if (isset($_POST['available_images'])) {
                 foreach ($_POST['available_images'] as $available_image) {        
@@ -835,7 +837,7 @@ class CWebPage
             									FROM images 
             									WHERE unit_id=:id'
             								);
-            $stmt->bindValue(':id', $_POST['id'], PDO::PARAM_INT);
+            $stmt->bindValue(':id', $_POST['id'], \PDO::PARAM_INT);
             $stmt->execute();
             
             $stmt = $this->hDbConn->prepare('INSERT 
@@ -849,9 +851,9 @@ class CWebPage
             										:img,
             										:ord)'
             								);
-            $stmt->bindValue(':uid', $_POST['id'], PDO::PARAM_INT);
-            $stmt->bindParam(':img', $img, PDO::PARAM_STR);
-            $stmt->bindParam(':ord', $ord, PDO::PARAM_INT);
+            $stmt->bindValue(':uid', $_POST['id'], \PDO::PARAM_INT);
+            $stmt->bindParam(':img', $img, \PDO::PARAM_STR);
+            $stmt->bindParam(':ord', $ord, \PDO::PARAM_INT);
             
             for ($i = 0; $i < count($_POST['images']); $i++) {
                 if (array_search($_POST['images'][$i],
@@ -880,7 +882,7 @@ class CWebPage
         				WHERE unit_id=%d',
         				$u_id);
         $imagesRes = $this->hDbConn->query($q);
-        while ($ir = $imagesRes->fetch(PDO::FETCH_ASSOC)) {
+        while ($ir = $imagesRes->fetch(\PDO::FETCH_ASSOC)) {
             unlink('/images/tbm/'.$ir['name']);
             unlink('/images/'.$ir['name']);
         }
@@ -920,7 +922,7 @@ class CWebPage
                     filter_var($_GET['fdid'], FILTER_SANITIZE_NUMBER_INT)
                 );
                 if ($res = $this->hDbConn->query($q)) {
-                    while ($r = $res->fetch(PDO::FETCH_ASSOC)) {
+                    while ($r = $res->fetch(\PDO::FETCH_ASSOC)) {
                         $json[] = array(
                             'id' => $r['id'],
                             'name' => $r['name']
