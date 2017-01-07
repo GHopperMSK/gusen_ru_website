@@ -55,7 +55,7 @@ class CModule
                 break;
             case "unit_page_unit":
 		    	$unit = new CUnit($this->hDbConn, $_GET['id']);
-		    	$unit = $this->xmlDoc->importNode($unit->getUnitDom(), true);
+		    	$unit = $this->xmlDoc->importNode($unit->getUnitDOM(), true);
 				$this->eRoot->appendChild($unit);
                 break;
             case "search_page_unit_list":
@@ -269,7 +269,6 @@ class CModule
 
             
             // login form
-
             $sNet = $this->xmlDoc->createElement("snetwork");
             $sNet = $this->eRoot->appendChild($sNet);
             $subNodeAttr = $this->xmlDoc->createAttribute('name');
@@ -331,7 +330,11 @@ class CModule
      */
     function adminCommentsList() {
         if (isset($_POST['comment_id'])) {
-            $stmt = $this->hDbConn->prepare('UPDATE comments SET approved=:approve WHERE id=:id');
+            $stmt = $this->hDbConn->prepare('
+            	UPDATE comments
+            	SET approved=:approve 
+            	WHERE id=:id'
+            );
             $stmt->bindParam(':approve', $approve, \PDO::PARAM_STR);
             $stmt->bindParam(':id', $com_id, \PDO::PARAM_INT);
             foreach ($_POST['comment_id'] as $com_id) {
@@ -339,9 +342,13 @@ class CModule
                 $stmt->execute();
             }
         }
-        $q = "SELECT cm.id,cm.comment,un.id AS unit_id FROM comments cm ".
-            "JOIN units un ON cm.unit_id=un.id ".
-            "WHERE approved IS NULL ORDER BY cm.date ASC LIMIT 200";
+        $q = '
+        	SELECT cm.id,cm.comment,un.id AS unit_id 
+        	FROM comments cm
+            JOIN units un ON cm.unit_id=un.id
+            WHERE approved IS NULL
+            ORDER BY cm.date ASC 
+            LIMIT 200';
         $res = $this->hDbConn->query($q);
         while ($row = $res->fetch(\PDO::FETCH_ASSOC)) {
             $sComent = $this->xmlDoc->createElement("comment",
@@ -362,10 +369,12 @@ class CModule
         
         $xmlTop = $this->xmlDoc->createElement("categories");
         $xmlTop = $this->eRoot->appendChild($xmlTop);
-        $q = "SELECT cat.id,cat.name FROM categories cat ".
-            "JOIN units u ON cat.id=u.cat_id ".
-            "GROUP BY cat.id HAVING count(cat.id) > 0 ".
-            "ORDER BY name";
+        $q = '
+        	SELECT cat.id,cat.name
+        	FROM categories cat
+            JOIN units u ON cat.id=u.cat_id
+            GROUP BY cat.id HAVING count(cat.id) > 0
+            ORDER BY name';
         $res = $this->hDbConn->query($q);
         while ($row = $res->fetch(\PDO::FETCH_ASSOC)) {
             $xmlSubTop = $this->xmlDoc->createElement("category",
@@ -382,14 +391,15 @@ class CModule
         }
         $xmlTop = $this->xmlDoc->createElement("manufacturers");
         $xmlTop = $this->eRoot->appendChild($xmlTop);
-        $q = 'SELECT
-        			m.id,
-        			m.name
-        		FROM manufacturers m
-        		JOIN units u ON m.id=u.manufacturer_id
-        		GROUP BY m.id 
-        		HAVING count(m.id)>0 
-        		ORDER BY name';
+        $q = '
+        	SELECT
+    			m.id,
+    			m.name
+    		FROM manufacturers m
+    		JOIN units u ON m.id=u.manufacturer_id
+    		GROUP BY m.id 
+    		HAVING count(m.id)>0 
+    		ORDER BY name';
         $res = $this->hDbConn->query($q);
         while ($row = $res->fetch(\PDO::FETCH_ASSOC)) {
             $xmlSubTop = $this->xmlDoc->createElement("manufacturer",
@@ -406,7 +416,10 @@ class CModule
         }
         $xmlTop = $this->xmlDoc->createElement("fdistricts");
         $xmlTop = $this->eRoot->appendChild($xmlTop);
-        $q = 'SELECT id,name FROM `fdistricts` ORDER BY name';
+        $q = '
+        	SELECT id,name
+        	FROM `fdistricts`
+        	ORDER BY name';
         $res = $this->hDbConn->query($q);
         while ($row = $res->fetch(\PDO::FETCH_ASSOC)) {
             $xmlSubTop = $this->xmlDoc->createElement("fdistrict",
@@ -430,20 +443,24 @@ class CModule
                 $bFirst = true;
 
                 if ($_GET['vType'] > 0) {
-                    $stmt = $this->hDbConn->prepare('SELECT name 
-                    									FROM categories 
-                    									WHERE id=:id'
-                    								);
+//                	var_dump($this->hDbConn);
+//                	exit;
+                    $stmt = $this->hDbConn->prepare('
+                    	SELECT name 
+						FROM categories 
+						WHERE id=:id'
+					);
                     $stmt->bindValue(':id', $_GET['vType'], \PDO::PARAM_INT);
                     $stmt->execute();
                     $this->content = $stmt->fetch(\PDO::FETCH_ASSOC)['name'];
                     $bFirst = false;
                 }
                 if ($_GET['vManuf'] > 0) {
-                    $stmt = $this->hDbConn->prepare('SELECT name
-                    									FROM manufacturers
-                    									WHERE id=:id'
-                    								);
+                    $stmt = $this->hDbConn->prepare('
+                    	SELECT name
+						FROM manufacturers
+						WHERE id=:id'
+					);
                     $stmt->bindValue(':id', $_GET['vManuf'], \PDO::PARAM_INT);
                     $stmt->execute();
                     if (!$bFirst)
@@ -453,10 +470,11 @@ class CModule
                     $this->content .= $stmt->fetch(\PDO::FETCH_ASSOC)['name'];
                 }
                 if ($_GET['vFedDistr'] > 0) {
-                    $stmt = $this->hDbConn->prepare('SELECT name 
-                    									FROM fdistricts 
-                    									WHERE id=:id'
-                    								);
+                    $stmt = $this->hDbConn->prepare('
+                    	SELECT name 
+						FROM fdistricts 
+						WHERE id=:id'
+					);
                     $stmt->bindValue(':id', $_GET['vFedDistr'], \PDO::PARAM_INT);
                     $stmt->execute();
                     if (!$bFirst)
@@ -470,12 +488,13 @@ class CModule
                 break;
             case "page_unit":
                 if ($_GET['id'] != 0) {
-                    $q = sprintf("SELECT
-                    				CONCAT(m.name,' ', u.name) as name 
-                        			FROM units u
-                        			JOIN manufacturers m
-                        				ON u.manufacturer_id=m.id
-                        			WHERE u.id=%d",
+                    $q = sprintf('
+                    	SELECT
+        				CONCAT(m.name,\' \', u.name) as name 
+            			FROM units u
+            			JOIN manufacturers m
+            				ON u.manufacturer_id=m.id
+            			WHERE u.id=%d',
                         $_GET['id']);
                     $res = $this->hDbConn->query($q);
                     $this->content = $res->fetch(\PDO::FETCH_ASSOC)['name'];
@@ -732,15 +751,16 @@ class CModule
     }
 
     function searchPaginator($page) {
-        $q = 'SELECT
-				COUNT(*) AS total
-				FROM units
-				JOIN cities ON units.city_id=cities.id
-				JOIN regions ON cities.rd_id=regions.id
-				JOIN fdistricts ON regions.fd_id=fdistricts.id
-				JOIN categories ON units.cat_id=categories.id
-				JOIN manufacturers ON manufacturers.id=units.manufacturer_id
-				WHERE is_arch=FALSE';
+        $q = '
+        	SELECT
+			COUNT(*) AS total
+			FROM units
+			JOIN cities ON units.city_id=cities.id
+			JOIN regions ON cities.rd_id=regions.id
+			JOIN fdistricts ON regions.fd_id=fdistricts.id
+			JOIN categories ON units.cat_id=categories.id
+			JOIN manufacturers ON manufacturers.id=units.manufacturer_id
+			WHERE is_arch=FALSE';
 
         $bNeedAND = false;
         if ($_GET['vType'] != 0) {
@@ -822,7 +842,7 @@ class CModule
         $res = $this->hDbConn->query($q);
         while ($ur = $res->fetch(\PDO::FETCH_ASSOC)) {
         	$unit = new CUnit($this->hDbConn, $ur['id']);
-        	$unit = $unit->getUnitDom();
+        	$unit = $unit->getUnitDOM();
 			$unit = $this->xmlDoc->importNode($unit, true);
 			$this->eRoot->appendChild($unit);
 			unset($unit);
@@ -830,14 +850,15 @@ class CModule
     }
 
     function mainPageList() {
-        $q = 'SELECT 
-        			cat.id,
-        			cat.name
-        		FROM 
-        			categories cat 
-        		JOIN units u ON cat.id=u.cat_id 
-        		GROUP By cat.id 
-        		HAVING COUNT(cat.id)>0';
+        $q = '
+        	SELECT 
+    			cat.id,
+    			cat.name
+    		FROM 
+    			categories cat 
+    		JOIN units u ON cat.id=u.cat_id 
+    		GROUP By cat.id 
+    		HAVING COUNT(cat.id)>0';
         $cat_res = $this->hDbConn->query($q);
         while ($cr = $cat_res->fetch(\PDO::FETCH_ASSOC)) {
             $eCat = $this->xmlDoc->createElement('category');
@@ -861,7 +882,7 @@ class CModule
             $unit_res = $this->hDbConn->query($q);
             while ($ur = $unit_res->fetch(\PDO::FETCH_ASSOC)) {
             	$unit = new CUnit($this->hDbConn, $ur['id']);
-            	$unit = $unit->getUnitDom();
+            	$unit = $unit->getUnitDOM();
 				$unit = $this->xmlDoc->importNode($unit, true);
 				$eCat->appendChild($unit);
 				unset($unit);

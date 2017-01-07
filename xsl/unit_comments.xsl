@@ -59,7 +59,6 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
     <xsl:if test="/root/comments">
         <input type="hidden" id="users_list">
         <xsl:attribute name="value">
-        <!--<xsl:for-each select="/root/comments/comment[generate-id() = generate-id(key('uid', @user_id)[1])]|/root/comments/comment/sub_comment[generate-id() = generate-id(key('sub_uid', @user_id)[1])]"><xsl:value-of select="@type" />:<xsl:value-of select="@user_id" />;</xsl:for-each>-->
         <xsl:for-each select="//comment[generate-id() = generate-id(key('uid', @user_id)[1])]"><xsl:value-of select="@type" />:<xsl:value-of select="@user_id" />;</xsl:for-each>
         </xsl:attribute>            
         </input>

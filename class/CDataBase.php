@@ -16,62 +16,82 @@ namespace gusenru;
   *
   * @return void
   */
-class CDataBase
+class CDataBase extends \PDO 
 {
-    private $hDbConn = null;
+	private $host;
+	private $user;
+	private $pass;
+	private $db;
+    private $isConnected;
 
+	/**
+	 * Prepare data. Don't connect until it is necessary. Many web-pages
+	 * don't need database at all (ajax photo upload page, oAuth for example)
+	 */
     function __construct($host, $user, $pass, $db) {
-
-        $this->hDbConn = new \PDO("mysql:host=$host;dbname=$db;charset=".DB_CHARSET, 
-            $user,
-            $pass
-        );
+    	$this->host = $host;
+    	$this->user = $user;
+    	$this->pass = $pass;
+    	$this->db = $db;
+    	$this->isConnected = FALSE;
     }
     
     function __destruct () {
-        $this->hDbConn = null;
+        $this->isConnected = FALSE;
+    }
+    
+    private function connect() {
+		try {
+			$dsn = sprintf('mysql:host=%s;dbname=%s;charset=%s',
+				$this->host,
+				$this->db,
+				DB_CHARSET);
+
+	    	parent::__construct(
+	        	$dsn,
+	        	$this->user,
+	        	$this->pass,
+	        	array(\PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION)
+	    	);
+	    	$this->isConnected = TRUE;
+		}
+		catch (\PDOException $ex) {
+			echo "Can't connect to database!<br />";
+			echo $ex->getMessage();
+			exit;
+		}
     }
     
     public function query($q) {
-        if ($this->hDbConn) {
-            try {
-                return $this->hDbConn->query($q);
-            } catch(PDOException $ex) {
-                echo "Query: $q<br />";
-                echo 'Error: '.$ex->getMessage().'<br />';
-                exit;
-            }        
+    	if (!$this->isConnected)
+    		$this->connect();
+        try {
+            return parent::query($q);
         }
-        else {
-            echo 'There isn\'t active connection to DB!<br />';
-            exit;
+        catch(\PDOException $ex) {
+            echo "Query: $q<br />";
+            echo 'Error: '.$ex->getMessage().'<br />';
         }        
     }
 
     public function exec($q) {
-        if ($this->hDbConn) {
-            try {
-                return $this->hDbConn->exec($q);
-            } catch(PDOException $ex) {
-                echo "Executing query: $q<br />";
-                echo 'Error: ' .$ex->getMessage().'<br />';
-                exit;
-            }        
+    	if (!$this->isConnected)
+    		$this->connect();
+        try {
+            return parent::exec($q);
         }
-        else {
-            echo 'There isn\'t active connection to DB!<br />';
-            exit;
+        catch(\PDOException $ex) {
+            echo "Executing query: $q<br />";
+            echo 'Error: ' .$ex->getMessage().'<br />';
         }        
     }
     
-    public function prepare($q) {
-        return $this->hDbConn->prepare($q);
+    public function prepare($sql, $options = array()) {
+    	if (!$this->isConnected)
+    		$this->connect();
+		return parent::prepare($sql, $options);
     }
 
-    public function lastInsertId(){
-        return $this->hDbConn->lastInsertId();
-    }
-    
 }
 
 ?>

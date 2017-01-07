@@ -24,7 +24,7 @@ class CUnit
             $this->hDbConn = $hDbConn;
         }
         else {
-            echo 'Wrong MySQLi connection was passed!';
+            echo 'Wrong CDataBase connection was passed!';
             exit;
         }
         if ($id) {
@@ -49,8 +49,9 @@ class CUnit
     }
     
     function fillUnitData() {
-    	// add check $this->id
-        $q = 'SELECT 
+    	if ($this->id) {
+	        $q = '
+	        	SELECT 
 					u.id AS id,
 					u.name AS name,
 					u.description AS description,
@@ -81,43 +82,44 @@ class CUnit
 				JOIN categories ON u.cat_id=categories.id
 				JOIN manufacturers ON manufacturers.id=u.manufacturer_id
 				WHERE u.id=%d';
-
-        $q = sprintf($q, $this->id);
-        $res = $this->hDbConn->query($q);
-        $ur = $res->fetch(\PDO::FETCH_ASSOC);
-        
-		$this->name = isset($ur['name']) ? $ur['name'] : NULL;
-		$this->description = isset($ur['description']) ? 
-			$ur['description']: NULL;
-		$this->price = isset($ur['price']) ? $ur['price'] : NULL;
-		$this->year = isset($ur['year']) ? $ur['year'] : NULL;
-		$this->mileage = isset($ur['mileage']) ? $ur['mileage'] : NULL;
-		$this->op_time = isset($ur['op_time']) ? $ur['op_time'] : NULL;
-		$this->cat_id = isset($ur['cat_id']) ? $ur['cat_id'] : NULL;
-		$this->category = isset($ur['category']) ? $ur['category'] : NULL;
-		$this->manuf_id = isset($ur['manufacturer_id']) ? 
-			$ur['manufacturer_id']: NULL;
-		$this->manufacturer= isset($ur['manufacturer']) ? 
-			$ur['manufacturer'] : NULL;
-
-		$this->city['id'] = $ur['city_id'];
-		$this->city['name'] = $ur['city'];
-		$this->city['reg_id'] = $ur['region_id'];
-		$this->city['region'] = $ur['region'];
-		$this->city['fdist_id'] = $ur['fd_id'];
-		$this->city['fdistrict'] = $ur['fdistrict'];
-		$this->city['fdistrict_short'] = $ur['fdistrict_short'];
-
-        $q = "SELECT img 
-        		FROM images 
-        		WHERE images.unit_id=%d
-        		ORDER BY `order`";
-
-        $q = sprintf($q, $this->id);
-        $res = $this->hDbConn->query($q);
-        while ($ir = $res->fetch(\PDO::FETCH_ASSOC)) {
-        	$this->img[] = $ir['img'];
-        } 
+	
+	        $q = sprintf($q, $this->id);
+	        $res = $this->hDbConn->query($q);
+	        $ur = $res->fetch(\PDO::FETCH_ASSOC);
+	        
+			$this->name = isset($ur['name']) ? $ur['name'] : NULL;
+			$this->description = isset($ur['description']) ? 
+				$ur['description']: NULL;
+			$this->price = isset($ur['price']) ? $ur['price'] : NULL;
+			$this->year = isset($ur['year']) ? $ur['year'] : NULL;
+			$this->mileage = isset($ur['mileage']) ? $ur['mileage'] : NULL;
+			$this->op_time = isset($ur['op_time']) ? $ur['op_time'] : NULL;
+			$this->cat_id = isset($ur['cat_id']) ? $ur['cat_id'] : NULL;
+			$this->category = isset($ur['category']) ? $ur['category'] : NULL;
+			$this->manuf_id = isset($ur['manufacturer_id']) ? 
+				$ur['manufacturer_id']: NULL;
+			$this->manufacturer= isset($ur['manufacturer']) ? 
+				$ur['manufacturer'] : NULL;
+	
+			$this->city['id'] = $ur['city_id'];
+			$this->city['name'] = $ur['city'];
+			$this->city['reg_id'] = $ur['region_id'];
+			$this->city['region'] = $ur['region'];
+			$this->city['fdist_id'] = $ur['fd_id'];
+			$this->city['fdistrict'] = $ur['fdistrict'];
+			$this->city['fdistrict_short'] = $ur['fdistrict_short'];
+	
+	        $q = "SELECT img 
+	        		FROM images 
+	        		WHERE images.unit_id=%d
+	        		ORDER BY `order`";
+	
+	        $q = sprintf($q, $this->id);
+	        $res = $this->hDbConn->query($q);
+	        while ($ir = $res->fetch(\PDO::FETCH_ASSOC)) {
+	        	$this->img[] = $ir['img'];
+	        }
+    	}
     }
     
     /**
@@ -142,7 +144,7 @@ class CUnit
      * </root>
      * 
      */
-    function getUnitDom() {
+    function getUnitDOM() {
         $xmlDoc = new \DOMDocument('1.0', 'utf-8');
         $eRoot = $xmlDoc->createElement('root');
         $eRoot = $xmlDoc->appendChild($eRoot);

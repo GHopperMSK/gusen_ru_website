@@ -23,6 +23,7 @@ namespace gusenru;
 class CWebPage
 {
     protected $sPageContent = ''; // whole page content
+    private $hDbConn;
     
     function __construct($hDbConn) {
     	
@@ -76,11 +77,12 @@ class CWebPage
                 break;
             case 'unit':
                 // if unit_id doesn't exists in the DB, send 404 page
-                $stmt = $this->hDbConn->prepare('SELECT 
-                										COUNT(*) as cnt 
-                									FROM units 
-                									WHERE id=:id'
-                								);
+                $stmt = $this->hDbConn->prepare('
+                	SELECT 
+						COUNT(*) as cnt 
+					FROM units 
+					WHERE id=:id'
+				);
                 $stmt->bindValue(
                     ':id',
                     $_GET['id'],
@@ -475,9 +477,11 @@ class CWebPage
                     )
                 );
                 $context  = stream_context_create($options);
-                $result = file_get_contents($url, false, $context);
+                $result = @file_get_contents($url, false, $context);
                 if ($result === FALSE) {
+                	$error = error_get_last();
                     echo 'Can\'t get Google permissions!';
+                    echo $error['message'];
                     exit;
                 }
                 $access_token = json_decode($result, true)['access_token'];
@@ -619,7 +623,6 @@ class CWebPage
         
         header('Content-type: application/xml');
         echo $xml->saveXML();
-        
     }
     
     //-----------------------------------------------------
@@ -714,30 +717,31 @@ class CWebPage
         );
 
         if ($this->varValid($aImportantInt, FILTER_VALIDATE_INT)) {
-            $stmt = $this->hDbConn->prepare('INSERT 
-            									INTO units(
-            										cat_id,
-            										city_id,
-            										manufacturer_id,
-            										name,
-            										description,
-            										price,
-            										year,
-            										mileage,
-            										op_time
-            									)
-                								VALUES (
-                									:cat_id,
-                									:city_id,
-                									:manufacturer_id,
-                									:name,
-                									:description,
-                									:price,
-                									:year,
-                									:mileage,
-                									:op_time
-                								)'
-                							);
+            $stmt = $this->hDbConn->prepare('
+            	INSERT 
+				INTO units(
+					cat_id,
+					city_id,
+					manufacturer_id,
+					name,
+					description,
+					price,
+					year,
+					mileage,
+					op_time
+				)
+				VALUES (
+					:cat_id,
+					:city_id,
+					:manufacturer_id,
+					:name,
+					:description,
+					:price,
+					:year,
+					:mileage,
+					:op_time
+				)'
+			);
             $stmt->bindValue(':cat_id', $_POST['category'], \PDO::PARAM_INT);
             $stmt->bindValue(':city_id', $_POST['city'], \PDO::PARAM_INT);    
             $stmt->bindValue(':manufacturer_id', $_POST['manufacturer'], \PDO::PARAM_INT);    
@@ -752,18 +756,19 @@ class CWebPage
             $stmt->execute();
             $id = $this->hDbConn->lastInsertId();
     
-            $stmt = $this->hDbConn->prepare('INSERT
-            									INTO images (
-            										unit_id,
-            										img,
-            										`order`
-            									) 
-            									VALUES (
-            										:uid,
-            										:img,
-            										:ord
-            									)'
-            								);
+            $stmt = $this->hDbConn->prepare('
+            	INSERT
+				INTO images (
+					unit_id,
+					img,
+					`order`
+				) 
+				VALUES (
+					:uid,
+					:img,
+					:ord
+				)'
+			);
             $stmt->bindValue(':uid', $id, \PDO::PARAM_INT);
             $stmt->bindParam(':img', $img, \PDO::PARAM_STR);
             $stmt->bindParam(':ord', $ord, \PDO::PARAM_INT);
@@ -793,19 +798,20 @@ class CWebPage
         );
 
         if ($this->varValid($aImportantInt, FILTER_VALIDATE_INT)) {
-            $stmt = $this->hDbConn->prepare('UPDATE units 
-            									SET 
-	            									cat_id=:cat_id,
-	            									city_id=:city_id,
-	            									manufacturer_id=:manufacturer_id,
-	            									name=:name,
-	            									description=:description,
-	            									price=:price,year=:year,
-	            									mileage=:mileage,
-	            									op_time=:op_time 
-            									WHERE 
-            										id=:id'
-            								);
+            $stmt = $this->hDbConn->prepare('
+            	UPDATE units 
+				SET 
+					cat_id=:cat_id,
+					city_id=:city_id,
+					manufacturer_id=:manufacturer_id,
+					name=:name,
+					description=:description,
+					price=:price,year=:year,
+					mileage=:mileage,
+					op_time=:op_time 
+				WHERE 
+					id=:id'
+			);
             $stmt->bindValue(':cat_id', $_POST['category'], \PDO::PARAM_INT);
             $stmt->bindValue(':city_id', $_POST['city'], \PDO::PARAM_INT);    
             $stmt->bindValue(':manufacturer_id', $_POST['manufacturer'], \PDO::PARAM_INT);    
@@ -833,24 +839,26 @@ class CWebPage
                 $_POST['available_images'] = array();
                 
             
-            $stmt = $this->hDbConn->prepare('DELETE 
-            									FROM images 
-            									WHERE unit_id=:id'
-            								);
+            $stmt = $this->hDbConn->prepare('
+            	DELETE 
+				FROM images 
+				WHERE unit_id=:id'
+			);
             $stmt->bindValue(':id', $_POST['id'], \PDO::PARAM_INT);
             $stmt->execute();
             
-            $stmt = $this->hDbConn->prepare('INSERT 
-            									INTO images (
-            										unit_id,
-            										img,
-            										`order`
-            									) 
-            									VALUES (
-            										:uid,
-            										:img,
-            										:ord)'
-            								);
+            $stmt = $this->hDbConn->prepare('
+            	INSERT 
+				INTO images (
+					unit_id,
+					img,
+					`order`
+				) 
+				VALUES (
+					:uid,
+					:img,
+					:ord)'
+			);
             $stmt->bindValue(':uid', $_POST['id'], \PDO::PARAM_INT);
             $stmt->bindParam(':img', $img, \PDO::PARAM_STR);
             $stmt->bindParam(':ord', $ord, \PDO::PARAM_INT);
@@ -947,9 +955,9 @@ class CWebPage
                     $fileContent = file_get_contents('tmp_images/tmb/'.$fName);
                     $dataUrl = 'data:' . $fileType . ';base64,' . base64_encode($fileContent);
                     $json = json_encode(array(
-                      'name' => $fName,
-                      'type' => $fileType,
-                      'dataUrl' => $dataUrl,
+                    	'name' => $fName,
+                    	'type' => $fileType,
+                    	'dataUrl' => $dataUrl,
                     ));
                     $this->sPageContent = $json;
                 }
