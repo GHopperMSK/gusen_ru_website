@@ -56,9 +56,7 @@ class CDataBase extends \PDO
 	    	$this->isConnected = TRUE;
 		}
 		catch (\PDOException $ex) {
-			echo "Can't connect to database!<br />";
-			echo $ex->getMessage();
-			exit;
+			throw new \Exception($ex->getMessage());
 		}
     }
     
@@ -69,8 +67,7 @@ class CDataBase extends \PDO
             return parent::query($q);
         }
         catch(\PDOException $ex) {
-            echo "Query: $q<br />";
-            echo 'Error: '.$ex->getMessage().'<br />';
+			throw new \Exception($ex->getMessage());
         }        
     }
 
@@ -81,8 +78,7 @@ class CDataBase extends \PDO
             return parent::exec($q);
         }
         catch(\PDOException $ex) {
-            echo "Executing query: $q<br />";
-            echo 'Error: ' .$ex->getMessage().'<br />';
+			throw new \Exception($ex->getMessage());
         }        
     }
     

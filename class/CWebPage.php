@@ -78,7 +78,7 @@ class CWebPage
             case 'unit':
                 // if unit_id doesn't exists in the DB, send 404 page
                 $stmt = $this->hDbConn->prepare('
-                	SELECT 
+                	SELECT
 						COUNT(*) as cnt 
 					FROM units 
 					WHERE id=:id'
@@ -674,14 +674,20 @@ class CWebPage
                     header('Location: ?page=admin&act=login_form&msg=access_denied');                
                 break;
             case 'unit_del':
-                if ($this->isAuth())
-                    $this->deleteUnit($_GET['id']);
+                if ($this->isAuth()) {
+                	$unit = new CUnit($this->hDbConn);
+                	$unit->deleteUnit($_GET['id']);
+					header('Location: ' . $_SERVER['HTTP_REFERER']);
+                }
                 else
                     header('Location: ?page=admin&act=login_form&msg=access_denied');
                 break;
             case 'unit_arch':
-                if ($this->isAuth())
-                    $this->archUnit($_GET['id']);
+                if ($this->isAuth()) {
+					$unit = new CUnit($this->hDbConn);
+					$unit->archUnit($_GET['id']);
+					header('Location: ' . $_SERVER['HTTP_REFERER']);
+                }
                 else
                     header('Location: ?page=admin&act=login_form&msg=access_denied');
                 break;
@@ -710,206 +716,40 @@ class CWebPage
     }
     
     function addUnit() {
-        $aImportantInt = array(
-            $_POST['category'], 
-            $_POST['city'], 
-            $_POST['manufacturer']
-        );
+    	$unit = new CUnit($this->hDbConn);
+    	$unit->cat_id = $_POST['category'];
+    	$unit->manuf_id = $_POST['manufacturer'];
+    	$unit->name = $_POST['name'];
+    	$unit->description = $_POST['description'];
+    	$unit->price = $_POST['price'];
+    	$unit->year = $_POST['year'];
+    	$unit->mileage = $_POST['mileage'];
+    	$unit->op_time = $_POST['op_time'];
+        $unit->img= $_POST['images'];
+        $unit->setCityParam('id', $_POST['city']);
 
-        if ($this->varValid($aImportantInt, FILTER_VALIDATE_INT)) {
-            $stmt = $this->hDbConn->prepare('
-            	INSERT 
-				INTO units(
-					cat_id,
-					city_id,
-					manufacturer_id,
-					name,
-					description,
-					price,
-					year,
-					mileage,
-					op_time
-				)
-				VALUES (
-					:cat_id,
-					:city_id,
-					:manufacturer_id,
-					:name,
-					:description,
-					:price,
-					:year,
-					:mileage,
-					:op_time
-				)'
-			);
-            $stmt->bindValue(':cat_id', $_POST['category'], \PDO::PARAM_INT);
-            $stmt->bindValue(':city_id', $_POST['city'], \PDO::PARAM_INT);    
-            $stmt->bindValue(':manufacturer_id', $_POST['manufacturer'], \PDO::PARAM_INT);    
-            $stmt->bindValue(':name', $_POST['name'], \PDO::PARAM_STR);
-            $stmt->bindValue(':description', $_POST['description'], \PDO::PARAM_STR);
-            $stmt->bindValue(':price', $_POST['price'], \PDO::PARAM_INT);
-            $stmt->bindValue(':year', $_POST['year'], \PDO::PARAM_INT);
-            $mileage = ctype_digit($_POST['mileage']) ? $_POST['mileage'] : 'NULL';
-            $stmt->bindValue(':mileage', $mileage, \PDO::PARAM_STR);
-            $op_time =  ctype_digit($_POST['op_time']) ? $_POST['op_time'] : 'NULL';
-            $stmt->bindValue(':op_time', $op_time, \PDO::PARAM_STR);
-            $stmt->execute();
-            $id = $this->hDbConn->lastInsertId();
-    
-            $stmt = $this->hDbConn->prepare('
-            	INSERT
-				INTO images (
-					unit_id,
-					img,
-					`order`
-				) 
-				VALUES (
-					:uid,
-					:img,
-					:ord
-				)'
-			);
-            $stmt->bindValue(':uid', $id, \PDO::PARAM_INT);
-            $stmt->bindParam(':img', $img, \PDO::PARAM_STR);
-            $stmt->bindParam(':ord', $ord, \PDO::PARAM_INT);
-            
-            for ($i = 0; $i < count($_POST['images']); $i++) {
-                rename('tmp_images/'.$_POST['images'][$i], 'images/'.$_POST['images'][$i]);
-                rename('tmp_images/tmb/'.$_POST['images'][$i], 'images/tmb/'.$_POST['images'][$i]);
-                
-                $img = $_POST['images'][$i];
-                $ord = $i + 1;
-                
-                $stmt->execute();
-            }
-            header('Location: ?page=admin&act=main');
-        }
-        else {
-            echo 'Wrong data have been passed!';
-        }       
+        $unit->addUnit();
+        header('Location: ?page=admin&act=main');
     }
     
     function editUnit() {
-        $aImportantInt = array(
-            $_POST['category'], 
-            $_POST['city'], 
-            $_POST['manufacturer'],
-            $_POST['id']
-        );
-
-        if ($this->varValid($aImportantInt, FILTER_VALIDATE_INT)) {
-            $stmt = $this->hDbConn->prepare('
-            	UPDATE units 
-				SET 
-					cat_id=:cat_id,
-					city_id=:city_id,
-					manufacturer_id=:manufacturer_id,
-					name=:name,
-					description=:description,
-					price=:price,year=:year,
-					mileage=:mileage,
-					op_time=:op_time 
-				WHERE 
-					id=:id'
-			);
-            $stmt->bindValue(':cat_id', $_POST['category'], \PDO::PARAM_INT);
-            $stmt->bindValue(':city_id', $_POST['city'], \PDO::PARAM_INT);    
-            $stmt->bindValue(':manufacturer_id', $_POST['manufacturer'], \PDO::PARAM_INT);    
-            $stmt->bindValue(':name', $_POST['name'], \PDO::PARAM_STR);
-            $stmt->bindValue(':description', $_POST['description'], \PDO::PARAM_STR);
-            $stmt->bindValue(':price', $_POST['price'], \PDO::PARAM_INT);
-            $stmt->bindValue(':year', $_POST['year'], \PDO::PARAM_INT);
-            $mileage = ctype_digit($_POST['mileage']) ? $_POST['mileage'] : 'NULL';
-            $stmt->bindValue(':mileage', $mileage, \PDO::PARAM_INT);
-            $op_time =  ctype_digit($_POST['op_time']) ? $_POST['op_time'] : 'NULL';
-            $stmt->bindValue(':op_time', $op_time, \PDO::PARAM_INT);
-            $stmt->bindValue(':id', $_POST['id'], \PDO::PARAM_INT);
-            $stmt->execute();
-
-            // delete present images which were removed 
-            if (isset($_POST['available_images'])) {
-                foreach ($_POST['available_images'] as $available_image) {        
-                    if (array_search($available_image, $_POST['images']) === FALSE) {
-                        unlink('images/'.$available_image);
-                        unlink('images/tmb/'.$available_image);
-                    }
-                }
-            }
-            else
-                $_POST['available_images'] = array();
-                
-            
-            $stmt = $this->hDbConn->prepare('
-            	DELETE 
-				FROM images 
-				WHERE unit_id=:id'
-			);
-            $stmt->bindValue(':id', $_POST['id'], \PDO::PARAM_INT);
-            $stmt->execute();
-            
-            $stmt = $this->hDbConn->prepare('
-            	INSERT 
-				INTO images (
-					unit_id,
-					img,
-					`order`
-				) 
-				VALUES (
-					:uid,
-					:img,
-					:ord)'
-			);
-            $stmt->bindValue(':uid', $_POST['id'], \PDO::PARAM_INT);
-            $stmt->bindParam(':img', $img, \PDO::PARAM_STR);
-            $stmt->bindParam(':ord', $ord, \PDO::PARAM_INT);
-            
-            for ($i = 0; $i < count($_POST['images']); $i++) {
-                if (array_search($_POST['images'][$i],
-                		$_POST['available_images']) === FALSE) {
-                    rename('tmp_images/'.$_POST['images'][$i], 
-                    	'images/'.$_POST['images'][$i]);
-                    rename('tmp_images/tmb/'.$_POST['images'][$i],
-                    	'images/tmb/'.$_POST['images'][$i]);
-                }
-                $img = $_POST['images'][$i];
-                $ord = $i + 1;
-                
-                $stmt->execute();                
-            }
-            
-            header('Location: ?page=admin&act=main');     
-        }
-        else {
-            echo 'Wrong data have been passed!';
-        }
+    	$unit = new CUnit($this->hDbConn);
+    	$unit->id = $_POST['id'];
+    	$unit->cat_id = $_POST['category'];
+    	$unit->manuf_id = $_POST['manufacturer'];
+    	$unit->name = $_POST['name'];
+    	$unit->description = $_POST['description'];
+    	$unit->price = $_POST['price'];
+    	$unit->year = $_POST['year'];
+    	$unit->mileage = $_POST['mileage'];
+    	$unit->op_time = $_POST['op_time'];
+        $unit->img= $_POST['images'];
+        $unit->setCityParam('id', $_POST['city']);  
+        
+        $unit->editUnit($_POST['available_images']);
+    	header('Location: ?page=admin&act=main');     
     }
     
-    function deleteUnit($u_id) {
-        $q = sprintf('SELECT img 
-        				FROM images 
-        				WHERE unit_id=%d',
-        				$u_id);
-        $imagesRes = $this->hDbConn->query($q);
-        while ($ir = $imagesRes->fetch(\PDO::FETCH_ASSOC)) {
-            unlink('/images/tbm/'.$ir['name']);
-            unlink('/images/'.$ir['name']);
-        }
-        $q = sprintf('DELETE FROM images WHERE unit_id=%d', $u_id);
-        $this->hDbConn->exec($q);
-        $q = sprintf('DELETE FROM units WHERE id=%d', $u_id);
-        $this->hDbConn->exec($q);
-            
-        header('Location: ' . $_SERVER['HTTP_REFERER']);
-    }
-    
-    function archUnit($u_id) {
-        $q = sprintf('UPDATE units SET is_arch=TRUE WHERE id=%d', $u_id);
-        $this->hDbConn->exec($q);
-            
-        header('Location: ' . $_SERVER['HTTP_REFERER']);
-    }
-    
-
     //-----------------------------------------------------
     // Ajax page functionality
     //-----------------------------------------------------    

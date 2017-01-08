@@ -3,19 +3,34 @@ namespace gusenru;
 
 class CUnit
 {
-	private $id = null;
+	private $id = NULL;
 	private $name;
 	private $description;
 	private $price;
 	private $year;
 	private $mileage;
 	private $op_time;
-	private $city = array();
+	private $city = array(
+		'id'				=> NULL,
+		'name'				=> NULL,
+		'reg_id'			=> NULL,
+		'region'			=> NULL,
+		'fdist_id'			=> NULL,
+		'fdistrict'			=> NULL,
+		'fdistrict_short'	=> NULL
+	);
 	private $cat_id;
 	private $category;
 	private $manuf_id;
 	private $manufacturer;
 	private $img = array();
+	
+	private $int_params = array(
+		'id','price','year','mileage','op_time','cat_id','manuf_id'
+	);
+	private $int_city_params = array(
+		'id','reg_id','fdist_id'
+	);
 	
 	private $hDbConn = null;
 	
@@ -24,28 +39,87 @@ class CUnit
             $this->hDbConn = $hDbConn;
         }
         else {
-            echo 'Wrong CDataBase connection was passed!';
-            exit;
+        	throw new \Exception('Wrong CDataBase connection was passed!');
         }
-        if ($id) {
+        if (!empty($id)) {
         	$this->id = $id;
         	$this->fillUnitData();
         }
     }
-    
-    function isSetParam($name) {
-    	if (isset($this->$name))
-    		return TRUE;
+
+    function __set($name, $val) {
+    	if (property_exists($this, $name)) {
+    		if (in_array($name, $this->int_params)) {
+    			$val = filter_var( $val, FILTER_SANITIZE_NUMBER_INT);
+    		}
+    		elseif ($name == 'img') {
+    			// TODO: check if each file exists
+    			for ($i=0; $i<count($val); $i++) {
+    				$val[$i] = trim($val[$i]);
+    			}
+    		}
+    		else
+    			$val = trim($val);
+	    	$this->$name = $val;
+    	}
     	else
-    		return FALSE;
+    		throw new \Exception("Member 'CUnit::{$name}' doesn't exists!");
     }
     
-    function getParam($name) {
-    	return $this->$name;
+    function __get($name) {
+    	if (property_exists($this, $name)) {
+    		if (!empty($this->$name)) {
+	    		if (!in_array($name, $this->int_params) && ($name != 'img'))
+	    			$val = htmlspecialchars($this->$name);
+				else
+	    			$val = $this->$name;
+    		}
+    		else {
+    			if ($name == 'img')
+    				$val = array();
+    			else
+    				$val = FALSE;
+    		}
+    		return $val;
+    	}
+    	else
+    		throw new \Exception("Member 'CUnit::{$name}' doesn't exists!");
     }
+    
+	function __isset($name) {
+    	if (property_exists($this, $name)) {
+    		return isset($this->$name);
+    	}
+    	else
+    		throw new \Exception("Member 'CUnit::{$name}' doesn't exists!");
+    }    
     
     function getCityParam($name) {
-    	return $this->city[$name];
+    	if (array_key_exists($name, $this->city)) {
+    		if (!in_array($name, $this->int_city_params)) {
+    			$val = htmlspecialchars($this->city[$name]);
+    		}
+    		else
+    			$val = $this->city[$name];
+    		
+	    	return $val; 
+    	}
+    	else
+    		throw new \Exception("Member CUnit::city['{$name}'] doesn't exists!");
+    }
+
+    function setCityParam($name, $val) {
+    	if (array_key_exists($name, $this->city)) {
+    		if (in_array($name, $this->int_city_params)) {
+    			$val = filter_var( $val, FILTER_SANITIZE_NUMBER_INT);
+    		}
+    		else
+    			$val = trim($val);
+    		
+    		$this->city[$name] = $val;
+    	}
+    	else
+    		throw new \Exception("Member CUnit::city['{$name}'] doesn't exists!");
     }
     
     function fillUnitData() {
@@ -152,68 +226,58 @@ class CUnit
         $top = $xmlDoc->createElement('unit');
         $top = $eRoot->appendChild($top);
         $topAttr = $xmlDoc->createAttribute('id');
-        $topAttr->value = htmlentities($this->id);
+        $topAttr->value = $this->id;
         $top->appendChild($topAttr);
         $topAttr = $xmlDoc->createAttribute('name');
-        $topAttr->value = htmlentities($this->name);
+        $topAttr->value = $this->name;
         $top->appendChild($topAttr);
 
-        $sub = $xmlDoc->createElement('description',
-            htmlentities($this->descrtiprion));
+        $sub = $xmlDoc->createElement('description', $this->description);
         $top->appendChild($sub);
-        $sub = $xmlDoc->createElement('price',
-            htmlentities($this->price));
+        $sub = $xmlDoc->createElement('price', $this->price);
         $top->appendChild($sub);
-        $sub = $xmlDoc->createElement('year',
-            htmlentities($this->year));
+        $sub = $xmlDoc->createElement('year', $this->year);
         $top->appendChild($sub);
 
-        $sub = $xmlDoc->createElement('category',
-            htmlentities($this->category));
+        $sub = $xmlDoc->createElement('category', $this->category);
         $subAttr = $xmlDoc->createAttribute('id');
-        $subAttr->value = htmlentities($this->cat_id);
+        $subAttr->value = $this->cat_id;
         $sub->appendChild($subAttr);
         $top->appendChild($sub);
         
-        $sub = $xmlDoc->createElement('fdistrict',
-            htmlentities($this->city['fdistrict']));
+        $sub = $xmlDoc->createElement('fdistrict', $this->city['fdistrict']);
         $subAttr = $xmlDoc->createAttribute('id');
-        $subAttr->value = htmlentities($this->city['fdist_id']);
+        $subAttr->value = $this->city['fdist_id'];
         $sub->appendChild($subAttr);
         $subAttr = $xmlDoc->createAttribute('short');
-        $subAttr->value = htmlentities($this->city['fdistrict_short']);
+        $subAttr->value = $this->city['fdistrict_short'];
         $sub->appendChild($subAttr);
         $top->appendChild($sub);
   
-        $sub = $xmlDoc->createElement('region',
-            htmlentities($this->city['region']));
+        $sub = $xmlDoc->createElement('region', $this->city['region']);
         $subAttr = $xmlDoc->createAttribute('id');
-        $subAttr->value = htmlentities($this->city['reg_id']);
+        $subAttr->value = $this->city['reg_id'];
         $sub->appendChild($subAttr);
         $top->appendChild($sub);
   
-        $sub = $xmlDoc->createElement('city',
-            htmlentities($this->city['name']));
+        $sub = $xmlDoc->createElement('city', $this->city['name']);
         $subAttr = $xmlDoc->createAttribute('id');
-        $subAttr->value = htmlentities($this->city['id']);
+        $subAttr->value = $this->city['id'];
         $sub->appendChild($subAttr);
         $top->appendChild($sub);
 
-        $sub = $xmlDoc->createElement('manufacturer',
-            htmlentities($this->manufacturer));
+        $sub = $xmlDoc->createElement('manufacturer', $this->manufacturer);
         $subAttr = $xmlDoc->createAttribute('id');
-        $subAttr->value = htmlentities($this->manuf_id);
+        $subAttr->value = $this->manuf_id;
         $sub->appendChild($subAttr);
         $top->appendChild($sub);
 
-        if ($this->isSetParam('mileage')) {
-            $sub = $xmlDoc->createElement('mileage',
-                htmlentities($this->mileage));
+        if (isset($this->mileage)) {
+            $sub = $xmlDoc->createElement('mileage', $this->mileage);
             $top->appendChild($sub);
         }
-        if ($this->isSetParam('op_time')) {
-            $sub = $xmlDoc->createElement('op_time',
-                htmlentities($this->op_time));
+        if (isset($this->op_time)) {
+            $sub = $xmlDoc->createElement('op_time', $this->op_time);
             $top->appendChild($sub);
         }
         
@@ -221,12 +285,201 @@ class CUnit
         $eImages = $top->appendChild($eImages);
         foreach ($this->img as $img) {
 
-            $eImg = $xmlDoc->createElement('img', htmlentities($img));
+            $eImg = $xmlDoc->createElement('img', $img);
             $eImages->appendChild($eImg);
         }
 
 		return $top;
     }
+    
+    function addUnit() {
+        $stmt = $this->hDbConn->prepare('
+        	INSERT 
+			INTO units(
+				cat_id,
+				city_id,
+				manufacturer_id,
+				name,
+				description,
+				price,
+				year,
+				mileage,
+				op_time
+			)
+			VALUES (
+				:cat_id,
+				:city_id,
+				:manufacturer_id,
+				:name,
+				:description,
+				:price,
+				:year,
+				:mileage,
+				:op_time
+			)'
+		);
+        $stmt->bindValue(':name', $this->name, \PDO::PARAM_STR);
+        $stmt->bindValue(':description', $this->description, \PDO::PARAM_STR);
+        $stmt->bindValue(':cat_id', $this->cat_id, \PDO::PARAM_INT);
+        $stmt->bindValue(':city_id', $this->city['id'], \PDO::PARAM_INT);    
+        $stmt->bindValue(':manufacturer_id', $this->manuf_id, \PDO::PARAM_INT);    
+        $stmt->bindValue(':price', $this->price, \PDO::PARAM_INT);
+        $stmt->bindValue(':year', $this->year, \PDO::PARAM_INT);
+        $mileage = empty($this->mileage) ? 'NULL' : $this->mileage;
+        $stmt->bindValue(':mileage', $mileage, \PDO::PARAM_STR);
+        $op_time =  empty($this->op_time) ? 'NULL' : $this->op_time;
+        $stmt->bindValue(':op_time', $op_time, \PDO::PARAM_STR);
+        $stmt->execute();
+        $this->id = $this->hDbConn->lastInsertId();
+
+        $stmt = $this->hDbConn->prepare('
+        	INSERT
+			INTO images (
+				unit_id,
+				img,
+				`order`
+			) 
+			VALUES (
+				:uid,
+				:img,
+				:ord
+			)'
+		);
+        $stmt->bindValue(':uid', $this->id, \PDO::PARAM_INT);
+        $stmt->bindParam(':img', $img, \PDO::PARAM_STR);
+        $stmt->bindParam(':ord', $ord, \PDO::PARAM_INT);
+        
+        for ($i = 0; $i < count($this->img); $i++) {
+            rename("tmp_images/{$this->img[$i]}", "images/{$this->img[$i]}");
+            rename("tmp_images/tmb/{$this->img[$i]}", "images/tmb/{$this->img[$i]}");
+            
+            $img = $this->img[$i];
+            $ord = $i + 1;
+            
+            $stmt->execute();
+        }        
+    }
+    
+    function editUnit($available_images = array()) {
+        $stmt = $this->hDbConn->prepare('
+        	UPDATE units 
+			SET 
+				cat_id=:cat_id,
+				city_id=:city_id,
+				manufacturer_id=:manufacturer_id,
+				name=:name,
+				description=:description,
+				price=:price,year=:year,
+				mileage=:mileage,
+				op_time=:op_time 
+			WHERE 
+				id=:id'
+		);
+		
+		$stmt->bindValue(':id', $this->id, \PDO::PARAM_INT);
+        $stmt->bindValue(':name', $this->name, \PDO::PARAM_STR);
+        $stmt->bindValue(':description', $this->description, \PDO::PARAM_STR);
+        $stmt->bindValue(':cat_id', $this->cat_id, \PDO::PARAM_INT);
+        $stmt->bindValue(':city_id', $this->city['id'], \PDO::PARAM_INT);    
+        $stmt->bindValue(':manufacturer_id', $this->manuf_id, \PDO::PARAM_INT);    
+        $stmt->bindValue(':price', $this->price, \PDO::PARAM_INT);
+        $stmt->bindValue(':year', $this->year, \PDO::PARAM_INT);
+        $mileage = empty($this->mileage) ? 'NULL' : $this->mileage;
+        $stmt->bindValue(':mileage', $mileage, \PDO::PARAM_STR);
+        $op_time =  empty($this->op_time) ? 'NULL' : $this->op_time;
+        $stmt->bindValue(':op_time', $op_time, \PDO::PARAM_STR);
+        
+        $stmt->bindValue(':id', $_POST['id'], \PDO::PARAM_INT);
+        $stmt->execute();
+
+        // delete present images which were removed 
+        foreach ($available_images as $available_image) {        
+            if (array_search($available_image, $this->img) === FALSE) {
+            	$aPath = array('images', 'images/tmb');
+            	foreach ($aPath as $path) {
+            		$img = "{$path}/{$available_image}";
+	            	if (file_exists($img)) {
+	                	unlink($img);
+	            	}
+	            	else
+	            		throw new \Exception("File $img doesn't exists!");
+            	}
+            }
+        }
+            
+        $stmt = $this->hDbConn->prepare('
+        	DELETE 
+			FROM images 
+			WHERE unit_id=:id'
+		);
+        $stmt->bindValue(':id', $this->id, \PDO::PARAM_INT);
+        $stmt->execute();
+        
+        $stmt = $this->hDbConn->prepare('
+        	INSERT 
+			INTO images (
+				unit_id,
+				img,
+				`order`
+			) 
+			VALUES (
+				:uid,
+				:img,
+				:ord)'
+		);
+        $stmt->bindValue(':uid', $this->id, \PDO::PARAM_INT);
+        $stmt->bindParam(':img', $img, \PDO::PARAM_STR);
+        $stmt->bindParam(':ord', $ord, \PDO::PARAM_INT);
+        
+        for ($i = 0; $i < count($this->img); $i++) {
+            if (array_search($this->img[$i], $available_images) === FALSE) {
+            	$aPath = array('images', 'images/tmb');
+            	foreach ($aPath as $path) {
+            		$tmp_img = "tmp_{$path}/{$this->img[$i]}";
+            		$img = "{$path}/{$this->img[$i]}";
+	            	if (file_exists($tmp_img)) {
+	                	if (!rename($tmp_img, $img))
+	                		throw new \Exception("Can't rename {$tmp_img} file!");
+	            	}
+	            	else
+	            		throw new \Exception("File $img doesn't exists!");
+            	}
+            }
+            
+            $img = $this->img[$i];
+            $ord = $i + 1;
+            
+            $stmt->execute();                
+        }
+        
+    }
+    
+    function deleteUnit($uid) {
+        $q = sprintf('SELECT img 
+        				FROM images 
+        				WHERE unit_id=%d',
+        				$u_id);
+        $res = $this->hDbConn->query($q);
+        while ($ir = $res->fetch(\PDO::FETCH_ASSOC)) {
+        	$aPath = array('images', 'images/tmb');
+        	foreach ($aPath as $path) {
+        		$img = "{$path}/{$ir['img']}";
+            	if (file_exists($img)) {
+                	unlink($img);
+            	}
+            	else
+            		throw new \Exception("File $img doesn't exists!");
+        	}
+        }
+        $q = sprintf('DELETE FROM images WHERE unit_id=%d', $uid);
+        $this->hDbConn->exec($q);
+        $q = sprintf('DELETE FROM units WHERE id=%d', $uid);
+        $this->hDbConn->exec($q);
+    }
 	
+	function archUnit($uid) {
+        $q = sprintf('UPDATE units SET is_arch=TRUE WHERE id=%d', $uid);
+        $this->hDbConn->exec($q);		
+	}
 }
 ?>

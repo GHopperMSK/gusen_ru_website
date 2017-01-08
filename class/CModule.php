@@ -443,8 +443,6 @@ class CModule
                 $bFirst = true;
 
                 if ($_GET['vType'] > 0) {
-//                	var_dump($this->hDbConn);
-//                	exit;
                     $stmt = $this->hDbConn->prepare('
                     	SELECT name 
 						FROM categories 
@@ -541,7 +539,7 @@ class CModule
             $xmlSubTopAttr->value = $qrow['id']; 
             $xmlSubTop->appendChild($xmlSubTopAttr);
             if (($isEdit) &&
-                    ($unit->getParam('cat_id') === $qrow['id'])) {
+                    ($unit->cat_id === $qrow['id'])) {
                 $xmlSubTopAttr = $this->xmlDoc->createAttribute('selected');
                 $xmlSubTopAttr->value = 'true'; 
                 $xmlSubTop->appendChild($xmlSubTopAttr);                
@@ -566,25 +564,6 @@ class CModule
             }
             $xmlTop->appendChild($xmlSubTop);
         }
-        $xmlTop = $this->xmlDoc->createElement("cities");
-        $xmlTop = $this->eRoot->appendChild($xmlTop);
-        $q = sprintf("SELECT id,name FROM cities WHERE rd_id=%d",
-            $unit->getCityParam('reg_id'));
-        $res = $this->hDbConn->query($q);
-        while ($qrow = $res->fetch(\PDO::FETCH_ASSOC)) {
-            $xmlSubTop = $this->xmlDoc->createElement("city",
-                htmlentities($qrow['name']));
-            $xmlSubTopAttr = $this->xmlDoc->createAttribute('id');
-            $xmlSubTopAttr->value = $qrow['id']; 
-            $xmlSubTop->appendChild($xmlSubTopAttr);
-            if (($isEdit) AND
-                    ($unit->getCityParam('id') === $qrow['id'])) {
-                $xmlSubTopAttr = $this->xmlDoc->createAttribute('selected');
-                $xmlSubTopAttr->value = 'true'; 
-                $xmlSubTop->appendChild($xmlSubTopAttr);                
-            }
-            $xmlTop->appendChild($xmlSubTop);
-        }
         $xmlTop = $this->xmlDoc->createElement("manufacturers");
         $xmlTop = $this->eRoot->appendChild($xmlTop);
         $q = "SELECT id,name FROM manufacturers ORDER BY name";
@@ -596,7 +575,7 @@ class CModule
             $xmlSubTopAttr->value = $qrow['id']; 
             $xmlSubTop->appendChild($xmlSubTopAttr);
             if (($isEdit) AND
-                    ($unit->getParam('manuf_id') === $qrow['id'])) {
+                    ($unit->manuf_id === $qrow['id'])) {
                 $xmlSubTopAttr = $this->xmlDoc->createAttribute('selected');
                 $xmlSubTopAttr->value = 'true'; 
                 $xmlSubTop->appendChild($xmlSubTopAttr);                
@@ -605,37 +584,53 @@ class CModule
         }
 
         if ($isEdit) {
-            $xmlTop = $this->xmlDoc->createElement("name", 
-                htmlentities($unit->getParam('name')));
+	        $xmlTop = $this->xmlDoc->createElement("cities");
+	        $xmlTop = $this->eRoot->appendChild($xmlTop);
+	        $q = sprintf("SELECT id,name FROM cities WHERE rd_id=%d",
+	            $unit->getCityParam('reg_id'));
+	        $res = $this->hDbConn->query($q);
+	        while ($qrow = $res->fetch(\PDO::FETCH_ASSOC)) {
+	            $xmlSubTop = $this->xmlDoc->createElement("city",
+	                htmlentities($qrow['name']));
+	            $xmlSubTopAttr = $this->xmlDoc->createAttribute('id');
+	            $xmlSubTopAttr->value = $qrow['id']; 
+	            $xmlSubTop->appendChild($xmlSubTopAttr);
+	            if (($isEdit) AND
+	                    ($unit->getCityParam('id') === $qrow['id'])) {
+	                $xmlSubTopAttr = $this->xmlDoc->createAttribute('selected');
+	                $xmlSubTopAttr->value = 'true'; 
+	                $xmlSubTop->appendChild($xmlSubTopAttr);                
+	            }
+	            $xmlTop->appendChild($xmlSubTop);
+	        }
+        	
+            $xmlTop = $this->xmlDoc->createElement("name", $unit->name);
             $xmlTop = $this->eRoot->appendChild($xmlTop);
             $xmlTop = $this->xmlDoc->createElement("description", 
-                htmlentities($unit->getParam('description')));
+            	$unit->description);
             $xmlTop = $this->eRoot->appendChild($xmlTop);
-            $xmlTop = $this->xmlDoc->createElement("year", 
-                htmlentities($unit->getParam('year')));
+            $xmlTop = $this->xmlDoc->createElement("year", $unit->year);
             $xmlTop = $this->eRoot->appendChild($xmlTop);
-            $xmlTop = $this->xmlDoc->createElement("price", 
-                htmlentities($unit->getParam('price')));
+            $xmlTop = $this->xmlDoc->createElement("price", $unit->price);
             $xmlTop = $this->eRoot->appendChild($xmlTop);
 
-            if ($unit->isSetParam('mileage')) {
+            if (isset($unit->mileage)) {
                 $xmlTop = $this->xmlDoc->createElement("mileage", 
-                    $unit->getParam('mileage'));
+                    $unit->mileage);
                 $xmlTop = $this->eRoot->appendChild($xmlTop);
             }
 
-            if ($unit->isSetParam('op_time')) {
+            if (isset($unit->op_time)) {
                 $xmlTop = $this->xmlDoc->createElement("op_time", 
-                    $unit->getParam('op_time'));
+                    $unit->op_time);
                 $xmlTop = $this->eRoot->appendChild($xmlTop);
             }
     
             $xmlTop = $this->xmlDoc->createElement("images");
             $xmlTop = $this->eRoot->appendChild($xmlTop);
-            $aImg = $unit->getParam('img');
+            $aImg = $unit->img;
             foreach ($aImg as $img) {
-                $xmlSubTop = $this->xmlDoc->createElement("img",
-                    htmlentities($img));
+                $xmlSubTop = $this->xmlDoc->createElement("img", $img);
                 $xmlTop->appendChild($xmlSubTop);
             }
         }
