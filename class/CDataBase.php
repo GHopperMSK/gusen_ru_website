@@ -46,7 +46,6 @@ class CDataBase extends \PDO
 				$this->host,
 				$this->db,
 				DB_CHARSET);
-
 	    	parent::__construct(
 	        	$dsn,
 	        	$this->user,

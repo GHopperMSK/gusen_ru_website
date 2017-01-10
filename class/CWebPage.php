@@ -22,7 +22,7 @@ namespace gusenru;
  */
 class CWebPage
 {
-    protected $sPageContent = ''; // whole page content
+    private $sPageContent = ''; // whole page content
     private $hDbConn;
     
     function __construct($hDbConn) {
@@ -115,6 +115,9 @@ class CWebPage
             case '404':
                 $this->setTemplate('tpl/404.tpl');
                 break;
+            case 'error':
+            	$this->setTemplate('tpl/error.tpl');
+            	break;
             case 'main':
             default:
                 $this->setTemplate('tpl/main.tpl');
@@ -130,6 +133,7 @@ class CWebPage
      * 
      * @return bool
      */
+    /*
     function varValid($aVar, $secKey) {
         foreach ($aVar as $var) {
             if (filter_var($var, $secKey) === FALSE) {
@@ -137,7 +141,8 @@ class CWebPage
             }
         }
         return true;
-    }    
+    } 
+    */
     
     // WBMP->resourse convertor
     function ImageCreateFromBMP($filename) { 
@@ -345,9 +350,8 @@ class CWebPage
         if (file_exists($tpl)) {
             $this->tpl = $tpl;
         }
-        else {
-            $this->sPageContent = "TPL $tpl doesn't exists!";
-        }        
+        else
+        	throw new \Exception("TPL $tpl doesn't exists!");
     }
 
     /**
@@ -400,113 +404,125 @@ class CWebPage
             $_GET['page']
         );
         
-        $getUser = false;    
+        $getUser = FALSE;    
         
         switch ($type) {
             case 'vk':
-                $params = array(
-                    'client_id' => VK_CLIENT_ID,
-                    'client_secret' => VK_SECRET,
-                    'code' => $_REQUEST['code'],
-                    'redirect_uri' => $cur_link
-                );
-
-                $token = json_decode(@file_get_contents('https://oauth.vk.com/access_token'.
-                    '?'.http_build_query($params)), true);
-            
-                if (isset($token['access_token'])) {
-                    $params = array(
-                        'uids'         => $token['user_id'],
-                        'fields'       => 'uid,first_name,photo_50',
-                        'access_token' => $token['access_token']
-                    );
-            
-                    $userInfo = json_decode(file_get_contents('https://api.vk.com/method/users.get'.
-                        '?'.http_build_query($params)), true);
-                    if (isset($userInfo['response'][0]['uid'])) {
-                        $userInfo = $userInfo['response'][0];
-                        $userInfo['type'] = 'vk';
-                        $getUser = true;
-                    }
-                }
+				$vk = new \VK\VK(VK_CLIENT_ID, VK_SECRET);
+				$vk->setApiVersion(VK_VERSION);
+            	try {
+					$access_token = $vk->getAccessToken(
+						$_REQUEST['code'],
+						sprintf("https://%s/?page=oauth_vk", $realHost)
+					);
+            	}
+            	catch (\VK\VKException $exception) {
+            		throw new \Exception($exception);
+            	}
+					
+				$user = $vk->api('users.get', array(
+					'uids'   => $access_token->user_id,
+					'fields' => 'first_name,last_name,sex,photo_50')
+				);
+				if (!empty($user['response'][0]['id'])) {
+					$userInfo['uid'] = $access_token['user_id'];
+					$userInfo['name'] = $user['response'][0]['first_name'].
+						' '.$user['response'][0]['last_name'];
+					$userInfo['photo'] = $user['response'][0]['photo_50'];
+					$userInfo['email'] = $access_token['email'];
+					$userInfo['gender'] = $user['response'][0]['sex'];
+					$userInfo['type'] = 'vk';
+					$getUser = TRUE;
+				}
                 break;
             case 'fb':
-                $params = array(
-                    'client_id'     => FB_CLIENT_ID,
-                    'client_secret' => FB_SECRET,
-                    'code'          => $_REQUEST['code'],
-                    'redirect_uri'  => $cur_link
-                );
-                
-                $str = parse_str(@file_get_contents('https://graph.facebook.com/oauth/access_token'.
-                    '?'.http_build_query($params)));
-            
-                if (isset($access_token)) {
-                    $uInfo = json_decode(
-                        file_get_contents(
-                            sprintf('https://graph.facebook.com/me?fields=id,first_name,picture&access_token=%s',
-                                $access_token)
-                        ), true
-                    );
-                    
-                     if (isset($uInfo['id'])) {
-                        $userInfo['uid'] = $uInfo['id'];
-                        $userInfo['first_name'] = $uInfo['first_name'];
-                        $userInfo['photo_50'] = $uInfo['picture']['data']['url'];
-                        $userInfo['type'] = 'fb';
-                        $getUser = true;
-                    }
-                }
+				$fb = new \Facebook\Facebook([
+					'app_id' => FB_CLIENT_ID,
+					'app_secret' => FB_SECRET,
+					'default_graph_version' => FB_VERSION,
+				]);
+							
+				$helper = $fb->getRedirectLoginHelper();
+				
+				try {
+					$accessToken = $helper->getAccessToken();
+				} catch(\Facebook\Exceptions\FacebookResponseException $e) {
+					// When Graph returns an error
+					throw new \Exception($e);
+				} catch(\Facebook\Exceptions\FacebookSDKException $e) {
+					// When validation fails or other local issues
+					throw new \Exception($e);
+				}
+				
+				if (!isset($accessToken)) {
+					if ($helper->getError()) {
+						throw new \Exception(
+							$helper->getError().PHP_EOL.
+							$helper->getErrorReason().PHP_EOL.
+							$helper->getErrorDescription()
+						);
+					} else {
+						throw new \Exception("Can't get access Token!");
+					}
+				}
+				
+				$fb->setDefaultAccessToken($accessToken->getValue());
+				$response = $fb->get('/me?locale=en_US&fields=id,name,gender,picture,email');
+				$userNode = $response->getGraphUser();
+				
+				if (!empty($userNode['id'])) {
+					$userInfo['uid'] = $userNode->getId();
+					$userInfo['name'] = $userNode->getName();
+					$userInfo['photo'] = $userNode->getPicture()->getUrl();
+					$userInfo['email'] = $userNode->getEmail();
+					$userInfo['gender'] = $userNode->getGender();
+					$userInfo['type'] = 'fb';
+					$getUser = TRUE;
+				}
                 break;
             case 'gl':
-                $params = array(
-                    'client_id'     => GL_CLIENT_ID,
-                    'client_secret' => GL_SECRET,
-                    'code'          => $_REQUEST['code'],
-                    'redirect_uri'  => $cur_link,
-                    'grant_type'    => 'authorization_code'
-                );
-                
-                $url = 'https://accounts.google.com/o/oauth2/token';
-                
-                $options = array(
-                    'http' => array(
-                        'header'  => 'Content-type:application/x-www-form-urlencoded\r\n',
-                        'method'  => 'POST',
-                        'content' => http_build_query($params)
-                    )
-                );
-                $context  = stream_context_create($options);
-                $result = @file_get_contents($url, false, $context);
-                if ($result === FALSE) {
-                	$error = error_get_last();
-                    echo 'Can\'t get Google permissions!';
-                    echo $error['message'];
-                    exit;
-                }
-                $access_token = json_decode($result, true)['access_token'];
-                
-                $result = file_get_contents(sprintf('https://www.googleapis.com/oauth2/v1/userinfo?access_token=%s', $access_token));
-                    
-                if ($result) {
-                    $uInfo = json_decode($result, true);
-
-                    if (isset($uInfo['id'])) {
-                        $userInfo['uid'] = $uInfo['id'];
-                        $userInfo['first_name'] = $uInfo['given_name'];
-                        $userInfo['photo_50'] = $uInfo['picture'].'?sz=50';
-                        $userInfo['type'] = 'gl';
-                        $getUser = true;
-                    }
-                }
+				$client = new \Google_Client();
+				$client->setAccessType('online');
+				$client->setClientId(GL_CLIENT_ID);
+				$client->setClientSecret(GL_SECRET);
+				$client->setRedirectUri($cur_link);
+				
+				$client->setScopes(array(
+					'https://www.googleapis.com/auth/userinfo.email',
+					'https://www.googleapis.com/auth/userinfo.profile')
+				);
+				
+				try {
+					$client->authenticate($_GET['code']);
+					$client->setAccessToken($client->getAccessToken());
+					
+					$objOAuthService = new \Google_Service_Oauth2($client);
+					$userData = $objOAuthService->userinfo->get();
+				}
+				catch (\InvalidArgumentException $exception) {
+					throw new \Exception($exception);
+				}
+				catch (\Google_Exception $exception) {
+						throw new \Exception($exception);
+				}
+				if ($userData) {
+				    $userInfo['uid'] = $userData->getId();
+				    $userInfo['name'] = $userData->getName();
+				    $userInfo['photo'] = $userData->getPicture().'?sz=50';
+				    $userInfo['email'] = $userData->getEmail();
+				    $userInfo['gender'] = $userData->getGender();
+				    $userInfo['type'] = 'gl';
+				    $getUser = TRUE;
+				}  
                 break;
         }
         if ($getUser) {
             $_SESSION['user']['id'] = $userInfo['uid'];
             $_SESSION['user']['type'] = $userInfo['type'];
-            $_SESSION['user']['name'] = $userInfo['first_name'];
-            $_SESSION['user']['img'] = $userInfo['photo_50'];
-            
+            $_SESSION['user']['name'] = $userInfo['name'];
+            $_SESSION['user']['photo'] = $userInfo['photo'];
+		    $_SESSION['user']['email'] = $userInfo['email'];
+		    $_SESSION['user']['gender'] = $userInfo['gender'];
             
             $loc = $_SESSION['user_referer'];
             unset($_SESSION['user_referer']);
@@ -525,7 +541,8 @@ class CWebPage
                 echo 'Wrong parameters were passed!';
             }
             else {        
-                $q = "INSERT 
+                $stmt = $this->hDbConn->prepare("
+                		INSERT 
                 		INTO comments (
                 			unit_id,
                 			user_id,
@@ -534,16 +551,22 @@ class CWebPage
                 			name,
                 			comment
                 		) 
-                		VALUES (%d,'%s',%s,'%s','%s','%s')";
-                $q = sprintf($q,
-                    $_POST['unit_id'],
-                    $_POST['user_id'],
-                    filter_var($_POST['p_com_id'], FILTER_VALIDATE_INT) ? $_POST['p_com_id'] : 'NULL',
-                    $_POST['type'],
-                    $this->hDbConn->real_escape_string($_SESSION['user']['name']),
-                    $this->hDbConn->real_escape_string($_POST['comment'])
+                		VALUES (:id, :uid, :p_com_id, :type, :name, :comment)");
+                $stmt->bindValue(':id', $_POST['unit_id'], \PDO::PARAM_INT);
+                $stmt->bindValue(':uid', $_POST['user_id'], \PDO::PARAM_INT);
+                $stmt->bindValue(
+                	':p_com_id',
+                	empty($_POST['p_com_id']) ? 'NULL' : $_POST['p_com_id'],
+                	\PDO::PARAM_INT
                 );
-                $this->hDbConn->exec($q);
+                $stmt->bindValue(':type', $_POST['type'], \PDO::PARAM_STR);
+                $stmt->bindValue(
+            		':name', 
+            		$_SESSION['user']['name'], 
+            		\PDO::PARAM_STR
+            	);
+                $stmt->bindValue(':comment', $_POST['comment'], \PDO::PARAM_STR);
+                $stmt->execute();
             }
         }
         header('Location: ' . $_SERVER['HTTP_REFERER']);
@@ -675,8 +698,8 @@ class CWebPage
                 break;
             case 'unit_del':
                 if ($this->isAuth()) {
-                	$unit = new CUnit($this->hDbConn);
-                	$unit->deleteUnit($_GET['id']);
+                	//$unit = new CUnit($this->hDbConn);
+                	CUnit::deleteUnit($_GET['id'], $this->hDbConn);
 					header('Location: ' . $_SERVER['HTTP_REFERER']);
                 }
                 else
@@ -684,8 +707,8 @@ class CWebPage
                 break;
             case 'unit_arch':
                 if ($this->isAuth()) {
-					$unit = new CUnit($this->hDbConn);
-					$unit->archUnit($_GET['id']);
+					//$unit = new CUnit($this->hDbConn);
+					CUnit::archUnit($_GET['id'], $this->hDbConn);
 					header('Location: ' . $_SERVER['HTTP_REFERER']);
                 }
                 else

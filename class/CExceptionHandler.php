@@ -13,9 +13,27 @@ class CExceptionHandler
     }	
 	
 	public static function errorProcess($exception) {
-		echo $exception;
-		echo "=====>".$exception->getMessage(). "<br />";
-		echo "=====>".$exception->getLine()(). "<br />";
+		if (DEBUG_MODE) {
+			echo 'File: ', $exception->getFile();
+			echo ' (', $exception->getLine(), ')<br />';
+			echo 'Code (', $exception->getCode(), '): ';
+			echo $exception->getMessage()."<br />";
+			exit;
+		}
+		else {
+			$mail = new \PHPMailer;
+			
+			$mail->setFrom('noreplay@gusen.ru', 'gusen.ru web site');
+			$mail->addAddress("admin@gusen.ru", "gusen.ru admin");
+
+			$mail->isHTML(FALSE);
+			$mail->Subject = "https://gusen.ru site error report";
+			$mail->Body = $exception;
+			
+			$mail->send();
+
+			header("Location: /error");
+		}
 	}
 }
 

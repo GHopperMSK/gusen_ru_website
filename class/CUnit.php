@@ -125,7 +125,7 @@ class CUnit
     function fillUnitData() {
     	if ($this->id) {
 	        $q = '
-	        	SELECT 
+	        	SELECT
 					u.id AS id,
 					u.name AS name,
 					u.description AS description,
@@ -454,12 +454,12 @@ class CUnit
         
     }
     
-    function deleteUnit($uid) {
+    static function deleteUnit($uid, CDataBase $hDbConn) {
         $q = sprintf('SELECT img 
         				FROM images 
         				WHERE unit_id=%d',
         				$u_id);
-        $res = $this->hDbConn->query($q);
+        $res = $hDbConn->query($q);
         while ($ir = $res->fetch(\PDO::FETCH_ASSOC)) {
         	$aPath = array('images', 'images/tmb');
         	foreach ($aPath as $path) {
@@ -472,14 +472,14 @@ class CUnit
         	}
         }
         $q = sprintf('DELETE FROM images WHERE unit_id=%d', $uid);
-        $this->hDbConn->exec($q);
+        $hDbConn->exec($q);
         $q = sprintf('DELETE FROM units WHERE id=%d', $uid);
-        $this->hDbConn->exec($q);
+        $hDbConn->exec($q);
     }
 	
-	function archUnit($uid) {
+	static function archUnit($uid, CDataBase $hDbConn) {
         $q = sprintf('UPDATE units SET is_arch=TRUE WHERE id=%d', $uid);
-        $this->hDbConn->exec($q);		
+        $hDbConn->exec($q);		
 	}
 }
 ?>

@@ -25,7 +25,7 @@ class CModule
     protected $xslDoc;
     protected $xmlDoc;
 
-    function __construct(&$hDbConn, $modName, $xslFile, $param1, $param2) {
+    function __construct(CDataBase $hDbConn, $modName, $xslFile, $param1, $param2) {
         $this->hDbConn = $hDbConn;
         $this->modName = $modName;
         $this->xslFile = $xslFile;
@@ -203,7 +203,7 @@ class CModule
         $sUserAttr->value = $_SESSION["user"]["id"];
         $sUser->appendChild($sUserAttr);
         
-        $sUserData = $this->xmlDoc->createElement("img", htmlentities($_SESSION["user"]["img"]));
+        $sUserData = $this->xmlDoc->createElement("img", htmlentities($_SESSION["user"]["photo"]));
         $sUser->appendChild($sUserData);
 
         $this->eRoot->appendChild($sUser); 
@@ -242,39 +242,54 @@ class CModule
 
             $_SESSION["user_referer"] = $cur_link;
 
-            $vk_url = 'https://oauth.vk.com/authorize';
-            $vk_params = array(
-                'client_id'     => VK_CLIENT_ID,
-                'redirect_uri'  => sprintf("https://%s/?page=oauth_vk", $realHost),
-                'response_type' => 'code'
-            );
-            $vkLink = $vk_url . '?' . http_build_query($vk_params);
+			// vkontakte auth url
+			$vk = new \VK\VK(VK_CLIENT_ID, VK_SECRET);
+			$vk->setApiVersion(VK_VERSION);
+			$vkLink = $vk->getAuthorizeURL(
+				'uid,first_name,last_name,sex,photo_50,email',
+				sprintf("https://%s/?page=oauth_vk", $realHost)
+			);
 
-            $fb_url = "https://www.facebook.com/dialog/oauth";
-            $fb_params = array(
-                'client_id'     => FB_CLIENT_ID,
-                'redirect_uri'  => sprintf("https://%s/?page=oauth_fb", $realHost),
-                'response_type' => 'code'
-            );
-            $fbLink = $fb_url . '?' . http_build_query($fb_params);
+			// facebook auth url
+			$fb = new \Facebook\Facebook([
+			  'app_id' => FB_CLIENT_ID,
+			  'app_secret' => FB_SECRET,
+			  'default_graph_version' => FB_VERSION
+			  ]);
+			
+			$helper = $fb->getRedirectLoginHelper();
+			
+			$permissions = ['public_profile, email'];
+			$fbLink = $helper->getLoginUrl(
+				sprintf("https://%s/?page=oauth_fb", $realHost), 
+				$permissions
+			);
 
-            $gl_url = 'https://accounts.google.com/o/oauth2/auth';
-            $gl_params = array(
-                'client_id'     => GL_CLIENT_ID,
-                'redirect_uri'  => sprintf("https://%s/?page=oauth_gl", $realHost),
-                'response_type' => 'code',
-                'scope'         => 'profile'
-            );
-            $glLink = $gl_url . '?' . http_build_query($gl_params);
-
-            
+			// google auth url
+// 			if (isset($_SESSION['access_token']))
+				// unset($_SESSION['access_token']);
+			
+			$client = new \Google_Client();
+			$client->setClientId(GL_CLIENT_ID);
+			$client->setClientSecret(GL_SECRET);
+			$client->setRedirectUri(sprintf("https://%s/?page=oauth_gl", 
+				$realHost));
+			
+			$client->setScopes(array(
+				'https://www.googleapis.com/auth/userinfo.email',
+				'https://www.googleapis.com/auth/userinfo.profile')
+			);
+			
+			$glLink = $client->createAuthUrl();
+           
             // login form
             $sNet = $this->xmlDoc->createElement("snetwork");
             $sNet = $this->eRoot->appendChild($sNet);
             $subNodeAttr = $this->xmlDoc->createAttribute('name');
             $subNodeAttr->value = 'Vkontakte'; 
             $sNet->appendChild($subNodeAttr);
-            $sNetLink = $this->xmlDoc->createElement("link", htmlentities($vkLink));
+            $sNetLink = $this->xmlDoc->createElement("link",
+            	htmlspecialchars($vkLink));
             $sNet->appendChild($sNetLink);
             $sNetLogo = $this->xmlDoc->createElement("img", "LOGO_ADDR");
             $sNet->appendChild($sNetLogo);
@@ -284,7 +299,8 @@ class CModule
             $subNodeAttr = $this->xmlDoc->createAttribute('name');
             $subNodeAttr->value = 'Facebook'; 
             $sNet->appendChild($subNodeAttr);
-            $sNetLink = $this->xmlDoc->createElement("link", htmlentities($fbLink));
+            $sNetLink = $this->xmlDoc->createElement("link", 
+            	htmlspecialchars($fbLink));
             $sNet->appendChild($sNetLink);
             $sNetLogo = $this->xmlDoc->createElement("img", "LOGO_ADDR");
             $sNet->appendChild($sNetLogo);
@@ -294,7 +310,8 @@ class CModule
             $subNodeAttr = $this->xmlDoc->createAttribute('name');
             $subNodeAttr->value = 'Google'; 
             $sNet->appendChild($subNodeAttr);
-            $sNetLink = $this->xmlDoc->createElement("link", htmlentities($glLink));
+            $sNetLink = $this->xmlDoc->createElement("link",
+            	htmlspecialchars($glLink));
             $sNet->appendChild($sNetLink);
             $sNetLogo = $this->xmlDoc->createElement("img", "LOGO_ADDR");
             $sNet->appendChild($sNetLogo);
@@ -679,7 +696,7 @@ class CModule
             	ORDER BY date ASC";
         $q = sprintf($q, $_GET['id']);
         $res = $this->hDbConn->query($q);
-        if ($res->num_rows > 0) {
+        if ($res->rowCount() > 0) {
             $sComents = $this->xmlDoc->createElement("comments");
             $sComents = $this->eRoot->appendChild($sComents);
             

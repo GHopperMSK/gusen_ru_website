@@ -16,7 +16,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
                 </xsl:attribute>
             </img>&#160;
             <xsl:value-of select="/root/user/@name"/>&#160;
-            <a href="?page=logout">(выйти)</a></p>
+            <a href="/logout">(выйти)</a></p>
         </xsl:when>
         <xsl:otherwise>
             <p>Авторизируйтесь через: 
