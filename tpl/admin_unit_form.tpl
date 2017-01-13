@@ -279,7 +279,7 @@
 
 <fieldset>
 <legend>Unit editing</legend>
-%{admin_unit_form&admin_unit_form.xsl}%
+%{admin_unit_form&admin_unit_form.xsl&0}%
 </fieldset>
 
 </body>

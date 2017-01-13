@@ -7,6 +7,6 @@
 <body>
 <a href="?page=admin&act=main">Home</a>
 <br />
-%{admin_comments_list&admin_comments_form.xsl}%
+%{admin_comments_list&admin_comments_form.xsl&0}%
 </body>
 </html>

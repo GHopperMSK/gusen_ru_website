@@ -7,10 +7,13 @@ namespace gusenru;
  * A page template can contain any amount of modules. They are described 
  *  by this way:
  * 
- * %{MOD_NAME&XSL_TEMPLATE[&PARAM_1[&PARAM_2]]}%
+ * %{MOD_NAME&XSL_TEMPLATE&CACHE_TIME[&PARAM_1[&PARAM_2]]}%
  * 
  * If XSL_TEMPLATE is null, it means that the module will not make 
  * any XSL-transformations.
+ * 
+ * CACHE_TIME - duration of cache in munites.
+ * If CACHE_TIME is 0, content won't be cached
  * 
  * @param CDataBase $hDbConn
  * @param string $modName
@@ -26,6 +29,14 @@ class CModule
     protected $xmlDoc;
 
     function __construct(CDataBase $hDbConn, $modName, $xslFile, $param1, $param2) {
+    	CWebPage::debug('CModule::__construct(CDataBase,'.
+    		$modName.','.
+    		$xslFile.
+    		(isset($param1) ? ','.$para1 : '').
+    		(isset($param2) ? ','.$param2 : '').
+    		')'
+    	);
+    	
         $this->hDbConn = $hDbConn;
         $this->modName = $modName;
         $this->xslFile = $xslFile;
@@ -89,6 +100,7 @@ class CModule
     }
     
     function __destruct () {
+    	CWebPage::debug('CModule::__destruct()');
         unset($this->xslDoc);
         unset($this->xmlDoc);
     }  
@@ -266,9 +278,6 @@ class CModule
 			);
 
 			// google auth url
-// 			if (isset($_SESSION['access_token']))
-				// unset($_SESSION['access_token']);
-			
 			$client = new \Google_Client();
 			$client->setClientId(GL_CLIENT_ID);
 			$client->setClientSecret(GL_SECRET);

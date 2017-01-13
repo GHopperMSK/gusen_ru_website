@@ -1,5 +1,6 @@
 <?php
 namespace gusenru;
+use phpFastCache\CacheManager;
 
 /**
  * CWebPage class
@@ -22,18 +23,18 @@ namespace gusenru;
  */
 class CWebPage
 {
-    private $sPageContent = ''; // whole page content
+    private $sPageContent; // whole page content
     private $hDbConn;
+    private $instanceCache;
     
     function __construct($hDbConn) {
-    	
+        CWebPage::debug("CWebPage::__construct(CDataBase)");
+        
         if ($hDbConn instanceof CDataBase) {
             $this->hDbConn = $hDbConn;
         }
-        else {
-            echo 'Wrong CDataBase connection was passed!';
-            exit;
-        }
+        else
+        	throw new \Exception('Wrong CDataBase connection was passed!');
 
         // process integer get-values within URL
         $aGetInt = ['id', 'vType', 'vManuf', 'vFedDistr'];
@@ -45,8 +46,21 @@ class CWebPage
                 );
             }
         }
+        
+		CacheManager::setDefaultConfig([
+		  "path" => sys_get_temp_dir(),
+		]);
+		$this->instanceCache = CacheManager::getInstance('files');		
 
         $this->pageProcess($_GET['page']);
+    }
+    
+    static function debug($massage, $priority = LOG_INFO) {
+    	if (DEBUG_MODE) {
+    		openlog('gusenru', LOG_NDELAY, LOG_USER);
+    	    // closelog();
+			syslog($priority, $massage);
+    	}
     }
 
     /**
@@ -145,7 +159,7 @@ class CWebPage
     */
     
     // WBMP->resourse convertor
-    function ImageCreateFromBMP($filename) { 
+    function ImageCreateFromBMP($filename) {
         if (! $f1 = fopen($filename,'rb')) return FALSE; 
         $FILE = unpack('vfile_type/Vfile_size/Vreserved/Vbitmap_offset', fread($f1,14)); 
         if ($FILE['file_type'] != 19778) return FALSE; 
@@ -233,6 +247,8 @@ class CWebPage
      * @return resource resized image resource
      */
     function resizeImage($file, $w, $h, $crop=FALSE) {
+        CWebPage::debug("CWebPage::resizeImage({$file}, {$w}, {$h}, {$crop})");
+
         // get image type
         $src = null;
         switch (exif_imagetype($file)) {
@@ -332,6 +348,8 @@ class CWebPage
      * @return bool
      */
     function isAuth() {
+        CWebPage::debug('CWebPage::isAuth()');
+
         if(isset($_SESSION['username'])) {
             return TRUE;
         }
@@ -347,6 +365,8 @@ class CWebPage
      * @return void
      */
     function setTemplate($tpl) {
+        CWebPage::debug("CWebPage::setTemplate({$tpl})");
+        
         if (file_exists($tpl)) {
             $this->tpl = $tpl;
         }
@@ -361,20 +381,76 @@ class CWebPage
      * @return void 
      */
     function renderTemplate() {
+        CWebPage::debug('CWebPage::renderTemplate()');
+
         if (isset($this->tpl)) {
-            $sPage = file_get_contents($this->tpl);
+            $this->sPageContent = file_get_contents($this->tpl);
+            if (!$this->sPageContent)
+            	throw new \Exception("CWebPage::renderTemplate(): Can't locad template {$this->tpl}");
             
-            preg_match_all('/%{(.+)}%/', $sPage, $matches);
+            preg_match_all('/%{(.+)}%/', $this->sPageContent, $matches);
             
             foreach ($matches[1] as $key => $value) {
-                list($modName, $xslFile, $param1, $param2) = explode('&', $value);
+                list($modName, $xslFile, $duration, $param1, $param2) = 
+                	explode('&', $value);
+                	
+                if (empty($modName) || empty($xslFile) || !isset($duration)) {
+					throw new \Exception("Error module parameters! {$matches[0][$key]}");
+                }
 
-                $hMod = new CModule($this->hDbConn, $modName, $xslFile, $param1, $param2);
-                $sPage = str_replace($matches[0][$key], $hMod->execute(), $sPage);
-    
-                unset($hMod);
+				if ($duration > 0) {
+					$CachedString = $this->instanceCache->getItem($matches[1][$key]);
+					
+					if (!$CachedString->isHit()) {
+					    $hMod = new CModule(
+					    	$this->hDbConn,
+					    	$modName,
+					    	$xslFile,
+					    	$param1,
+					    	$param2
+					    );
+					    $sModContent = $hMod->execute();
+						CWebPage::debug("Write to cache {$modName} on {$duration} minutes");
+					    $this->sPageContent = str_replace(
+					    	$matches[0][$key],
+					    	$sModContent,
+					    	$this->sPageContent
+					    );
+					
+						$CachedString
+							->set($sModContent)
+							->expiresAfter($duration * 60);
+					    unset($hMod);
+					    $this->instanceCache->save($CachedString);
+					} else {
+						CWebPage::debug("Get from cache {$modName}");
+						
+					    $this->sPageContent = str_replace(
+					    	$matches[0][$key],
+					    	$CachedString->get(),
+					    	$this->sPageContent
+					    );
+					}
+					unset($CachedString);
+				}
+				else {
+					CWebPage::debug("{$modName} doesn't use a cache");
+				    $hMod = new CModule(
+				    	$this->hDbConn,
+				    	$modName,
+				    	$xslFile,
+				    	$param1,
+				    	$param2
+				    );
+				    $sModContent = $hMod->execute();
+				    unset($hMod);
+				    $this->sPageContent = str_replace(
+				    	$matches[0][$key],
+				    	$sModContent,
+				    	$this->sPageContent
+				    );
+				}
             }
-            $this->sPageContent = $sPage;
         }
     }
     
@@ -397,6 +473,8 @@ class CWebPage
      * @return void
      */
     function oauth($type) {
+        CWebPage::debug("CWebPage::oauth({$type})");
+        
         list($realHost,)=explode(':',$_SERVER['HTTP_HOST']);
 
         $cur_link = sprintf('https://%s/?page=%s',
@@ -531,11 +609,15 @@ class CWebPage
     }
     
     function userLogout() {
+        CWebPage::debug('CWebPage::userLogout()');
+        
         unset($_SESSION['user']);
         header('Location: ' . $_SERVER['HTTP_REFERER']);
     }
     
     function commentAdd() {
+        CWebPage::debug('CWebPage::commentAdd()');
+        
         if (isset($_POST['user_id'])) {
             if (!filter_var($_POST['unit_id'], FILTER_VALIDATE_INT)) {
                 echo 'Wrong parameters were passed!';
@@ -574,6 +656,8 @@ class CWebPage
     
     // generator of sitexml.xml
     function sitemap() {
+        CWebPage::debug('CWebPage::sitemap()');
+        
         $xml = new DOMDocument('1.0', 'UTF-8');
         $urlset = $xml->createElement('urlset');
         $urlset = $xml->appendChild($urlset);
@@ -739,6 +823,8 @@ class CWebPage
     }
     
     function addUnit() {
+        CWebPage::debug('CWebPage::addUnit()');
+        
     	$unit = new CUnit($this->hDbConn);
     	$unit->cat_id = $_POST['category'];
     	$unit->manuf_id = $_POST['manufacturer'];
@@ -756,6 +842,8 @@ class CWebPage
     }
     
     function editUnit() {
+        CWebPage::debug('CWebPage::editUnit()');
+        
     	$unit = new CUnit($this->hDbConn);
     	$unit->id = $_POST['id'];
     	$unit->cat_id = $_POST['category'];
@@ -777,6 +865,8 @@ class CWebPage
     // Ajax page functionality
     //-----------------------------------------------------    
     private function ajaxPage($mode) {
+        CWebPage::debug("CWebPage::ajaxPage({$mode})");
+        
         switch ($mode) {
             case 'city':
                 $json = array();

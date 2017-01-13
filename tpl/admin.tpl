@@ -26,11 +26,11 @@
 <a href="?page=admin&act=admin_unit_form">Add an unit</a>
 <a href="?page=admin&act=unapproved_comments">Comments (%{comments_unapproved_total&null}%)</a>
 <br /><br />
-%{search_form&search_form.xsl&admin}%
+%{search_form&search_form.xsl&0&admin}%
 
-%{search_page_unit_list&admin_unit_list.xsl}%
+%{search_page_unit_list&admin_unit_list.xsl&0}%
 <section class="paginator">
-%{unit_list_paginator&search_paginator.xsl&admin}% 
+%{unit_list_paginator&search_paginator.xsl&0&admin}%
 </section>
 
 </body>

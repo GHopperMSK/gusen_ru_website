@@ -3,8 +3,9 @@
         "raveren/kint": "0.9",
         "phpmailer/phpmailer": "5.2.*",
         "google/apiclient": "^2.0",
-        "vladkens/vk": "*",
-        "facebook/graph-sdk": "~5.0"
+        "vladkens/vk": "^0.1.9",
+        "facebook/graph-sdk": "~5.0",
+        "phpFastCache/phpFastCache": "^5.0"
     },
     "autoload": {
     	"psr-4": {"gusenru\\": "class"}
