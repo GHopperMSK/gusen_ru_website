@@ -24,7 +24,7 @@
 <a href="?page=admin&act=main">Home</a>
 <a href="?page=admin&act=logout&msg=Successfully_Logged_out">Log out</a>
 <a href="?page=admin&act=admin_unit_form">Add an unit</a>
-<a href="?page=admin&act=unapproved_comments">Comments (%{comments_unapproved_total&null}%)</a>
+<a href="?page=admin&act=unapproved_comments">Comments (%{comments_unapproved_total&null&0}%)</a>
 <br /><br />
 %{search_form&search_form.xsl&0&admin}%
 

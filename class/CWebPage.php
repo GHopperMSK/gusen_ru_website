@@ -28,6 +28,9 @@ class CWebPage
     private $instanceCache;
     
     function __construct($hDbConn) {
+    	if (DEBUG_MODE)
+    		openlog('gusenru', LOG_NDELAY, LOG_USER);
+
         CWebPage::debug("CWebPage::__construct(CDataBase)");
         
         if ($hDbConn instanceof CDataBase) {
@@ -50,16 +53,14 @@ class CWebPage
 		CacheManager::setDefaultConfig([
 		  "path" => sys_get_temp_dir(),
 		]);
-		$this->instanceCache = CacheManager::getInstance('files');		
+		$this->instanceCache = CacheManager::getInstance(CACHE_TYPE);		
 
         $this->pageProcess($_GET['page']);
     }
     
-    static function debug($massage, $priority = LOG_INFO) {
+    static function debug($message, $priority = LOG_INFO) {
     	if (DEBUG_MODE) {
-    		openlog('gusenru', LOG_NDELAY, LOG_USER);
-    	    // closelog();
-			syslog($priority, $massage);
+			syslog($priority, $message);
     	}
     }
 
@@ -137,26 +138,6 @@ class CWebPage
                 $this->setTemplate('tpl/main.tpl');
         }        
     }
-    
-    /**
-     * Applies filter_var for each member of given array
-     * with specified validate filter
-     * 
-     * @param array $aVar
-     * @param int $secKey
-     * 
-     * @return bool
-     */
-    /*
-    function varValid($aVar, $secKey) {
-        foreach ($aVar as $var) {
-            if (filter_var($var, $secKey) === FALSE) {
-                return false;
-            }
-        }
-        return true;
-    } 
-    */
     
     // WBMP->resourse convertor
     function ImageCreateFromBMP($filename) {
@@ -398,7 +379,7 @@ class CWebPage
 					throw new \Exception("Error module parameters! {$matches[0][$key]}");
                 }
 
-				if ($duration > 0) {
+				if (CACHE_ON && ($duration > 0)) {
 					$CachedString = $this->instanceCache->getItem($matches[1][$key]);
 					
 					if (!$CachedString->isHit()) {
@@ -410,7 +391,7 @@ class CWebPage
 					    	$param2
 					    );
 					    $sModContent = $hMod->execute();
-						CWebPage::debug("Write to cache {$modName} on {$duration} minutes");
+						CWebPage::debug("Write to cache {$matches[1][$key]} on {$duration} minutes");
 					    $this->sPageContent = str_replace(
 					    	$matches[0][$key],
 					    	$sModContent,
@@ -423,7 +404,7 @@ class CWebPage
 					    unset($hMod);
 					    $this->instanceCache->save($CachedString);
 					} else {
-						CWebPage::debug("Get from cache {$modName}");
+						CWebPage::debug("Get from cache {$matches[1][$key]}");
 						
 					    $this->sPageContent = str_replace(
 					    	$matches[0][$key],
@@ -434,7 +415,10 @@ class CWebPage
 					unset($CachedString);
 				}
 				else {
-					CWebPage::debug("{$modName} doesn't use a cache");
+					if (CACHE_ON)
+						CWebPage::debug("{$modName} doesn't use a cache");
+					else
+						CWebPage::debug("The cache is turned off");
 				    $hMod = new CModule(
 				    	$this->hDbConn,
 				    	$modName,
@@ -768,6 +752,14 @@ class CWebPage
                 else
                     header('Location: ?page=admin&act=login_form&msg=access_denied');
                 break;
+/*                
+            case 'vk_post':
+                if ($this->isAuth())
+	            	$this->vkPost();
+                else
+                    header('Location: ?page=admin&act=login_form&msg=access_denied');
+            	break;
+*/            	
             case 'unit_edit':
                 if ($this->isAuth())
                     $this->editUnit();
@@ -782,7 +774,6 @@ class CWebPage
                 break;
             case 'unit_del':
                 if ($this->isAuth()) {
-                	//$unit = new CUnit($this->hDbConn);
                 	CUnit::deleteUnit($_GET['id'], $this->hDbConn);
 					header('Location: ' . $_SERVER['HTTP_REFERER']);
                 }
@@ -860,6 +851,46 @@ class CWebPage
         $unit->editUnit($_POST['available_images']);
     	header('Location: ?page=admin&act=main');     
     }
+
+/* Not allow by VK
+    function vkPost() {
+        list($realHost,)=explode(':',$_SERVER['HTTP_HOST']);
+
+    	$aUrlParam = array(
+    		'page'		=> $_GET['page'],
+    		'act'		=> 'vk_post',
+    		'id'		=> $_GET['id']
+    	);
+    	$cur_link = sprintf('https://%s/?', $realHost).
+    		http_build_query($aUrlParam);
+
+		$vk = new \VK\VK(VK_CLIENT_ID, VK_SECRET);
+		$vk->setApiVersion(VK_VERSION);
+
+    	try {
+			$access_token = $vk->getAccessToken(
+				$_REQUEST['code'],
+				urldecode($cur_link)
+			);
+    	}
+    	catch (\VK\VKException $exception) {
+    		throw new \Exception($exception);
+    	}
+
+		try {
+			$post = $vk->api('wall.post', array(
+				'owner_id'	=> $access_token['user_id'],
+				'message'	=> 'Hello world!')
+			);
+		} catch (VK\VKException $exception) {
+    		throw new \Exception($exception);
+    	}
+
+		$loc = $_SESSION["referer"];
+		unset($_SESSION["referer"]);
+        header("Location: {$loc}");
+    }
+*/    
     
     //-----------------------------------------------------
     // Ajax page functionality

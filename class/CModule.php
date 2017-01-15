@@ -72,6 +72,10 @@ class CModule
             case "search_page_unit_list":
                 $this->searchPageMain();
                 break;
+/*                
+            case "admin_page_unit_list":
+            	$this->adminPageUnitList();
+*/            	
             case "unit_list_paginator":
                 $this->searchPaginator($param1);
                 break;
@@ -148,6 +152,9 @@ class CModule
         $page_cur, 
         $nav_show_pages) 
     {
+    	
+		$link_pattern = urldecode($link_pattern);
+		
         // must be odd due to symmetric
         $nav_show = round($nav_show_pages, 0, PHP_ROUND_HALF_ODD);
 
@@ -807,15 +814,15 @@ class CModule
         $vType = isset($_GET['vType']) ? $_GET['vType'] : 0;
         $vManuf = isset($_GET['vManuf']) ? $_GET['vManuf'] : 0;
         $vFedDistr = isset($_GET['vFedDistr']) ? $_GET['vFedDistr'] : 0;
-        switch ($page) {
+        switch ($_GET['page']) {
             case "search":
             	$aVar = ['search', $vType, $vManuf, $vFedDistr, '%d'];
             	$sLinkPattern = htmlentities("/".implode("/", $aVar));
                 break;
             case "admin":
             	$aVar = array(
-            		'page'		=> 'admin',
-            		'act'		=> 'main',
+            		'page'		=> $_GET['page'],
+            		'act'		=> $_GET['act'],
             		'vType'		=> $vType,
             		'vManut'	=> $vManuf,
             		'vFedDistr'	=> $vFedDistr,
@@ -835,8 +842,10 @@ class CModule
     }
     
     function searchPageMain() {
-        $q = 'SELECT id 
-        		FROM units
+        $q = 'SELECT u.id 
+        		FROM units u
+				JOIN cities ON u.city_id=cities.id
+				JOIN regions ON cities.rd_id=regions.id
         		WHERE is_arch=FALSE';
 
         if ($_GET['vType'] != 0) {
@@ -869,6 +878,82 @@ class CModule
 			unset($unit);
         }
     }
+
+/*
+    function adminPageUnitList() {
+        $q = 'SELECT u.id 
+        		FROM units u
+				JOIN cities ON u.city_id=cities.id
+				JOIN regions ON cities.rd_id=regions.id
+        		WHERE is_arch=FALSE';
+
+        if ($_GET['vType'] != 0) {
+            $q .= sprintf(" AND cat_id=%d", $_GET['vType']);
+        }
+        if ($_GET['vManuf']) {
+            $q .= sprintf(" AND manufacturer_id=%d", $_GET[vManuf]);
+        }
+        if ($_GET['vFedDistr']) {
+            $q .= sprintf(" AND fd_id=%d", $_GET[vFedDistr]);
+        }
+
+        if (isset($_GET['offset'])) {
+            $iOffset = max($_GET['offset'], 1);
+        } else {
+            $iOffset = 1;
+        }
+        
+        $q .= sprintf(" ORDER BY date DESC LIMIT %d,%d",
+            ($iOffset-1)*PAGINATOR_SHOW_ON_PAGE,
+            PAGINATOR_SHOW_ON_PAGE
+        );
+
+		// TODO: check for the token and use it instead of getting new
+		list($realHost,)=explode(':',$_SERVER['HTTP_HOST']);
+
+    	$aUrlParam = array(
+    		'page'		=> $_GET['page'],
+    		'act'		=> $_GET['act'],
+    		'vType'		=> isset($_GET['vType']) ? $_GET['vType'] : 0,
+    		'vManut'	=> isset($_GET['vManut']) ? $_GET['vManut'] : 0,
+    		'vFedDistr'	=> isset($_GET['vFedDistr']) ? $_GET['vFedDistr'] : 0,
+    		'offset'	=> isset($_GET['offset']) ? $_GET['offset'] : 0
+    	);
+    	$cur_link = htmlentities(sprintf('https://%s/?', $realHost).
+    		http_build_query($aUrlParam));
+		
+		$_SESSION["referer"] = $cur_link;
+
+		$vk = new \VK\VK(VK_CLIENT_ID, VK_SECRET);
+		$vk->setApiVersion(VK_VERSION);
+
+        $res = $this->hDbConn->query($q);
+        while ($ur = $res->fetch(\PDO::FETCH_ASSOC)) {
+        	$unit = new CUnit($this->hDbConn, $ur['id']);
+        	$unit = $unit->getUnitDOM();
+			$unit = $this->xmlDoc->importNode($unit, true);
+
+	    	$aUrlParam = array(
+	    		'page'		=> $_GET['page'],
+	    		'act'		=> 'vk_post',
+	    		'id'		=> $ur['id']
+	    	);
+	    	$unit_url = sprintf('https://%s/?', $realHost).
+	    		http_build_query($aUrlParam);
+
+			$vkLink = $vk->getAuthorizeURL(
+				'wall',
+				urldecode($unit_url)
+			);
+
+			$eLink = $this->xmlDoc->createElement('vk_link',
+				htmlspecialchars($vkLink));
+			$unit->appendChild($eLink);
+			$this->eRoot->appendChild($unit);
+			unset($unit);
+        }
+    }
+*/
 
     function mainPageList() {
         $q = '
