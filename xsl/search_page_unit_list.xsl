@@ -3,12 +3,14 @@
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 <xsl:output method="xml" indent="yes" omit-xml-declaration="yes" />
 
+<xsl:output indent="no" method="html" />
+
 <xsl:template match="root">
 
     <div class="row row-itemz">
     <xsl:for-each select="unit">
     
-        <a class="collg-3 col-md-3 col-sm-4 col-xs-6">
+        <a class="col-lg-3 col-md-3 col-sm-4 col-xs-6">
         	<xsl:attribute name="href">/unit/<xsl:value-of select="@id"/></xsl:attribute>
         	<div class="itemz">
             <img class="img-responsive">

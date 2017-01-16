@@ -8,18 +8,13 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-    <script src="js/jquery.fs.selecter.min.js"></script>
-    <link rel="stylesheet" href="css/jquery.fs.selecter.css">
-    <link rel="stylesheet" href="css/gusen.css">
+    <script src="/js/jquery.fs.selecter.min.js"></script>
+    <link rel="stylesheet" href="/css/jquery.fs.selecter.css">
+    <link rel="stylesheet" href="/css/gusen.css">
     <title>Агентство спецтехники Гусеница</title>
-    <script>
-        $(document).ready(function(){
-            $('select').selecter();
-        });
-    </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.8.3/modernizr.min.js"></script>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" />
-    <link href="https://fonts.googleapis.com/css?family=Roboto+Condensed:400,400i,700,700i|Roboto:400,400i,700,700i" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css?family=Roboto+Condensed:400,400i,700,700i%7CRoboto:400,400i,700,700i" rel="stylesheet" />
 </head>
 <body>
     <div class="container">
@@ -73,7 +68,7 @@
         <div class="container">
             <div class="row">
                 <div class="fltlft">
-                    <div class="footp1"><span>© ООО «Гусеница», 2016</span></div>    
+                    <div class="footp1"><span>© ООО «Гусеница», 2016 - 2017</span></div>
                     <div class="footp2"><a href="about">о компании</a></div>   
                 </div>
                 <div class="fltrght">

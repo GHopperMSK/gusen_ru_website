@@ -370,6 +370,8 @@ class CWebPage
             	throw new \Exception("CWebPage::renderTemplate(): Can't locad template {$this->tpl}");
             
             preg_match_all('/%{(.+)}%/', $this->sPageContent, $matches);
+
+			$urlParams = implode('', $_GET);
             
             foreach ($matches[1] as $key => $value) {
                 list($modName, $xslFile, $duration, $param1, $param2) = 
@@ -380,7 +382,10 @@ class CWebPage
                 }
 
 				if (CACHE_ON && ($duration > 0)) {
-					$CachedString = $this->instanceCache->getItem($matches[1][$key]);
+					$CachedString = $this->instanceCache->getItem(
+						$matches[1][$key].
+						$urlParams // add URL-specific key
+					);
 					
 					if (!$CachedString->isHit()) {
 					    $hMod = new CModule(
@@ -601,7 +606,7 @@ class CWebPage
     
     function commentAdd() {
         CWebPage::debug('CWebPage::commentAdd()');
-        
+
         if (isset($_POST['user_id'])) {
             if (!filter_var($_POST['unit_id'], FILTER_VALIDATE_INT)) {
                 echo 'Wrong parameters were passed!';
@@ -622,7 +627,7 @@ class CWebPage
                 $stmt->bindValue(':uid', $_POST['user_id'], \PDO::PARAM_INT);
                 $stmt->bindValue(
                 	':p_com_id',
-                	empty($_POST['p_com_id']) ? 'NULL' : $_POST['p_com_id'],
+                	isset($_POST['p_com_id']) ? $_POST['p_com_id'] : NULL, 
                 	\PDO::PARAM_INT
                 );
                 $stmt->bindValue(':type', $_POST['type'], \PDO::PARAM_STR);

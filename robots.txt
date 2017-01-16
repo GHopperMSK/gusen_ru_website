@@ -1,0 +1,4 @@
+Host: https://gusen.ru
+User-agent: * 
+Crawl-Delay: 20
+Sitemap: https://gusen.ru/sitemap.xml

@@ -6,17 +6,17 @@
     <meta name="description" content="Агентство спецтехники Гусеница - только мощные предложения!">
     <meta name="keywords" content="Гусеничные экскаваторы,Колесные экскаваторы,Экскаваторы-погрузчики,Фронтальные погрузчики,Автогрейдеры,Бульдозеры,Буровые машины ,Мини-погрузчики,Мини-погрузчики сочлененные,Мини-экскаваторы,Мини-самосвалы,Асфальтоукладчики,Асфальтовые катки,Грунтовые катки,Дорожные фрезы,Оборудование для ямочного ремонта,Виброплиты,Автогудронаторы,Заливщики швов,Дробилки,Грохоты,Самосвалы сочлененные,Самосвалы рамные,Экскаваторы карьерные,Конвейеры ленточные,Автокраны,Автовышки,Башенные краны,Манипуляторы КМУ,Телескопические погрузчики,Гусеничные краны,Перегружатели,Трубоукладчики,Подъемники ножничные,Подъемники телескопические,Подъемники коленчатые,Асфальтобетонные заводы АБЗ,Бетонные заводы,Автобетононасосы,Автобетоносмесители,Растворонасосы,Вибропрессы,Стационарные бетононасосы,Вилочные погрузчики,Электрические погрузчики,Штабелёры (ричтраки),Самоходные тележки,Тележки гидравлические ручные,Боковые погрузчики,Электрокары,Малотоннажные грузовики,Среднетоннажные грузовики,Прицепы (полуприцепы),Тяжелые грузовики,Самосвалы грузовые,Гусеничные самосвалы,Топливозаправщики,Молоковозы,Земснаряды,Автоцистерны,Мусоровозы,Снегоуборочная техника,Поливомоечные машины,Ассенизаторские машины,Илососы">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1/jquery.js"></script>
-<script src="/lightbox2/js/lightbox.js"></script>
-<link href="/lightbox2/css/lightbox.css" rel="stylesheet" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
     <script src="/js/jquery.fs.selecter.min.js"></script>
     <link rel="stylesheet" href="/css/jquery.fs.selecter.css">
     <link rel="stylesheet" href="/css/gusen.css">
+
+    <link  href="https://cdnjs.cloudflare.com/ajax/libs/fotorama/4.6.4/fotorama.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fotorama/4.6.4/fotorama.js"></script>
+
     <title>%{title&null&10&page_unit}%</title>
     <script>
-
         function answer(com_id,user_id) {
             if ($('#comment_form').length) {
                 $('#p_com_id').remove();
@@ -39,6 +39,14 @@
         var aUsr = []; // array of users who commented the unit
         
         $(document).ready(function(){
+            $('.fotorama').on('fotorama:fullscreenenter', function() {
+                $(this).data('fotorama').setOptions({fit: 'contain'});
+            });
+            
+            $('.fotorama').on('fotorama:fullscreenexit', function() {
+                $(this).data('fotorama').setOptions({fit: 'cover'});
+            });    
+
             $('select').selecter();
 
             var text_message = 'Можете оставить комментарий или задать вопрос...';
@@ -137,7 +145,7 @@
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.8.3/modernizr.min.js"></script>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" />
-    <link href="https://fonts.googleapis.com/css?family=Roboto+Condensed:400,400i,700,700i|Roboto:400,400i,700,700i" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css?family=Roboto+Condensed:400,400i,700,700i%7CRoboto:400,400i,700,700i" rel="stylesheet" />
 </head>
 <body>
     <div class="container">
@@ -162,15 +170,6 @@
                 
         <div class="content">
             %{unit_page_unit&unit_page_unit.xsl&10}%
-            
-            <script>
-                lightbox.option({
-                  'resizeDuration': 200,
-                  'wrapAround': true,
-                  'fadeDuration': 100,
-                  'imageFadeDuration': 100
-                })
-            </script>
         </div>
         <section class="main_block user">
             %{user&user.xsl&0}%
@@ -184,11 +183,11 @@
         <div class="container">
             <div class="row">
                 <div class="fltlft">
-                    <div class="footp1"><span>© ООО «Гусеница», 2016</span></div>    
-                    <div class="footp2"><a href="about">о компании</a></div>   
+                    <div class="footp1"><span>© ООО «Гусеница», 2016 - 2017</span></div>
+                    <div class="footp2"><a href="/about">о компании</a></div>   
                 </div>
                 <div class="fltrght">
-                <div class="footp3"><a href="copyright">Пользовательское соглашение</a></div>
+                <div class="footp3"><a href="/copyright">Пользовательское соглашение</a></div>
                 <div class="mob">
                 <a href="#" class="footp4 socseti vk"><i class="fa fa-vk" aria-hidden="true"></i></a>
                 <a href="#" class="footp5 socseti facebook"><i class="fa fa-facebook" aria-hidden="true"></i></a>

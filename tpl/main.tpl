@@ -19,7 +19,7 @@
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.8.3/modernizr.min.js"></script>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" />
-    <link href="https://fonts.googleapis.com/css?family=Roboto+Condensed:400,400i,700,700i|Roboto:400,400i,700,700i" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css?family=Roboto+Condensed:400,400i,700,700i%7CRoboto:400,400i,700,700i" rel="stylesheet" />
 </head>
 <body>
     <div class="container">
@@ -56,11 +56,11 @@
         <div class="container">
             <div class="row">
                 <div class="fltlft">
-                    <div class="footp1"><span>© ООО «Гусеница», 2016</span></div>    
-                    <div class="footp2"><a href="about">о компании</a></div>   
+                    <div class="footp1"><span>© ООО «Гусеница», 2016 - 2017</span></div>
+                    <div class="footp2"><a href="/about">о компании</a></div>   
                 </div>
                 <div class="fltrght">
-                <div class="footp3"><a href="copyright">Пользовательское соглашение</a></div>
+                <div class="footp3"><a href="/copyright">Пользовательское соглашение</a></div>
                 <div class="mob">
                 <a href="#" class="footp4 socseti vk"><i class="fa fa-vk" aria-hidden="true"></i></a>
                 <a href="#" class="footp5 socseti facebook"><i class="fa fa-facebook" aria-hidden="true"></i></a>

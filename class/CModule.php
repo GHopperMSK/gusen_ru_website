@@ -301,8 +301,8 @@ class CModule
             // login form
             $sNet = $this->xmlDoc->createElement("snetwork");
             $sNet = $this->eRoot->appendChild($sNet);
-            $subNodeAttr = $this->xmlDoc->createAttribute('name');
-            $subNodeAttr->value = 'Vkontakte'; 
+            $subNodeAttr = $this->xmlDoc->createAttribute('type');
+            $subNodeAttr->value = 'vk'; 
             $sNet->appendChild($subNodeAttr);
             $sNetLink = $this->xmlDoc->createElement("link",
             	htmlspecialchars($vkLink));
@@ -312,8 +312,8 @@ class CModule
 
             $sNet = $this->xmlDoc->createElement("snetwork");
             $sNet = $this->eRoot->appendChild($sNet);
-            $subNodeAttr = $this->xmlDoc->createAttribute('name');
-            $subNodeAttr->value = 'Facebook'; 
+            $subNodeAttr = $this->xmlDoc->createAttribute('type');
+            $subNodeAttr->value = 'fb'; 
             $sNet->appendChild($subNodeAttr);
             $sNetLink = $this->xmlDoc->createElement("link", 
             	htmlspecialchars($fbLink));
@@ -323,8 +323,8 @@ class CModule
 
             $sNet = $this->xmlDoc->createElement("snetwork");
             $sNet = $this->eRoot->appendChild($sNet);
-            $subNodeAttr = $this->xmlDoc->createAttribute('name');
-            $subNodeAttr->value = 'Google'; 
+            $subNodeAttr = $this->xmlDoc->createAttribute('type');
+            $subNodeAttr->value = 'gl'; 
             $sNet->appendChild($subNodeAttr);
             $sNetLink = $this->xmlDoc->createElement("link",
             	htmlspecialchars($glLink));
@@ -711,7 +711,7 @@ class CModule
             		p_com_id IS NULL 
             	ORDER BY date ASC";
         $q = sprintf($q, $_GET['id']);
-        $res = $this->hDbConn->query($q);
+        $res = $this->hDbConn->query($q);        
         if ($res->rowCount() > 0) {
             $sComents = $this->xmlDoc->createElement("comments");
             $sComents = $this->eRoot->appendChild($sComents);
@@ -963,7 +963,7 @@ class CModule
     		FROM 
     			categories cat 
     		JOIN units u ON cat.id=u.cat_id 
-    		GROUP By cat.id 
+    		GROUP By cat.name 
     		HAVING COUNT(cat.id)>0';
         $cat_res = $this->hDbConn->query($q);
         while ($cr = $cat_res->fetch(\PDO::FETCH_ASSOC)) {
