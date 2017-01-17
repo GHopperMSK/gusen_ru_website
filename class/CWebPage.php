@@ -785,7 +785,6 @@ class CWebPage
                 break;
             case 'unit_arch':
                 if ($this->isAuth()) {
-					//$unit = new CUnit($this->hDbConn);
 					CUnit::archUnit($_GET['id'], $this->hDbConn);
 					header('Location: ' . $_SERVER['HTTP_REFERER']);
                 }

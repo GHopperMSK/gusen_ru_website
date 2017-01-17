@@ -50,6 +50,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
                 <p>Регион: <span><xsl:value-of select="region" /></span></p>
                 <p>Город: <span><xsl:value-of select="city" /></span></p>
                 <p>Год выпуска: <span><xsl:value-of select="year"/></span></p>
+                <p>Цена: <span><xsl:value-of select='translate(format-number(price, "###,###"),","," ")'/>&#160;₽</span></p>
                 <xsl:if test="mileage">
                     <p>Пробег: <span><xsl:value-of select='translate(format-number(mileage, "###,###"),","," ")'/>&#160;км.</span></p>
                 </xsl:if>

@@ -9,7 +9,9 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
     <xsl:for-each select="category">
         <xsl:if test="node()">
             <div class="row row-content">
-                  <div><h1><xsl:value-of select="@name"/></h1></div>
+                  <div><a><xsl:attribute name="href">/search/<xsl:value-of select="@id" />
+                  </xsl:attribute>
+                  <h1><xsl:value-of select="@name" /></h1></a></div>
             </div>
 
             <div class="row row-itemz">

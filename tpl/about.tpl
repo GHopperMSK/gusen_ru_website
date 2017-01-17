@@ -56,8 +56,7 @@
                 <div class="fltrght">
                 <div class="footp3"><a href="/copyright">Пользовательское соглашение</a></div>
                 <div class="mob">
-                <a href="#" class="footp4 socseti vk"><i class="fa fa-vk" aria-hidden="true"></i></a>
-                <a href="#" class="footp5 socseti facebook"><i class="fa fa-facebook" aria-hidden="true"></i></a>
+                    <a target="_blank" href="https://vk.com/club137789409" class="footp4 socseti vk"><i class="fa fa-vk" aria-hidden="true"></i></a>
                 </div>
                 </div>
             </div>   

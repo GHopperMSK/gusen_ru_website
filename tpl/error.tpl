@@ -38,7 +38,7 @@
         </div>
         
         <div class="content">
-			<div class="error_page_alert alert alert-info col-md-7 col-md-offset-2">
+			<div class="alert_big_margin alert alert-info col-md-7 col-md-offset-2">
 			 	<strong>Произошла внутренняя ошибка!</strong> Администрации сайта уже отправлено соответствющее уведомление.<br />
 				Пожалуйста, <a href="/">возвращайтесь</a> позже. 
 			</div>
@@ -55,8 +55,7 @@
                 <div class="fltrght">
                 <div class="footp3"><a href="/copyright">Пользовательское соглашение</a></div>
                 <div class="mob">
-                <a href="#" class="footp4 socseti vk"><i class="fa fa-vk" aria-hidden="true"></i></a>
-                <a href="#" class="footp5 socseti facebook"><i class="fa fa-facebook" aria-hidden="true"></i></a>
+                    <a target="_blank" href="https://vk.com/club137789409" class="footp4 socseti vk"><i class="fa fa-vk" aria-hidden="true"></i></a>
                 </div>
                 </div>
             </div>   

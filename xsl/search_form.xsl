@@ -17,6 +17,10 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 	    
 	    <div class="col-lg-3 col-md-3 col-sm-6">
 		    <select id="vType" name="vType">
+		    
+		    
+		    
+		    
 		        <option value="0">- Категория -</option>
 		        <xsl:for-each select="categories/category">
 		            <option>

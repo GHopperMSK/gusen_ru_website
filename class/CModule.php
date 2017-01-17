@@ -230,7 +230,14 @@ class CModule
         if ($this->xslFile != 'null') {
             $hProc = new \XSLTProcessor();
             $hProc->importStylesheet($this->xslDoc);
-            return $hProc->transformToXML($this->xmlDoc);
+            // clear all whitespaces from result
+		    $sModContent = preg_replace(
+		    	'/\s{2,}/',
+		    	' ',
+		    	$hProc->transformToXML($this->xmlDoc)
+		    );
+
+            return $sModContent;
         }
         else {
             return $this->content;
@@ -366,10 +373,10 @@ class CModule
             	SET approved=:approve 
             	WHERE id=:id'
             );
-            $stmt->bindParam(':approve', $approve, \PDO::PARAM_STR);
+            $stmt->bindParam(':approve', $approve, \PDO::PARAM_BOOL);
             $stmt->bindParam(':id', $com_id, \PDO::PARAM_INT);
             foreach ($_POST['comment_id'] as $com_id) {
-                $approve = in_array($com_id, $_POST['approved']) ? 'TRUE' : 'FALSE';
+                $approve = in_array($com_id, $_POST['approved']) ? TRUE : FALSE;
                 $stmt->execute();
             }
         }
