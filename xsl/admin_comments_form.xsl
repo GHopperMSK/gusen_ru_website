@@ -37,7 +37,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
             </xsl:attribute>
         </input>
         <a target="_blank">
-            <xsl:attribute name="href">/?page=unit&amp;id=<xsl:value-of select="@unit_id" />
+            <xsl:attribute name="href">/unit/<xsl:value-of select="@unit_id" />
             </xsl:attribute>        
             <xsl:call-template name="break">
                 <xsl:with-param name="text" select="text()" />
@@ -49,7 +49,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 
 <xsl:template match="root">
 <form method="POST">
-    <xsl:apply-templates select="comment"/>
+    <xsl:apply-templates select="comment" />
     <input type="submit" />
 </form>
 </xsl:template>

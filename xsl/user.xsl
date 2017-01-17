@@ -10,7 +10,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
     <xsl:choose>
         <xsl:when test="user">
             <div class="row row-comments">
-            	<div class="comment_ph col-md-1">
+            	<div class="comment_ph">
 	            <img><xsl:attribute name="src"><xsl:value-of select="/root/user/img" /></xsl:attribute></img>
 	            </div>
 	            <xsl:value-of select="/root/user/@name"/>&#160;

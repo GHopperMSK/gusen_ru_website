@@ -72,10 +72,8 @@ class CModule
             case "search_page_unit_list":
                 $this->searchPageMain();
                 break;
-/*                
             case "admin_page_unit_list":
             	$this->adminPageUnitList();
-*/            	
             case "unit_list_paginator":
                 $this->searchPaginator($param1);
                 break;
@@ -879,7 +877,7 @@ class CModule
         }
     }
 
-/*
+
     function adminPageUnitList() {
         $q = 'SELECT u.id 
         		FROM units u
@@ -924,7 +922,7 @@ class CModule
 		
 		$_SESSION["referer"] = $cur_link;
 
-		$vk = new \VK\VK(VK_CLIENT_ID, VK_SECRET);
+		$vk = new \VK\VK(VK_SA_CLIENT_ID, VK_SA_SECRET);
 		$vk->setApiVersion(VK_VERSION);
 
         $res = $this->hDbConn->query($q);
@@ -953,7 +951,6 @@ class CModule
 			unset($unit);
         }
     }
-*/
 
     function mainPageList() {
         $q = '

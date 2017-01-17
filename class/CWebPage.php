@@ -590,7 +590,7 @@ class CWebPage
             $_SESSION['user']['photo'] = $userInfo['photo'];
 		    $_SESSION['user']['email'] = $userInfo['email'];
 		    $_SESSION['user']['gender'] = $userInfo['gender'];
-            
+
             $loc = $_SESSION['user_referer'];
             unset($_SESSION['user_referer']);
             header("Location: $loc");
@@ -757,14 +757,12 @@ class CWebPage
                 else
                     header('Location: ?page=admin&act=login_form&msg=access_denied');
                 break;
-/*                
             case 'vk_post':
                 if ($this->isAuth())
 	            	$this->vkPost();
                 else
                     header('Location: ?page=admin&act=login_form&msg=access_denied');
             	break;
-*/            	
             case 'unit_edit':
                 if ($this->isAuth())
                     $this->editUnit();
@@ -857,7 +855,6 @@ class CWebPage
     	header('Location: ?page=admin&act=main');     
     }
 
-/* Not allow by VK
     function vkPost() {
         list($realHost,)=explode(':',$_SERVER['HTTP_HOST']);
 
@@ -869,7 +866,7 @@ class CWebPage
     	$cur_link = sprintf('https://%s/?', $realHost).
     		http_build_query($aUrlParam);
 
-		$vk = new \VK\VK(VK_CLIENT_ID, VK_SECRET);
+		$vk = new \VK\VK(VK_SA_CLIENT_ID, VK_SA_SECRET);
 		$vk->setApiVersion(VK_VERSION);
 
     	try {
@@ -891,11 +888,17 @@ class CWebPage
     		throw new \Exception($exception);
     	}
 
+d($post);
+if ($post['error']['error_code'] != 0) {
+	echo "<a target='_blank' href='{$post['error']['redirect_uri']}'>Validation</a>";
+}
+d($post);
+exit;
+
 		$loc = $_SESSION["referer"];
 		unset($_SESSION["referer"]);
         header("Location: {$loc}");
     }
-*/    
     
     //-----------------------------------------------------
     // Ajax page functionality

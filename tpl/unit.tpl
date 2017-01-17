@@ -61,7 +61,6 @@
                 var txt = $(this).val();
                 if ((txt == '') && (txt != text_message)) {
                     $(this).val(text_message);
-                    $(this).attr("class","empty_text");
                 }
             });
         
@@ -69,7 +68,6 @@
                 var txt = $(this).val();
                 if (txt == text_message) {
                     $(this).val('');
-                    $(this).removeAttr('class');
                 }
             });
             
@@ -91,14 +89,16 @@
                         // check social network
                         if (aUser[0] == 'vk') {
                             $.ajax({
-                                url : "https://api.vk.com/method/users.get?user_ids="+aUser[1]+"&fields=photo_50,city,verified&v=5.60",
+                                url : "https://api.vk.com/method/users.get?user_ids="+aUser[1]+"&fields=first_name,last_name,photo_50&v={VK_VERSION}",
                                 type : "GET",
                                 dataType : "jsonp",
                                 success : function(msg) {
-                                    $('*[user_id='+aUser[0]+aUser[1]+']').each(function() {
-                                        var img = $("<IMG>").attr('src', msg.response[0].photo_50);
-                                        $(this).append(img);
-                                        $(this).append(' '+msg.response[0].first_name);
+                                    $('SPAN[user_id='+aUser[0]+aUser[1]+']').each(function() {
+                                        $(this).text(msg.response[0].first_name +
+                                            ' ' + msg.response[0].last_name);
+                                    });
+                                    $('IMG[user_id='+aUser[0]+aUser[1]+']').each(function() {
+                                        $(this).attr('src', msg.response[0].photo_50);
                                     });
                                 }
                             });
@@ -106,17 +106,12 @@
                         else if (aUser[0] == 'fb')
                         {
                             $.ajax({
-                                url : "https://graph.facebook.com/"+aUser[1]+"/picture?type=small",
+                                url : "https://graph.facebook.com/"+aUser[1]+"/picture?width=50&height=50&redirect=false",
                                 type : "GET",
                                 dataType : "jsonp",
                                 success : function(msg) {
-                                    $('*[user_id='+aUser[0]+aUser[1]+']').each(function() {
-                                        var img = $("<IMG>").attr('src', msg.data.url);
-                                        var name = $(this).text();
-                                        $(this).text('');
-                                        $(this).append(img);
-                                        $(this).append(' '+name);
-                                        //$(this).append(' '+'unknown_name');
+                                    $('IMG[user_id='+aUser[0]+aUser[1]+']').each(function() {
+                                        $(this).attr('src', msg.data.url);
                                     });
                                 }
                             });
@@ -128,11 +123,14 @@
                                 type : "GET",
                                 dataType : "jsonp",
                                 success : function(msg) {
-                                    $('*[user_id='+aUser[0]+aUser[1]+']').each(function() {
-                                        var img = $("<IMG>").attr('src', msg.photos[0].url+'?sz=50');
-                                        $(this).append(img);
-                                        $(this).append(' '+msg.names[0].givenName);
-                                    });
+                                    if (!msg.error) {
+                                        $('SPAN[user_id='+aUser[0]+aUser[1]+']').each(function() {
+                                            $(this).text(msg.names[0].givenName);
+                                        });
+                                        $('IMG[user_id='+aUser[0]+aUser[1]+']').each(function() {
+                                            $(this).attr('src', msg.photos[0].url+'?sz=50');
+                                        });
+                                    }
                                 }
                             });
                         }
@@ -171,6 +169,7 @@
         <div class="content">
             %{unit_page_unit&unit_page_unit.xsl&10}%
         </div>
+        <div class="line-w"></div>
         <section class="main_block user">
             %{user&user.xsl&0}%
         </section>

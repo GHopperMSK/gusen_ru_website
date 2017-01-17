@@ -28,7 +28,7 @@
 <br /><br />
 %{search_form&search_form.xsl&0&admin}%
 
-%{search_page_unit_list&admin_unit_list.xsl&0}%
+%{admin_page_unit_list&admin_unit_list.xsl&0}%
 <section class="paginator">
 %{unit_list_paginator&search_paginator.xsl&0&admin}%
 </section>

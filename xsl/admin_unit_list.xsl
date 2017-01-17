@@ -34,12 +34,13 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
                 <a>
                 <xsl:attribute name="href">?page=admin&amp;act=admin_unit_form&amp;id=<xsl:value-of select="@id"/>
                 </xsl:attribute>Edit</a>&#160;
-                <a  onclick="return confirm('Are you sure you want to delete the unit?');">
+                <a onclick="return confirm('Are you sure you want to delete the unit?');">
                 <xsl:attribute name="href">?page=admin&amp;act=unit_del&amp;id=<xsl:value-of select="@id"/>
                 </xsl:attribute>Delete</a>&#160;
-                <a  onclick="return confirm('Are you sure you want to move the unit to the archive?!');">
+                <a onclick="return confirm('Are you sure you want to move the unit to the archive?!');">
                 <xsl:attribute name="href">?page=admin&amp;act=unit_arch&amp;id=<xsl:value-of select="@id"/>
-                </xsl:attribute>Move to archive</a>
+                </xsl:attribute>Move to archive</a>&#160;
+                <!--<a><xsl:attribute name="href"><xsl:value-of select="vk_link"/></xsl:attribute>Post in VK</a>-->
             </p>
 
             <a>

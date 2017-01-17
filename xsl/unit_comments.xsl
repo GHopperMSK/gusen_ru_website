@@ -31,7 +31,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
     <xsl:choose>
         <xsl:when test="user">
         	<div class="row row-comments">
-            <form role="form" class="col-md-8 col-xs-10 wrap_com" id="comment_form" method="POST" action="/?page=comment_add">
+            <form role="form" class="col-md-8 col-xs-12 wrap_com" id="comment_form" method="POST" action="/?page=comment_add">
                 <input type="hidden" name="unit_id">
                 <xsl:attribute name="value">
                     <xsl:value-of select="/root/unit_id" />
@@ -55,73 +55,87 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
             </div>
         </xsl:when>
         <xsl:otherwise>
-            <p>Для отправки сообщений, вам необходимо авторизироваться.</p>
+            <!--<p>Для отправки сообщений, вам необходимо авторизироваться.</p>-->
         </xsl:otherwise>
     </xsl:choose>
 
     <xsl:if test="/root/comments">
-    	<div class="row row-comments">
         <input type="hidden" id="users_list">
         <xsl:attribute name="value">
         <xsl:for-each select="//comment[generate-id() = generate-id(key('uid', @user_id)[1])]"><xsl:value-of select="@type" />:<xsl:value-of select="@user_id" />;</xsl:for-each>
         </xsl:attribute>            
         </input>
     
-        <xsl:for-each select="/root/comments/comment">
-        <div class="comment_ph col-md-1">
-            <p>
-                <xsl:attribute name="user_id">
-                <xsl:value-of select="@type" /><xsl:value-of select="@user_id" />
-                </xsl:attribute>
-                <xsl:if test="@type='fb'">
-                    <xsl:value-of select="@name" />
-                </xsl:if>
-            </p>
-            <p>
-                <xsl:attribute name="id"><xsl:value-of select="@id" /></xsl:attribute>
-                <xsl:choose>
-                    <xsl:when test="@approved='true'">
-                        <xsl:call-template name="break">
-                            <xsl:with-param name="text" select="text()" />
-                        </xsl:call-template><br />
-                    </xsl:when>
-                    <xsl:when test="@approved='false'">
-                    <xsl:attribute name="class">discarded</xsl:attribute>{текст скрыт}</xsl:when>                    
-                </xsl:choose>
-            </p>
-            <a href="#a">
-            <xsl:attribute name="onclick">answer(<xsl:value-of select="@id" />,'<xsl:value-of select="@type" /><xsl:value-of select="@user_id" />')</xsl:attribute>
-            (ответить)
-            </a>
-            <div class="clearfix"></div>
-            <xsl:for-each select="comment">
-                <p style="margin-left: 20px;">
-                    <xsl:attribute name="user_id">
-                    <xsl:value-of select="@type" /><xsl:value-of select="@user_id" />
-                    </xsl:attribute>
-                    <xsl:if test="@type='fb'">
-                        <xsl:value-of select="@name" />
-                    </xsl:if>
-                </p>
-                <p style="margin-left: 20px;">
-                <xsl:attribute name="id"><xsl:value-of select="@id" /></xsl:attribute>
-                <xsl:choose>
-                    <xsl:when test="@approved='true'">
-                        <xsl:call-template name="break">
-                            <xsl:with-param name="text" select="text()" />
-                        </xsl:call-template><br />
-                    </xsl:when>
-                    <xsl:when test="@approved='false'">
-                    <xsl:attribute name="class">discarded</xsl:attribute>
-                    {текст скрыт}
-                    </xsl:when>                    
-                </xsl:choose>
-                </p>
-            </xsl:for-each>
-        </div>
-        
-        </xsl:for-each>
-        </div>
+
+		<ul class="media-list">
+			<xsl:for-each select="/root/comments/comment">
+				<li class="media">
+					<div class="pull-left">
+						<img class="media-object" src="/img/anon_user.jpg">
+		                	<xsl:attribute name="user_id">
+		                	<xsl:value-of select="@type" /><xsl:value-of select="@user_id" /></xsl:attribute>
+						</img>
+					</div>
+					<div class="media-body">
+						<h4 class="media-heading">
+						<span>
+			                <xsl:attribute name="user_id">
+			                <xsl:value-of select="@type" /><xsl:value-of select="@user_id" />
+			                </xsl:attribute>
+			                <xsl:choose>
+				                <xsl:when test="@type='fb'"><xsl:value-of select="@name" /></xsl:when>
+				                <xsl:otherwise>unknown name</xsl:otherwise>
+				            </xsl:choose>
+						</span>
+				            <a href="#"><xsl:attribute name="onclick">answer(<xsl:value-of select="@id" />,'<xsl:value-of select="@type" /><xsl:value-of select="@user_id" />')</xsl:attribute>(ответить)</a>
+						</h4>
+		                <xsl:choose>
+		                    <xsl:when test="@approved='true'">
+		                        <p><xsl:call-template name="break">
+		                            <xsl:with-param name="text" select="text()" />
+		                        </xsl:call-template></p>
+		                    </xsl:when>
+		                    <xsl:when test="@approved='false'"><p>{текст скрыт}</p></xsl:when>                    
+		                </xsl:choose>
+			
+					    <xsl:if test="comment">
+				            <xsl:for-each select="comment">
+								<div class="media">
+									<div class="pull-left">
+										<img class="media-object" src="/img/anon_user.jpg">
+						                	<xsl:attribute name="user_id">
+						                	<xsl:value-of select="@type" /><xsl:value-of select="@user_id" /></xsl:attribute>
+										</img>
+									</div>
+									<div class="media-body">
+										<h4 class="media-heading">
+										<span>
+							                <xsl:attribute name="user_id">
+							                <xsl:value-of select="@type" /><xsl:value-of select="@user_id" />
+							                </xsl:attribute>
+							                <xsl:choose>
+								                <xsl:when test="@type='fb'"><xsl:value-of select="@name" /></xsl:when>
+								                <xsl:otherwise>unknown name</xsl:otherwise>
+								            </xsl:choose>
+										</span>
+										</h4>
+						                <xsl:choose>
+						                    <xsl:when test="@approved='true'">
+						                        <p><xsl:call-template name="break">
+						                            <xsl:with-param name="text" select="text()" />
+						                        </xsl:call-template></p>
+						                    </xsl:when>
+						                    <xsl:when test="@approved='false'"><p>{текст скрыт}</p></xsl:when>                    
+						                </xsl:choose>
+							        </div>
+								</div>
+				            </xsl:for-each>
+					    </xsl:if>
+			            
+					</div>
+				</li>
+			</xsl:for-each>
+		</ul>
     </xsl:if>
 </xsl:template>
 
