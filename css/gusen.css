@@ -1,4 +1,4 @@
-.body {
+BODY {
 	font-family: "Roboto Condensed";
 }
 
@@ -58,7 +58,6 @@ svg: not(:root) {
 
 .head_argue {
     font-size: 20px;
-    font-family: "Roboto Condensed";
     color: rgb(0, 0, 0);
     font-weight: bold;
     text-transform: uppercase;
@@ -95,7 +94,6 @@ svg: not(:root) {
 
 .infosection .phone {
 	font-size: 16px;
-	font-family: "Roboto Condensed";
 	color: rgb(0, 0, 0);
 	font-weight: bold;
 	text-transform: uppercase;
@@ -103,7 +101,6 @@ svg: not(:root) {
 
 .infosection .mail {
 	font-size: 14px;
-	font-family: "Roboto Condensed";
 	color: rgb(134, 134, 134);
 	font-weight: bold;
 	text-transform: uppercase;
@@ -129,7 +126,7 @@ svg: not(:root) {
     margin-bottom: 10px;
     border: none;
     font-size: 14px;
-    font-family: "Roboto Condensed";
+
     color: rgb(0, 0, 0);
     font-weight: bold;
     text-transform: uppercase;
@@ -148,7 +145,6 @@ svg: not(:root) {
 
 .row-content h1 {
     font-size: 24px;
-    font-family: "Roboto Condensed";
     color: rgb(0, 0, 0);
     font-weight: bold;
     text-transform: uppercase;
@@ -218,7 +214,6 @@ svg: not(:root) {
     color: #8a8a8a;
     text-align: center;
     font-size: 16px;
-    font-family: "Roboto Condensed";
     color: rgb(138, 138, 138);
     font-weight: bold;
     text-decoration: underline;
@@ -236,7 +231,6 @@ svg: not(:root) {
     color: #000;
     padding: 7px 10px 5px 10px;
     font-size: 16px;
-    font-family: "Roboto Condensed";
     color: rgb(0, 0, 0);
     text-align: left;
     z-index: 1;
@@ -253,7 +247,6 @@ svg: not(:root) {
     bottom: 0;
     color: #fff;
     font-size: 14px;
-    font-family: "Roboto Condensed";
     color: rgb(255, 255, 255);
     font-weight: bold;
     text-align: left;
@@ -269,7 +262,7 @@ svg: not(:root) {
    margin-bottom: 5px;
 }
 
-.col-lg-3 > P {
+.col-lg-3 > A > P {
     font-style: oblique;
     font-size: 16px;
     font-family: "Roboto";
@@ -312,15 +305,16 @@ svg: not(:root) {
     background: #f4f4f4;
     width: 100%;
     min-height: 68px;
+    margin-top: 25px;
 }
 
-.footer .container .row div, .footer .container .row a {
+.footer .container .row DIV, .footer .container .row A {
     display: inline-block;
 }
 
 .footp1 span, .footp2 a {
     font-size: 14px;
-    font-family: "Roboto Condensed";
+
     color: rgb(0, 0, 0);
     text-transform: uppercase;
 }
@@ -360,13 +354,9 @@ svg: not(:root) {
 
 .footp3 a {
     font-size: 14px;
-    font-family: "Roboto Condensed";
+
     color: rgb(0, 0, 0);
     text-decoration: underline;
-}
-
-@media (max-width: 1199px) {
-    
 }
 
 @media (max-width: 991px) {
@@ -522,7 +512,7 @@ svg: not(:root) {
 
 .slider-header {
     font-size: 16px;
-    font-family: "Roboto Condensed";
+
     color: rgb(0, 0, 0);
     font-weight: bold;
     font-style: italic;
@@ -541,7 +531,6 @@ svg: not(:root) {
     color: #000;
     padding: 7px 10px 5px 10px;
     font-size: 16px;
-    font-family: "Roboto Condensed";
     color: rgb(0, 0, 0);
     text-align: left;
     font-weight: bold;
@@ -549,7 +538,6 @@ svg: not(:root) {
 
 .row.row-info H2 {
     font-size: 24px;
-    font-family: "Roboto Condensed";
     color: rgb(0, 0, 0);
     font-weight: bold;
     text-align: left;
@@ -559,22 +547,11 @@ svg: not(:root) {
 
 .row.row-info P {
     font-size: 14px;
-    font-family: "Roboto Condensed";
     color: rgb(0, 0, 0);
     text-align: left;
     padding-left: 15px;
     margin-bottom: 0;
     line-height: 1.6;
-}
-
-.row.row-auth {
-    border-top: 1px solid #f4f4f4;
-    margin-top: 20px;
-    text-align: left;
-    padding-left: 15px;
-    padding-top: 20px;
-    margin-right: 0px;
-    margin-left: 0px;
 }
 
 .row.row-auth DIV, .row.row-auth A {
@@ -585,26 +562,12 @@ svg: not(:root) {
 
 .row.row-auth DIV {
     font-size: 14px;
-    font-family: "Roboto Condensed";
     color: rgb(0, 0, 0);
     text-align: left;
 }
 
-.row.row-auth A {
-    margin-left: 0px;
-    margin-right: 10px;
-    margin-top: 10px;
-    margin-bottom: 10px;
-    color: #222;
-    width: 34px;
-    height: 34px;
-    text-align: center;
-    background: #f4ce09;
-}
-
 .row.row-info .main_inf {
     font-size: 18px;
-    font-family: "Roboto Condensed";
     color: rgb(0, 0, 0);
     text-align: left;
     padding: 5px 0 5px 15px;
@@ -613,11 +576,11 @@ svg: not(:root) {
     margin-top: 0;
 }
 
-.row.row-auth .fa {
+.media-list A.socseti .fa {
     position: relative;
     top: 3px;
 }
-.row.row-auth .fa.fa-facebook {
+.row.row-auth .fa .fa-facebook {
     top: 2px;
 }
 .fotorama__nav-wrap {
@@ -661,15 +624,15 @@ svg: not(:root) {
     box-shadow: none;
 }
 
-form .symbol {
-    right: 25px;
+FORM .symbol {
+    right: 10px;
     bottom: 65px;
 }
 
 .comment-button {
     display: block;
     font-size: 14px;
-    font-family: "Roboto Condensed";
+
     color: rgb(0, 0, 0);
     padding: 10px 30px;
     background: transparent;
@@ -722,3 +685,43 @@ form .symbol {
 .media-object {
 	width: 55px;
 }
+
+.fa-facebook-f:before,
+.fa-facebook:before {
+	left: 2px;
+}
+
+.media-list A.socseti .fa.fa-vk {
+    left: 2px;
+}
+
+.media-body A {
+    font-size: 14px;
+    color: #999;
+}         
+
+P.hidden-txt {
+    font-style: italic;
+    color: #dedede;
+}
+
+.media-list A.socseti {
+	margin-left: 10px;
+    margin-right: 0px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    color: #222;
+    width: 34px;
+    height: 34px;
+    text-align: center;
+    background: #f4ce09;
+}
+
+.wrap_com TEXTAREA {
+    color: #666;	
+}
+
+FORM.wrap_com {
+    position: relative;
+}
+

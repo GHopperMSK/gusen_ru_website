@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,7 +14,7 @@
     <title>%{title&null&60&page_search}%</title>
     <script>
         $(document).ready(function(){
-            $('select').selecter();
+            $('select').selecter({mobile: true});
         });
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.8.3/modernizr.min.js"></script>
@@ -49,7 +49,7 @@
         </div>
         
         <div class="content">
-            %{search_page_unit_list&search_page_unit_list.xsl&6}%
+            %{unit_list&search_page_unit_list.xsl&6}%
         </div>
         <section class="paginator">
             %{unit_list_paginator&search_paginator.xsl&6&search}% 

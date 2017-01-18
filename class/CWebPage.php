@@ -108,7 +108,7 @@ class CWebPage
                     $this->setTemplate('tpl/unit.tpl');
                 }
                 else {
-                    header('Location: ?page=404');
+                    header('Location: /404');
                     exit;
                 }                    
                 break;
@@ -640,14 +640,14 @@ class CWebPage
                 $stmt->execute();
             }
         }
-        header('Location: ' . $_SERVER['HTTP_REFERER']);
+        header('Location: ' . $_SERVER['HTTP_REFERER'].'#comment_form');
     }
     
     // generator of sitexml.xml
     function sitemap() {
         CWebPage::debug('CWebPage::sitemap()');
         
-        $xml = new DOMDocument('1.0', 'UTF-8');
+        $xml = new \DOMDocument('1.0', 'UTF-8');
         $urlset = $xml->createElement('urlset');
         $urlset = $xml->appendChild($urlset);
         $attr = $xml->createAttribute('xmlns');
@@ -757,12 +757,6 @@ class CWebPage
                 else
                     header('Location: ?page=admin&act=login_form&msg=access_denied');
                 break;
-            case 'vk_post':
-                if ($this->isAuth())
-	            	$this->vkPost();
-                else
-                    header('Location: ?page=admin&act=login_form&msg=access_denied');
-            	break;
             case 'unit_edit':
                 if ($this->isAuth())
                     $this->editUnit();
@@ -854,51 +848,6 @@ class CWebPage
     	header('Location: ?page=admin&act=main');     
     }
 
-    function vkPost() {
-        list($realHost,)=explode(':',$_SERVER['HTTP_HOST']);
-
-    	$aUrlParam = array(
-    		'page'		=> $_GET['page'],
-    		'act'		=> 'vk_post',
-    		'id'		=> $_GET['id']
-    	);
-    	$cur_link = sprintf('https://%s/?', $realHost).
-    		http_build_query($aUrlParam);
-
-		$vk = new \VK\VK(VK_SA_CLIENT_ID, VK_SA_SECRET);
-		$vk->setApiVersion(VK_VERSION);
-
-    	try {
-			$access_token = $vk->getAccessToken(
-				$_REQUEST['code'],
-				urldecode($cur_link)
-			);
-    	}
-    	catch (\VK\VKException $exception) {
-    		throw new \Exception($exception);
-    	}
-
-		try {
-			$post = $vk->api('wall.post', array(
-				'owner_id'	=> $access_token['user_id'],
-				'message'	=> 'Hello world!')
-			);
-		} catch (VK\VKException $exception) {
-    		throw new \Exception($exception);
-    	}
-
-d($post);
-if ($post['error']['error_code'] != 0) {
-	echo "<a target='_blank' href='{$post['error']['redirect_uri']}'>Validation</a>";
-}
-d($post);
-exit;
-
-		$loc = $_SESSION["referer"];
-		unset($_SESSION["referer"]);
-        header("Location: {$loc}");
-    }
-    
     //-----------------------------------------------------
     // Ajax page functionality
     //-----------------------------------------------------    

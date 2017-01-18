@@ -69,16 +69,14 @@ class CModule
 		    	$unit = $this->xmlDoc->importNode($unit->getUnitDOM(), true);
 				$this->eRoot->appendChild($unit);
                 break;
-            case "search_page_unit_list":
+            case "unit_list":
                 $this->searchPageMain();
                 break;
-            case "admin_page_unit_list":
-            	$this->adminPageUnitList();
             case "unit_list_paginator":
                 $this->searchPaginator($param1);
                 break;
             case "user":
-                $this->user();
+                $this->userForm();
                 break;
             case "unit_comments":
                 $this->userComments();
@@ -223,7 +221,7 @@ class CModule
         $sUserData = $this->xmlDoc->createElement("img", htmlentities($_SESSION["user"]["photo"]));
         $sUser->appendChild($sUserData);
 
-        $this->eRoot->appendChild($sUser); 
+        $this->eRoot->appendChild($sUser);
     }
     
     function execute() {
@@ -248,17 +246,23 @@ class CModule
     // Page functionality
     //------------------------------------------------------
     
-    function user() {
+    function userForm() {
         if (isset($_SESSION["user"])) {
             $this->fillUser();
             if (isset($_SESSION["user_referer"]))
                 unset($_SESSION["user_referer"]);
+	    	
+	        $eUnit = $this->xmlDoc->createElement(
+	        	'unit',
+	        	$_GET['id']
+	        );
+	        $eUnit = $this->eRoot->appendChild($eUnit);
+            $this->eRoot->appendChild($eUnit);
         }
         else {
-        
             list($realHost,)=explode(':',$_SERVER['HTTP_HOST']);
 
-            $cur_link = sprintf("https://%s/?page=%s&id=%d",
+            $cur_link = sprintf("https://%s/%s/%d#comment_form",
                 $realHost,
                 $_GET['page'],
                 $_GET['id']
@@ -276,9 +280,9 @@ class CModule
 
 			// facebook auth url
 			$fb = new \Facebook\Facebook([
-			  'app_id' => FB_CLIENT_ID,
-			  'app_secret' => FB_SECRET,
-			  'default_graph_version' => FB_VERSION
+			  'app_id'					=> FB_CLIENT_ID,
+			  'app_secret'				=> FB_SECRET,
+			  'default_graph_version'	=> FB_VERSION
 			  ]);
 			
 			$helper = $fb->getRedirectLoginHelper();
@@ -338,8 +342,7 @@ class CModule
             $sNet->appendChild($sNetLogo);
 
             $this->eRoot->appendChild($sNet);          
-        }        
-        
+        }
     }
     
     function commentsUnapprovedTotal() {
@@ -879,81 +882,6 @@ class CModule
         	$unit = new CUnit($this->hDbConn, $ur['id']);
         	$unit = $unit->getUnitDOM();
 			$unit = $this->xmlDoc->importNode($unit, true);
-			$this->eRoot->appendChild($unit);
-			unset($unit);
-        }
-    }
-
-
-    function adminPageUnitList() {
-        $q = 'SELECT u.id 
-        		FROM units u
-				JOIN cities ON u.city_id=cities.id
-				JOIN regions ON cities.rd_id=regions.id
-        		WHERE is_arch=FALSE';
-
-        if ($_GET['vType'] != 0) {
-            $q .= sprintf(" AND cat_id=%d", $_GET['vType']);
-        }
-        if ($_GET['vManuf']) {
-            $q .= sprintf(" AND manufacturer_id=%d", $_GET[vManuf]);
-        }
-        if ($_GET['vFedDistr']) {
-            $q .= sprintf(" AND fd_id=%d", $_GET[vFedDistr]);
-        }
-
-        if (isset($_GET['offset'])) {
-            $iOffset = max($_GET['offset'], 1);
-        } else {
-            $iOffset = 1;
-        }
-        
-        $q .= sprintf(" ORDER BY date DESC LIMIT %d,%d",
-            ($iOffset-1)*PAGINATOR_SHOW_ON_PAGE,
-            PAGINATOR_SHOW_ON_PAGE
-        );
-
-		// TODO: check for the token and use it instead of getting new
-		list($realHost,)=explode(':',$_SERVER['HTTP_HOST']);
-
-    	$aUrlParam = array(
-    		'page'		=> $_GET['page'],
-    		'act'		=> $_GET['act'],
-    		'vType'		=> isset($_GET['vType']) ? $_GET['vType'] : 0,
-    		'vManut'	=> isset($_GET['vManut']) ? $_GET['vManut'] : 0,
-    		'vFedDistr'	=> isset($_GET['vFedDistr']) ? $_GET['vFedDistr'] : 0,
-    		'offset'	=> isset($_GET['offset']) ? $_GET['offset'] : 0
-    	);
-    	$cur_link = htmlentities(sprintf('https://%s/?', $realHost).
-    		http_build_query($aUrlParam));
-		
-		$_SESSION["referer"] = $cur_link;
-
-		$vk = new \VK\VK(VK_SA_CLIENT_ID, VK_SA_SECRET);
-		$vk->setApiVersion(VK_VERSION);
-
-        $res = $this->hDbConn->query($q);
-        while ($ur = $res->fetch(\PDO::FETCH_ASSOC)) {
-        	$unit = new CUnit($this->hDbConn, $ur['id']);
-        	$unit = $unit->getUnitDOM();
-			$unit = $this->xmlDoc->importNode($unit, true);
-
-	    	$aUrlParam = array(
-	    		'page'		=> $_GET['page'],
-	    		'act'		=> 'vk_post',
-	    		'id'		=> $ur['id']
-	    	);
-	    	$unit_url = sprintf('https://%s/?', $realHost).
-	    		http_build_query($aUrlParam);
-
-			$vkLink = $vk->getAuthorizeURL(
-				'wall',
-				urldecode($unit_url)
-			);
-
-			$eLink = $this->xmlDoc->createElement('vk_link',
-				htmlspecialchars($vkLink));
-			$unit->appendChild($eLink);
 			$this->eRoot->appendChild($unit);
 			unset($unit);
         }

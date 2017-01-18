@@ -32,7 +32,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
         </h3>
         <div class="wrap-fotorama">
             <div class="price"><xsl:value-of select='translate(format-number(price, "###,###"),","," ")'/>&#160;₽</div>
-            <div class="fotorama" data-allowfullscreen="true" data-loop="true" data-arrows="true" data-click="true" data-swipe="true" data-fit="cover">
+            <div class="fotorama" data-allowfullscreen="true" data-width="100%" data-maxheight="550" data-loop="true" data-arrows="true" data-click="true" data-swipe="true" data-fit="cover">
 
                 <xsl:for-each select="images/img">
                     <img>

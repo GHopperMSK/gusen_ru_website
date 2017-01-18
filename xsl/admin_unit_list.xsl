@@ -40,7 +40,14 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
                 <a onclick="return confirm('Are you sure you want to move the unit to the archive?!');">
                 <xsl:attribute name="href">?page=admin&amp;act=unit_arch&amp;id=<xsl:value-of select="@id"/>
                 </xsl:attribute>Move to archive</a>&#160;
-                <!--<a><xsl:attribute name="href"><xsl:value-of select="vk_link"/></xsl:attribute>Post in VK</a>-->
+                <!--<a href="#">
+                	<xsl:attribute name="onclick">
+                		wallPost(
+                			"<xsl:value-of select="manufacturer"/>&#160;<xsl:value-of select="@name"/>&#160;<xsl:value-of select="year"/>",
+                			"<xsl:value-of select="manufacturer"/>&#160;<xsl:value-of select="@name"/>\n<xsl:value-of select="description"/>");
+                	</xsl:attribute>
+                	Post in VK
+                </a>-->
             </p>
 
             <a>

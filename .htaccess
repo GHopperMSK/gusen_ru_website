@@ -11,7 +11,7 @@ RewriteRule ^search\/(\d+)\/(\d+)\/(\d+)[/]?$ /?page=search&vType=$1&vManuf=$2&v
 RewriteRule ^search\/(\d+)\/(\d+)\/(\d+)\/(\d+)[/]?$ /?page=search&vType=$1&vManuf=$2&vFedDistr=$3&offset=$4
 RewriteRule ^(copyright|404|error|about|logout)[/]?$ /?page=$1
 
-ErrorDocument 404 /?page=404
+ErrorDocument 404 /404
 
 <FilesMatch "robots.txt$">
     RewriteEngine off

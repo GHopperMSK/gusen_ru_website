@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -18,7 +18,12 @@
     <title>%{title&null&10&page_unit}%</title>
     <script>
         function answer(com_id,user_id) {
+            //console.log(aUsr);
+            user_id = user_id.trim();
             if ($('#comment_form').length) {
+                if (!aUsr[user_id]) {
+                    aUsr[user_id] = $('SPAN[data-user_id=fb'+user_id+']')[0].textContent;
+                }
                 $('#p_com_id').remove();
                 $('#comment_form').append('<input id="p_com_id" name="p_com_id" type="hidden" value="'+com_id+'"></input>');
                 $('#resp').html('ответ на сообщение пользователя '+aUsr[user_id]+' <a href="#a" onclick="answer_cease()">(отмена)</a>');
@@ -36,7 +41,7 @@
             return false;
         }
         
-        var aUsr = []; // array of users who commented the unit
+        let aUsr = []; // array of users who commented the unit
         
         $(document).ready(function(){
             $('.fotorama').on('fotorama:fullscreenenter', function() {
@@ -52,25 +57,10 @@
             var text_message = 'Можете оставить комментарий или задать вопрос...';
             var text_area = $('#text_comment');
             var com_max_len = 5000;
-        
+
+            // solve xslt an empty tag bug
             $(text_area).val('');
-            $(text_area).val(text_message);
-            $(text_area).attr("class","empty_text");
-        
-            $('#text_comment').focusout( function() {
-                var txt = $(this).val();
-                if ((txt == '') && (txt != text_message)) {
-                    $(this).val(text_message);
-                }
-            });
-        
-            $('#text_comment').focus( function() {
-                var txt = $(this).val();
-                if (txt == text_message) {
-                    $(this).val('');
-                }
-            });
-            
+
             $(text_area).keyup(function () {
                 var len = $(this).val().length;
                 if (len >= com_max_len) {
@@ -84,33 +74,34 @@
             $('#users_list').each(function() {
                 var aUsers = $(this).val().split(';');
                 for (i=0; i<aUsers.length; i++) {
-                    if (aUsers[i].trim()) {
+                    aUsers[i] = aUsers[i].trim();
+                    if (aUsers[i]) {
                         let aUser = aUsers[i].split(':');
-                        // check social network
                         if (aUser[0] == 'vk') {
                             $.ajax({
                                 url : "https://api.vk.com/method/users.get?user_ids="+aUser[1]+"&fields=first_name,last_name,photo_50&v={VK_VERSION}",
                                 type : "GET",
                                 dataType : "jsonp",
                                 success : function(msg) {
-                                    $('SPAN[user_id='+aUser[0]+aUser[1]+']').each(function() {
-                                        $(this).text(msg.response[0].first_name +
-                                            ' ' + msg.response[0].last_name);
+                                    aUsr[aUser[1]] = msg.response[0].first_name + 
+                                        ' ' + msg.response[0].last_name;
+
+                                    $('SPAN[data-user_id='+aUser[0]+aUser[1]+']').each(function() {
+                                        $(this).text(aUsr[aUser[1]]);
                                     });
-                                    $('IMG[user_id='+aUser[0]+aUser[1]+']').each(function() {
+                                    $('IMG[data-user_id='+aUser[0]+aUser[1]+']').each(function() {
                                         $(this).attr('src', msg.response[0].photo_50);
                                     });
                                 }
                             });
                         }
-                        else if (aUser[0] == 'fb')
-                        {
+                        else if (aUser[0] == 'fb') {
                             $.ajax({
                                 url : "https://graph.facebook.com/"+aUser[1]+"/picture?width=50&height=50&redirect=false",
                                 type : "GET",
                                 dataType : "jsonp",
                                 success : function(msg) {
-                                    $('IMG[user_id='+aUser[0]+aUser[1]+']').each(function() {
+                                    $('IMG[data-user_id='+aUser[0]+aUser[1]+']').each(function() {
                                         $(this).attr('src', msg.data.url);
                                     });
                                 }
@@ -124,10 +115,12 @@
                                 dataType : "jsonp",
                                 success : function(msg) {
                                     if (!msg.error) {
-                                        $('SPAN[user_id='+aUser[0]+aUser[1]+']').each(function() {
-                                            $(this).text(msg.names[0].givenName);
+                                        aUsr[aUser[1]] = msg.names[0].displayName;
+                                        
+                                        $('SPAN[data-user_id='+aUser[0]+aUser[1]+']').each(function() {
+                                            $(this).text(msg.names[0].displayName);
                                         });
-                                        $('IMG[user_id='+aUser[0]+aUser[1]+']').each(function() {
+                                        $('IMG[data-user_id='+aUser[0]+aUser[1]+']').each(function() {
                                             $(this).attr('src', msg.photos[0].url+'?sz=50');
                                         });
                                     }
@@ -165,17 +158,15 @@
                 <a class="mail" href="mailto:info@gusen.ru">info@gusen.ru</a>
             </div>
         </div>
-                
+
         <div class="content">
             %{unit_page_unit&unit_page_unit.xsl&10}%
         </div>
         <div class="line-w"></div>
-        <section class="main_block user">
-            %{user&user.xsl&0}%
-        </section>
-        <section class="main_block comments" id="comments">
+        <ul class="media-list">
             %{unit_comments&unit_comments.xsl&0}%
-        </section>
+            %{user&user_comment_form.xsl&0&comment_form}%
+        </ul>
         
     </div>
     <div class="footer">
