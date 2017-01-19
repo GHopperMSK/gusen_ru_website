@@ -16,7 +16,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 
             <div class="row row-itemz">
 	            <xsl:for-each select="unit">
-	                <div class="col-lg-3 col-md-3 col-sm-4 col-xs-6">
+	                <div class="col-lg-3 col-md-3 col-sm-6 col-xs-6">
 	                	<a>
 		                	<xsl:attribute name="href">/unit/<xsl:value-of select="@id"/></xsl:attribute>
 		                	<div class="itemz">

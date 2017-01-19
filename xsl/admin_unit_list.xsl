@@ -25,29 +25,27 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 <xsl:template match="root">
 
     <xsl:for-each select="unit">
-        <article class="unit">
-            <img>
+        <div class="col-lg-12 admin_page_unit_list_div clearfix">
+            <img class="pull-left">
                 <xsl:attribute name="src">images/tmb/<xsl:value-of select="images/img"/>
                 </xsl:attribute>
             </img>
             <p>
-                <a>
+                <a class="btn btn-info">
                 <xsl:attribute name="href">?page=admin&amp;act=admin_unit_form&amp;id=<xsl:value-of select="@id"/>
                 </xsl:attribute>Edit</a>&#160;
-                <a onclick="return confirm('Are you sure you want to delete the unit?');">
-                <xsl:attribute name="href">?page=admin&amp;act=unit_del&amp;id=<xsl:value-of select="@id"/>
-                </xsl:attribute>Delete</a>&#160;
-                <a onclick="return confirm('Are you sure you want to move the unit to the archive?!');">
-                <xsl:attribute name="href">?page=admin&amp;act=unit_arch&amp;id=<xsl:value-of select="@id"/>
-                </xsl:attribute>Move to archive</a>&#160;
-                <!--<a href="#">
+                <a class="btn btn-info" href="#">
                 	<xsl:attribute name="onclick">
-                		wallPost(
-                			"<xsl:value-of select="manufacturer"/>&#160;<xsl:value-of select="@name"/>&#160;<xsl:value-of select="year"/>",
-                			"<xsl:value-of select="manufacturer"/>&#160;<xsl:value-of select="@name"/>\n<xsl:value-of select="description"/>");
+                		wallPost(<xsl:value-of select="@id"/>);
                 	</xsl:attribute>
                 	Post in VK
-                </a>-->
+                </a>&#160;
+                <a class="btn btn-warning" onclick="return confirm('Are you sure you want to move the unit to the archive?!');">
+                <xsl:attribute name="href">?page=admin&amp;act=unit_arch&amp;id=<xsl:value-of select="@id"/>
+                </xsl:attribute>Move to archive</a>&#160;
+                <a class="btn btn-danger" onclick="return confirm('Are you sure you want to delete the unit?');">
+                <xsl:attribute name="href">?page=admin&amp;act=unit_del&amp;id=<xsl:value-of select="@id"/>
+                </xsl:attribute>Delete</a>
             </p>
 
             <a>
@@ -75,7 +73,8 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
                     <xsl:with-param name="text" select="description" />
                 </xsl:call-template>
             </p>                        
-        </article>
+        </div>
+        <div class="clearfix"></div>
     </xsl:for-each>
             
             

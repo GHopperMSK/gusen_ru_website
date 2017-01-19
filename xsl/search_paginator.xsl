@@ -6,7 +6,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 <xsl:output indent="no" method="html" />
 
 <xsl:template match="root">
-	<ul class="pagination gusen-pag">
+	<ul class="pagination gusen-pag center-block">
 	    <xsl:for-each select="page">
 	    <li>
 	    <xsl:choose>

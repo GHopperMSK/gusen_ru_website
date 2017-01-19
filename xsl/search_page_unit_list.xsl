@@ -5,14 +5,18 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 
 <xsl:output indent="no" method="html" />
 
-<xsl:template match="root">
+<xsl:template match="unit[position() mod 4 = 1]"> 
+	<xsl:apply-templates mode="proc" select=".|following-sibling::unit[not(position() > 1)]" />
+	<div class="clearfix hidden-lg hidden-md"></div>
+	<xsl:apply-templates mode="proc" select=".|following-sibling::unit[not(position() > 1)]" />
+	<div class="clearfix"></div>
+</xsl:template>
 
-    <div class="row row-itemz">
-    <xsl:for-each select="unit">
-        <div class="col-lg-3 col-md-3 col-sm-4 col-xs-6">
-        	<a>
-	        	<xsl:attribute name="href">/unit/<xsl:value-of select="@id"/></xsl:attribute>
-	        	<div class="itemz">
+<xsl:template match="unit" mode="proc"> 
+    <div class="col-lg-3 col-md-3 col-sm-6 col-xs-6">
+    	<a>
+        	<xsl:attribute name="href">/unit/<xsl:value-of select="@id"/></xsl:attribute>
+        	<div class="itemz">
 	            <img class="img-responsive">
 	                <xsl:attribute name="alt"><xsl:value-of select="manufacturer"/><xsl:text> </xsl:text><xsl:value-of select="@name"/>
 	                </xsl:attribute>
@@ -27,14 +31,18 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 	            	<p><xsl:value-of select="year"/>&#160;г.</p>
 	                <p><xsl:value-of select="city"/></p>
 	            </div>
-	            </div>
-	            <p><xsl:value-of select="manufacturer"/>&#160;<xsl:value-of select="@name"/></p>
-	        </a>    
-		</div> 
-    </xsl:for-each>
+            </div>
+            <p><xsl:value-of select="manufacturer"/>&#160;<xsl:value-of select="@name"/></p>
+        </a>    
+	</div> 
+</xsl:template>
+
+<xsl:template match="unit[not(position() mod 4 = 1)]"/> 
+
+<xsl:template match="root">
+    <div class="row row-itemz">
+    	<xsl:apply-templates />
     </div>
-            
-            
 </xsl:template>
 
 </xsl:stylesheet>

@@ -902,6 +902,59 @@ class CWebPage
                     $this->sPageContent = $json;
                 }
                 break;
+            case 'vk_upload':
+				if (isset($_POST['url']) && isset($_POST['unit_id'])) {
+				//if (true) {
+				//    $_POST['unit_id'] = 37;
+				//    $_POST['url'] = "https://pu.vk.com/c604829/upload.php?act=do_add&mid=47192372&aid=-14&gid=137789409&hash=0cf4ca2d4e19002f61d503083505b44b&rhash=9044348098bb9c9d2309bca8b493138b&swfupload=1&api=1&wallphoto=1";
+				    
+                    $unit_id = filter_var(
+                        $_POST['unit_id'], 
+	                    FILTER_SANITIZE_NUMBER_INT
+	                );
+
+					$photos = array();
+
+	                $q = sprintf('SELECT img
+	                				FROM `images` 
+	                				WHERE `unit_id` = %d
+	                				ORDER BY `order`
+	                				LIMIT 6', 
+	                				$unit_id
+	                );
+	                
+	                if ($res = $this->hDbConn->query($q)) {
+	                	$i = 0;
+	                    while ($r = $res->fetch(\PDO::FETCH_ASSOC)) {
+	                    	$i++;
+							$photos["file{$i}"] = new \CURLFile(
+								realpath(
+									$_SERVER["DOCUMENT_ROOT"].
+									'/images/'.
+									$r['img']
+								)
+							);
+	                    }
+	                }
+	                
+				    $ch = curl_init();
+				    curl_setopt($ch, CURLOPT_URL, $_POST["url"]);
+				    curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+				    curl_setopt($ch, CURLOPT_POST, TRUE);
+				    curl_setopt($ch, CURLOPT_POSTFIELDS, $photos);
+				    $result = curl_exec($ch);
+				    curl_close($ch);
+
+                    $unit = new CUnit($this->hDbConn, $unit_id);
+
+				    $aResult = json_decode($result, TRUE);
+				    $aResult['unit'] = $unit->jsonData();
+				    $result = json_encode($aResult);
+				
+					$this->sPageContent = $result;
+				 
+				}            	
+            	break;
         }
     }
 

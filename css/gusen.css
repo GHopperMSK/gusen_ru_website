@@ -30,7 +30,7 @@ BODY {
     height: 100%;
 }
 
-svg: not(:root) {
+svg:not(:root) {
     padding-top: 10px;
 }
 
@@ -117,7 +117,7 @@ svg: not(:root) {
     position: relative;
 }
 
-.searchline input {
+.search_button {
     color: #000;
     height: 38px;
     background-color: #f4ce09;
@@ -126,7 +126,6 @@ svg: not(:root) {
     margin-bottom: 10px;
     border: none;
     font-size: 14px;
-
     color: rgb(0, 0, 0);
     font-weight: bold;
     text-transform: uppercase;
@@ -279,6 +278,7 @@ svg: not(:root) {
     text-align: center;
     line-height: 30px;
     color: #000;
+    margin-left: 10px;
 }
 
 .fa-facebook-f:before, .fa-facebook:before {
@@ -360,6 +360,9 @@ svg: not(:root) {
 }
 
 @media (max-width: 991px) {
+	.mob {
+		text-align: center;
+	}
 	.img-responsive {
 		width: auto;
 		height: auto;
@@ -461,8 +464,11 @@ svg: not(:root) {
 }
 
 @media (max-width: 503px) {
-    .col-lg-3.col-md-3.col-sm-4.col-xs-6 {
-    width: 100%;
+    .col-lg-3
+    .col-md-3
+    .col-sm-4
+    .col-xs-6 {
+    	width: 100%;
     }
     
     .svglogo {
@@ -488,6 +494,8 @@ svg: not(:root) {
 .pagination.gusen-pag > LI > A,
 .pagination.gusen-pag > LI > SPAN {
     color: #000;
+	border-top-left-radius: 0;
+	border-bottom-left-radius: 0;    
 }
 
 .pagination > LI > A:focus,
@@ -626,13 +634,12 @@ svg: not(:root) {
 
 FORM .symbol {
     right: 10px;
-    bottom: 65px;
+    bottom: -103px;
 }
 
 .comment-button {
     display: block;
     font-size: 14px;
-
     color: rgb(0, 0, 0);
     padding: 10px 30px;
     background: transparent;
@@ -641,6 +648,7 @@ FORM .symbol {
     margin-left: 15px;
     position: relative;
     top: 10px;
+    float: left;
 }
 
 .comment-button:hover {
@@ -725,3 +733,51 @@ FORM.wrap_com {
     position: relative;
 }
 
+.media-body {
+    overflow: visible;
+    padding: 0 0 10px 0;
+}
+
+SPAN#resp {
+    float: left;
+    margin-top: 21px;
+    margin-left: 15px;
+}
+
+UL.pagination.gusen-pag {
+	width: 100%;
+	text-align: center;
+}
+
+.pagination > LI {
+	display: inline-block;
+}
+
+@media (min-width: 768px) {
+	.col-lg-3 > A > P {
+		text-align: center;
+	}
+}
+
+@media (max-width: 991px) {
+	.img-responsive {
+    	width: 100%;
+    }
+}
+
+.selecter-selected { 
+    padding: 10px 50px 10px 15px;
+    text-overflow: ellipsis;
+}
+
+.admin_page_unit_list_div {
+	margin-bottom: 15px;
+}
+
+.admin_page_unit_list_div IMG {
+	margin: 0 10px 10px 0;
+}
+
+.navbar {
+	margin-bottom: 10px;
+}

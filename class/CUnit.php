@@ -1,5 +1,6 @@
 <?php
 namespace gusenru;
+use \ForceUTF8\Encoding;
 
 class CUnit
 {
@@ -194,6 +195,28 @@ class CUnit
 	        	$this->img[] = $ir['img'];
 	        }
     	}
+    }
+    
+    function jsonData() {
+    	$max_len = 600;
+    	
+    	$aDescr = array();
+    	$aDescr['category'] = $this->category;
+    	$aDescr['name'] = $this->name;
+    	$aDescr['year'] = $this->year;
+    	$aDescr['fdistrict'] = $this->city['fdistrict'];
+    	$aDescr['region'] = $this->city['region'];
+    	$aDescr['city'] = $this->city['name'];
+    	if (strlen($this->description) > $max_len)
+			$aDescr['description'] = mb_substr($this->description, 0, $max_len).'...';
+		else
+			$aDescr['description'] = $this->description;
+		
+		foreach ($aDescr as $key => $value) {
+			$aDescr[$key] = Encoding::toUTF8($value);
+		}
+		
+    	return json_encode($aDescr);
     }
     
     /**
