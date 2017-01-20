@@ -36,7 +36,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
                 </xsl:attribute>Edit</a>&#160;
                 <a class="btn btn-info" href="#">
                 	<xsl:attribute name="onclick">
-                		wallPost(<xsl:value-of select="@id"/>);
+                		wallPost(<xsl:value-of select="@id"/>); return false;
                 	</xsl:attribute>
                 	Post in VK
                 </a>&#160;
@@ -52,10 +52,12 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
                 <xsl:attribute name="href">?page=admin&amp;act=main&amp;vType=<xsl:value-of select="category/@cat_id"/>
                 </xsl:attribute>
                 <xsl:value-of select="category"/>
-            </a>&#160;/&#160;
+            </a>
+            
+            /
 
             <a>
-                <xsl:attribute name="href">?page=unit&amp;id=<xsl:value-of select="@id"/>
+                <xsl:attribute name="href">/unit/<xsl:value-of select="@id"/>
                 </xsl:attribute>
                 <xsl:value-of select="manufacturer"/>&#160;<xsl:value-of select="@name"/>
             </a>

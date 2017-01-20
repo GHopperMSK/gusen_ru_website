@@ -5,11 +5,18 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 
 <xsl:output indent="no" method="html" />
 
-<xsl:template match="unit[position() mod 4 = 1]"> 
+<xsl:template match="unit[position() mod 2 = 1]">
+	<xsl:choose>
+		<xsl:when test="position() = 1">
+		</xsl:when>
+		<xsl:when test="position() mod 4 = 1">
+			<div class="clearfix"></div>
+		</xsl:when>
+		<xsl:otherwise>
+			<div class="clearfix hidden-lg hidden-md"></div>
+		</xsl:otherwise>
+	</xsl:choose>
 	<xsl:apply-templates mode="proc" select=".|following-sibling::unit[not(position() > 1)]" />
-	<div class="clearfix hidden-lg hidden-md"></div>
-	<xsl:apply-templates mode="proc" select=".|following-sibling::unit[not(position() > 1)]" />
-	<div class="clearfix"></div>
 </xsl:template>
 
 <xsl:template match="unit" mode="proc"> 
@@ -37,7 +44,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 	</div> 
 </xsl:template>
 
-<xsl:template match="unit[not(position() mod 4 = 1)]"/> 
+<xsl:template match="unit[not(position() mod 2 = 1)]"/> 
 
 <xsl:template match="root">
     <div class="row row-itemz">

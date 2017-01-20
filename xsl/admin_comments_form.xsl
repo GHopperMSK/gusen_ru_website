@@ -23,7 +23,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 </xsl:template>
 
 <xsl:template match="comment">
-    <p>
+    <div class="col-lg-12">
         <input type="hidden" name="comment_id[]">
             <xsl:attribute name="value">
                 <xsl:value-of select="@id"/>
@@ -43,15 +43,15 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
                 <xsl:with-param name="text" select="text()" />
             </xsl:call-template><br />
         </a>
-    </p>
+    </div>
 </xsl:template>
 
 
 <xsl:template match="root">
-<form method="POST">
-    <xsl:apply-templates select="comment" />
-    <input type="submit" />
-</form>
+	<form method="POST">
+	    <xsl:apply-templates select="comment" />
+	    <input class="search_button" type="submit" />
+	</form>
 </xsl:template>
 
 

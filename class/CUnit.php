@@ -202,6 +202,7 @@ class CUnit
     	
     	$aDescr = array();
     	$aDescr['category'] = $this->category;
+    	$aDescr['manufacturer'] = $this->manufacturer;
     	$aDescr['name'] = $this->name;
     	$aDescr['year'] = $this->year;
     	$aDescr['fdistrict'] = $this->city['fdistrict'];
@@ -217,6 +218,15 @@ class CUnit
 		}
 		
     	return json_encode($aDescr);
+    }
+    
+    function getDescription() {
+    	$sDescr = "{$this->category} / {$this->manufacturer} ".
+    		"{$this->name}, {$this->year} г/в. ".
+    		"{$this->city['fdistrict']}, {$this->city['region']},г. ".
+    		"{$this->city['name']}. Спецтехника б/у, продажа от ".
+    		"собвтенника, низкие цены, лизинг.";
+    	return $sDescr;
     }
     
     /**

@@ -96,6 +96,9 @@ class CModule
             case "title":
                 $this->title($this->param1);
                 break;
+            case "description":
+            	$this->description($this->param1);
+            	break;
         }
     }
     
@@ -540,6 +543,77 @@ class CModule
                 }
                 break;
         }
+    }
+    
+    function description($page) {
+        switch ($page) {
+            case "page_search":
+		        $q = 'SELECT u.id 
+		        		FROM units u
+		        		JOIN manufacturers m ON u.manufacturer_id = m.id
+						JOIN cities c ON u.city_id=c.id
+						JOIN regions r ON c.rd_id=r.id
+		        		WHERE is_arch=FALSE';
+		
+		        if ($_GET['vType'] != 0) {
+		            $q .= sprintf(" AND u.cat_id=%d", $_GET['vType']);
+		        }
+		        if ($_GET['vManuf']) {
+		            $q .= sprintf(" AND m.manufacturer_id=%d", $_GET[vManuf]);
+		        }
+		        if ($_GET['vFedDistr']) {
+		            $q .= sprintf(" AND r.fd_id=%d", $_GET[vFedDistr]);
+		        }
+		
+		        if (isset($_GET['offset'])) {
+		            $iOffset = max($_GET['offset'], 1);
+		        } else {
+		            $iOffset = 1;
+		        }        
+		        
+		        $q .= sprintf(" ORDER BY date DESC LIMIT %d,%d",
+		            ($iOffset-1)*PAGINATOR_SHOW_ON_PAGE,
+		            PAGINATOR_SHOW_ON_PAGE
+		        );
+		
+		        $res = $this->hDbConn->query($q);
+		        $aId = array();
+		        while ($ur = $res->fetch(\PDO::FETCH_ASSOC)) {
+		        	$aId[] = $ur['id'];
+		        }
+		        
+		        $sId = implode(',', $aId);
+				
+		        $q = sprintf(
+		        		'SELECT 
+			        		c.name AS name
+		        		FROM units u
+						JOIN categories c ON u.cat_id=c.id
+						WHERE u.id IN (%1$s)
+						UNION
+		        		(SELECT 
+			        		m.name AS name
+		        		FROM units u
+		        		JOIN manufacturers m ON u.manufacturer_id = m.id
+		        		WHERE u.id IN (%1$s))',
+		        	$sId);
+		        $res = $this->hDbConn->query($q);
+		        $sDescr = '';
+		        while ($ur = $res->fetch(\PDO::FETCH_ASSOC)) {
+		        	$aDescr[] = $ur['name'];
+		        }
+		        $sDescr = implode(', ', $aDescr);
+		        $sDescr .= '. Спецтехника б/у, продажа от собвтенника, низкие цены, лизинг.';
+		        
+				$this->content = $sDescr;
+                break;
+            case "page_unit":
+                if ($_GET['id'] != 0) {
+                	$unit = new CUnit($this->hDbConn, $_GET['id']);
+                	$this->content = $unit->getDescription();
+                }
+                break;
+        }    	
     }
 
     /**

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="ru-Ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,7 +11,7 @@
     <script src="/js/jquery.fs.selecter.min.js"></script>
     <link rel="stylesheet" href="/css/jquery.fs.selecter.css">
     <link rel="stylesheet" href="/css/gusen.css">
-    <title>Агентство спецтехники Гусеница</title>
+    <title>Страница не найдена</title>
     <script>
     $(document).ready(function() {
 	    var timeLeft = 5, cinterval;
@@ -55,8 +55,8 @@
         </div>
         
         <div class="content">
-			<div class="alert_big_margin alert alert-info col-md-7 col-md-offset-2">
-			 	<strong>Страница не найдена!</strong> К сожалению, не удалось найти запрашиваемую страницу. Попробуйте воспользоваться <a href="/search">поиском</a>.<br /><br />
+			<div class="alert_big_margin alert alert-info col-md-6 col-md-offset-3">
+			 	<strong>Страница не найдена!</strong> К сожалению, не удалось найти запрашиваемую страницу. Воспользоваться поиском на сайте.<br /><br />
 			 	Вы будуте перенаправлены на главную страницу через: <span id="countdown">5</span> сек.
 			</div>
         </div>

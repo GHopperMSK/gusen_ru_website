@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="ru-Ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,7 +11,7 @@
     <script src="/js/jquery.fs.selecter.min.js"></script>
     <link rel="stylesheet" href="/css/jquery.fs.selecter.css">
     <link rel="stylesheet" href="/css/gusen.css">
-    <title>Агентство спецтехники Гусеница</title>
+    <title>Ошибка</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.8.3/modernizr.min.js"></script>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" />
     <link href="https://fonts.googleapis.com/css?family=Roboto+Condensed:400,400i,700,700i%7CRoboto:400,400i,700,700i" rel="stylesheet" />
@@ -38,7 +38,7 @@
         </div>
         
         <div class="content">
-			<div class="alert_big_margin alert alert-info col-md-7 col-md-offset-2">
+			<div class="alert_big_margin alert alert-info col-md-6 col-md-offset-3">
 			 	<strong>Произошла внутренняя ошибка!</strong> Администрации сайта уже отправлено соответствющее уведомление.<br />
 				Пожалуйста, <a href="/">возвращайтесь</a> позже. 
 			</div>

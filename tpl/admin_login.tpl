@@ -1,5 +1,5 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
-<html lang="ru">
+<html lang="ru-Ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -41,8 +41,8 @@
 	        </div>
 	        <div class="form-group">
 	        	<div class="col-md-10 col-md-offset-2">
-	            	<input class="btn btn-default btn-md col-md-6" type="submit" value="Submit" />
-	            	<input class="btn btn-default btn-md col-md-6" type="reset" value="Reset" />
+	            	<input class="btn btn-default btn-md col-md-6" type="submit" />
+	            	<input class="btn btn-default btn-md col-md-6" type="reset" />
 	            </div>
 	        </div>
 	    </fieldset>

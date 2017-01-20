@@ -1,5 +1,5 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
-<html lang="ru">
+<!DOCTYPE html>
+<html lang="ru-Ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,6 +10,8 @@
     <script src="/js/jquery.fs.selecter.min.js"></script>
     <link rel="stylesheet" href="/css/jquery.fs.selecter.css">
     <link rel="stylesheet" href="/css/gusen.css">
+	<script src="https://vk.com/js/api/openapi.js?137" type="text/javascript"></script>
+    
     <title>Агентство спецтехники Гусеница - Панель администратора</title>
     <script>
         $(document).ready(function(){
@@ -28,6 +30,9 @@ VK.init({
 });
 
 function wallPost(id) {
+console.log('wallPost');
+	$("body").css("cursor", "progress");
+	
 	VK.Auth.login(function(response) {
 		if (response.session) {
 			console.log('auth ok');
@@ -38,7 +43,7 @@ function wallPost(id) {
 	  } else {
 			console.log('auth failed');
 	  }
-	}, VK.access.PHOTOS | VK.access.WALL);	
+	}, VK.access.PHOTOS | VK.access.WALL);
 }
 
 function postUnit(id) {
@@ -55,7 +60,8 @@ function postUnit(id) {
 	                	var p = JSON.parse(data);
 	                	var unit = JSON.parse(p.unit);
 
-						var message = unit.category+' / '+unit.name+', '+
+						var message = unit.category+' / '+unit.manufacturer+' '+
+							unit.name+', '+
 							unit.year + " г.\n" + unit.fdistrict + ', ' +
 							unit.region + ', г. ' + unit.city + "\n\n";
 						message += unit.description;
@@ -78,6 +84,7 @@ function postUnit(id) {
 	                    			},
 	                    			function(r) {
 	                    				console.log('Wall.post: '+ r);
+	                    				$("body").css("cursor", "default");
 	                    			}
 	                    		);
 	                    	}
@@ -97,11 +104,11 @@ function postUnit(id) {
       		<a class="navbar-brand" href="/?page=admin">GusenRu</a>
     	</div>
     <ul class="nav navbar-nav">
-     	<li><a class="" href="/?page=admin&act=unapproved_comments">Comments (%{comments_unapproved_total&null&0}%)</a></li>
-      <li><a class="" href="/?page=admin&act=admin_unit_form">Add new unit</a></li>
+    	<li><a class="" href="/?page=admin&act=unapproved_comments">Comments (%{comments_unapproved_total&null&0}%)</a></li>
+    	<li><a class="" href="/?page=admin&act=admin_unit_form">Add new unit</a></li>
     </ul>
     <ul class="nav navbar-nav navbar-right">
-      <li><a href="/?page=admin&act=logout&msg=Successfully_Logged_out"><span class="glyphicon glyphicon-log-in"></span> Exit</a></li>
+    	<li><a href="/?page=admin&act=logout&msg=Successfully_Logged_out"><span class="glyphicon glyphicon-log-in"></span> Exit</a></li>
     </ul>    
   </div>
 </nav>
