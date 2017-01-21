@@ -11,8 +11,20 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 </xsl:template>
 
 <xsl:template match="unit" mode="proc"> 
-    <div class="col-lg-3 col-md-3 col-sm-6 col-xs-6">
-    	<a>
+    <div class="col-lg-3 col-md-3 col-sm-6 col-xs-6" itemscope="" itemtype="http://schema.org/Product">
+    	<link itemprop="itemCondition" href="http://schema.org/UsedCondition" />
+        <meta itemprop="brand">
+            <xsl:attribute name="content"><xsl:value-of select="manufacturer"/></xsl:attribute>
+        </meta>
+        <meta itemprop="model">
+            <xsl:attribute name="content"><xsl:value-of select="@name"/></xsl:attribute>
+        </meta>
+        <meta itemprop="image">
+        	<xsl:attribute name="content">/images/<xsl:value-of select="images/img"/>
+        	</xsl:attribute>
+        </meta>
+    	
+    	<a itemprop="url">
         	<xsl:attribute name="href">/unit/<xsl:value-of select="@id"/></xsl:attribute>
         	<div class="itemz">
             <img class="img-responsive">
@@ -22,13 +34,20 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
                 </xsl:attribute>
             </img>
             
-            <div class="prices"><xsl:value-of select='translate(format-number(price, "###,###"),","," ")'/>&#160;₽</div>
+            <div class="prices" itemprop="offers" itemscope="" itemtype="http://schema.org/Offer">
+            	<xsl:value-of select='translate(format-number(price, "###,###"),","," ")'/>&#160;₽
+                <meta itemprop="price">
+                    <xsl:attribute name="content"><xsl:value-of select="price"/></xsl:attribute>
+                </meta>
+                <meta itemprop="priceCurrency" content="RUB" />
+                <link itemprop="availability" href="http://schema.org/InStock" />
+            </div>
             <div class="infomachines">
             	<p><xsl:value-of select="year"/>&#160;г.</p>
                 <p><xsl:value-of select="city"/></p>
             </div>
             </div>
-            <p><xsl:value-of select="manufacturer"/>&#160;<xsl:value-of select="@name"/></p>
+            <h3 itemprop="name"><xsl:value-of select="manufacturer"/>&#160;<xsl:value-of select="@name"/></h3>
         </a>
     </div>
 </xsl:template>
@@ -37,9 +56,13 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
     <xsl:for-each select="category">
         <xsl:if test="node()">
             <div class="row row-content">
-                  <div><a><xsl:attribute name="href">/search/<xsl:value-of select="@id" />
-                  </xsl:attribute>
-                  <h1><xsl:value-of select="@name" /></h1></a></div>
+                <div>
+	            	<a>
+	                	<xsl:attribute name="href">/search/<xsl:value-of select="@id" />
+	                	</xsl:attribute>
+	                	<h2><xsl:value-of select="@name" /></h2>
+	                </a>
+                </div>
             </div>
 
 		    <div class="row row-itemz">
@@ -47,12 +70,12 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
             </div>
         
             <xsl:if test="count(*) = 4">
-	            <h5 style="text-align: right;">
+	            <div>
 	                <a class="allc">
 	                	<xsl:attribute name="href">/search/<xsl:value-of select="@id"/>
 	                    </xsl:attribute>Все предложения из категории
 	                </a>
-	            </h5>
+	            </div>
             </xsl:if>            
 
         </xsl:if>

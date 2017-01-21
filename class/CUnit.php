@@ -35,7 +35,9 @@ class CUnit
 	
 	private $hDbConn = null;
 	
-	function __construct(&$hDbConn, $id=NULL) {
+	function __construct(CDataBase $hDbConn, $id=NULL) {
+		CWebPage::debug("CUnit::__construct({$id})");
+		
         if ($hDbConn instanceof CDataBase) {
             $this->hDbConn = $hDbConn;
         }

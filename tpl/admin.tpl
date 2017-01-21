@@ -72,6 +72,7 @@ function postUnit(id) {
 	                        server: p.server,
 	                        hash: p.hash
 	                    	}, function (s) {
+	                    		$("body").css("cursor", "default");
 	                    		var attachments = '';
 	                    		for (i=0; i<s.response.length; i++) {
 	                    			attachments += s.response[i].id + ',';
@@ -84,7 +85,6 @@ function postUnit(id) {
 	                    			},
 	                    			function(r) {
 	                    				console.log('Wall.post: '+ r);
-	                    				$("body").css("cursor", "default");
 	                    			}
 	                    		);
 	                    	}
@@ -98,7 +98,7 @@ function postUnit(id) {
 
 </script>
 
-<nav class="navbar navbar-inverse">
+<nav class="navbar navbar-inverse navbar-static-top">
 	<div class="container-fluid">
     	<div class="navbar-header">
       		<a class="navbar-brand" href="/?page=admin">GusenRu</a>

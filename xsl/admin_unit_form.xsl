@@ -153,7 +153,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
         </form>
     
         <div class="form-group" id="uploaded_images">
-        	<div class="col-md-10 col-md-offset-1" id="del_img">&#160;</div>
+        	<div class="col-md-12 col-xs-12 col-lg-12" id="del_img">DROP AN IMAGE HERE TO DELETE IT</div>
         </div>
     
         <div class="form-group">

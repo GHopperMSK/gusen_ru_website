@@ -67,10 +67,10 @@
             <div class="row">
                 <div class="fltlft">
                     <div class="footp1"><span>© ООО «Гусеница», 2016 - 2017</span></div>
-                    <div class="footp2"><a href="/about">о компании</a></div>   
+                    <div class="footp2"><a href="/about"><h5>О компании</h5></a></div>   
                 </div>
                 <div class="fltrght">
-                <div class="footp3"><a href="/copyright">Пользовательское соглашение</a></div>
+                <div class="footp1"><a href="/copyright"><h5>Пользовательское соглашение</h5></a></div>
                 <div class="mob">
                     <a target="_blank" href="https://vk.com/club137789409" class="footp4 socseti vk"><i class="fa fa-vk" aria-hidden="true"></i></a>
                 </div>

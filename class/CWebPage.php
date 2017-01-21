@@ -23,9 +23,12 @@ use phpFastCache\CacheManager;
  */
 class CWebPage
 {
-    private $sPageContent; // whole page content
+    private $sPageContent; // the whole page content
     private $hDbConn;
     private $instanceCache;
+    private $aGetValues = array();
+    private $aUnits = array();
+    
     
     function __construct($hDbConn) {
     	if (DEBUG_MODE)
@@ -39,23 +42,49 @@ class CWebPage
         else
         	throw new \Exception('Wrong CDataBase connection was passed!');
 
-        // process integer get-values within URL
-        $aGetInt = ['id', 'vType', 'vManuf', 'vFedDistr'];
-        foreach ($aGetInt as $var) {
-            if (isset($_GET[$var])) {
-                $_GET[$var] = filter_var(
-                    $_GET[$var],
-                    FILTER_SANITIZE_NUMBER_INT
-                );
-            }
-        }
-        
+		$this->fillGetValues();
+		// TODO: ADD POST VARS
+		// TODO: ADD SESSION VARS
+
 		CacheManager::setDefaultConfig([
-		  "path" => sys_get_temp_dir(),
+			"path" => sys_get_temp_dir(),
 		]);
 		$this->instanceCache = CacheManager::getInstance(CACHE_TYPE);		
 
-        $this->pageProcess($_GET['page']);
+        $this->pageProcess($this->aGetValues['page']);
+    }
+    
+    function getDataBaseHandler() {
+    	return $this->hDbConn;
+    }
+    
+    function getGetValue($name) {
+    	if (array_key_exists($name, $this->aGetValues))
+    		return $this->aGetValues[$name];
+    	else
+    		return FALSE;
+    }
+    
+    function getUnit($id) {
+    	if (!array_key_exists($id, $this->aUnits))
+			$this->aUnits[$id] = new CUnit($this->hDbConn, $id);
+
+    	return $this->aUnits[$id];
+    }
+    
+    /**
+     * Processing of GET values
+     */
+    private function fillGetValues() {
+    	foreach ($_GET as $key => $value) {
+    		if (in_array($key, GET_INT_VALS)) {
+				$value = filter_var(
+                    $_GET[$key],
+                    FILTER_SANITIZE_NUMBER_INT
+                );
+    		}
+    		$this->aGetValues[$key] = $value;
+    	}
     }
     
     static function debug($message, $priority = LOG_INFO) {
@@ -76,7 +105,7 @@ class CWebPage
                 $this->commentAdd();
                 break;
             case 'ajax':
-                $this->ajaxPage($_GET['ajax_mode']);
+                $this->ajaxPage($this->aGetValues['ajax_mode']);
                 break;
             case 'oauth_vk':
                 $this->oauth('vk');
@@ -100,7 +129,7 @@ class CWebPage
 				);
                 $stmt->bindValue(
                     ':id',
-                    $_GET['id'],
+                    $this->aGetValues['id'],
                     \PDO::PARAM_INT
                 );
                 $stmt->execute();
@@ -119,7 +148,7 @@ class CWebPage
                 $this->setTemplate('tpl/about.tpl');
                 break;
             case 'admin':
-                $this->adminPage($_GET['act']);
+                $this->adminPage($this->aGetValues['act']);
                 break;
             case 'sitemap':
                 $this->sitemap();
@@ -367,29 +396,31 @@ class CWebPage
         if (isset($this->tpl)) {
             $this->sPageContent = file_get_contents($this->tpl);
             if (!$this->sPageContent)
-            	throw new \Exception("CWebPage::renderTemplate(): Can't locad template {$this->tpl}");
+            	throw new \Exception("CWebPage::renderTemplate(): Can't load template {$this->tpl}");
             
             preg_match_all('/%{(.+)}%/', $this->sPageContent, $matches);
 
-			$urlParams = implode('', $_GET);
+			$sUrl = http_build_query($this->aGetValues); //implode('', $this->aGetValues);
             
             foreach ($matches[1] as $key => $value) {
                 list($modName, $xslFile, $duration, $param1, $param2) = 
                 	explode('&', $value);
-                	
+
                 if (empty($modName) || empty($xslFile) || !isset($duration)) {
 					throw new \Exception("Error module parameters! {$matches[0][$key]}");
                 }
 
 				if (CACHE_ON && ($duration > 0)) {
 					$CachedString = $this->instanceCache->getItem(
-						$matches[1][$key].
-						$urlParams // add URL-specific key
+						md5(
+							$matches[1][$key].
+							$sUrl // add URL-specific key
+						)
 					);
 					
 					if (!$CachedString->isHit()) {
 					    $hMod = new CModule(
-					    	$this->hDbConn,
+					    	$this,
 					    	$modName,
 					    	$xslFile,
 					    	$param1,
@@ -425,7 +456,7 @@ class CWebPage
 					else
 						CWebPage::debug("The cache is turned off");
 				    $hMod = new CModule(
-				    	$this->hDbConn,
+				    	$this, //$this->hDbConn,
 				    	$modName,
 				    	$xslFile,
 				    	$param1,
@@ -468,7 +499,7 @@ class CWebPage
 
         $cur_link = sprintf('https://%s/?page=%s',
             $realHost,
-            $_GET['page']
+            $this->aGetValues['page']
         );
         
         $getUser = FALSE;    
@@ -560,7 +591,7 @@ class CWebPage
 				);
 				
 				try {
-					$client->authenticate($_GET['code']);
+					$client->authenticate($this->aGetValues['code']);
 					$client->setAccessToken($client->getAccessToken());
 					
 					$objOAuthService = new \Google_Service_Oauth2($client);
@@ -771,7 +802,7 @@ class CWebPage
                 break;
             case 'unit_del':
                 if ($this->isAuth()) {
-                	CUnit::deleteUnit($_GET['id'], $this->hDbConn);
+                	CUnit::deleteUnit($this->aGetValues['id'], $this->hDbConn);
 					header('Location: ' . $_SERVER['HTTP_REFERER']);
                 }
                 else
@@ -779,7 +810,7 @@ class CWebPage
                 break;
             case 'unit_arch':
                 if ($this->isAuth()) {
-					CUnit::archUnit($_GET['id'], $this->hDbConn);
+					CUnit::archUnit($this->aGetValues['id'], $this->hDbConn);
 					header('Location: ' . $_SERVER['HTTP_REFERER']);
                 }
                 else
@@ -867,7 +898,7 @@ class CWebPage
                 					WHERE fd_id=%d
                 				) 
                 				ORDER BY name', 
-                    filter_var($_GET['fdid'], FILTER_SANITIZE_NUMBER_INT)
+                    filter_var($this->aGetValues['fdid'], FILTER_SANITIZE_NUMBER_INT)
                 );
                 if ($res = $this->hDbConn->query($q)) {
                     while ($r = $res->fetch(\PDO::FETCH_ASSOC)) {

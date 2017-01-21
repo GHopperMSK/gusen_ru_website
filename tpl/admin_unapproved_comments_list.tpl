@@ -91,7 +91,7 @@ function postUnit(id) {
 
 </script>
 
-<nav class="navbar navbar-inverse">
+<nav class="navbar navbar-inverse navbar-static-top">
 	<div class="container-fluid">
     	<div class="navbar-header">
       		<a class="navbar-brand" href="/?page=admin">GusenRu</a>

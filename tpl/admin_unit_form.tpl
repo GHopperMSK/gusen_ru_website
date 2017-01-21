@@ -24,6 +24,7 @@
         border: 1px solid #000000;
         margin: 5px 5px 5px 5px;
         cursor: move;
+        vertical-align: top;
     }
     
     #uploaded_images .load_progress {
@@ -39,7 +40,11 @@
     
     #uploaded_images > #del_img {
         background-color: #a8abaf;
-        height: 20px;
+        text-align: center;
+        vertical-align: middle;
+        margin: auto;
+        height: 30px;
+        line-height: 30px; 
         cursor: default;
     }
 </style>
@@ -172,6 +177,12 @@
 	                prog.setAttribute("name", "load_progress");
 	                prog.innerHTML = 'Loading...';
 	                ui.appendChild(prog);
+/*
+	                let def_img = document.createElement('IMG');
+	                def_img.setAttribute("width", "190px");
+	                def_img.setAttribute("height", "190px");
+	                prog.appendChild(def_img);
+*/
 	                
 	                xhr.upload.onprogress = function(e) {
 	                    if (e.lengthComputable) {
@@ -277,7 +288,7 @@
 </head>
 <body>
 
-<nav class="navbar navbar-inverse">
+<nav class="navbar navbar-inverse  navbar-static-top">
 	<div class="container-fluid">
     	<div class="navbar-header">
       		<a class="navbar-brand" href="/?page=admin">GusenRu</a>
@@ -295,6 +306,9 @@
 <div class="col-lg-12">
 %{admin_unit_form&admin_unit_form.xsl&0}%
 </div>
+
+<div class="clearfix"></div>
+<br /><br />
 
 </body>
 </html>

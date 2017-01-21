@@ -15,7 +15,7 @@ namespace gusenru;
  * CACHE_TIME - duration of cache in munites.
  * If CACHE_TIME is 0, content won't be cached
  * 
- * @param CDataBase $hDbConn
+ * @param CWebPage $hWebPage
  * @param string $modName
  * @param string $xslFile
  * @param1 string $param1
@@ -27,8 +27,9 @@ class CModule
 {
     protected $xslDoc;
     protected $xmlDoc;
+    protected $hWebPage;
 
-    function __construct(CDataBase $hDbConn, $modName, $xslFile, $param1, $param2) {
+    function __construct(CWebPage $hWebPage, $modName, $xslFile, $param1, $param2) {
     	CWebPage::debug('CModule::__construct(CDataBase,'.
     		$modName.','.
     		$xslFile.
@@ -37,13 +38,14 @@ class CModule
     		')'
     	);
     	
-        $this->hDbConn = $hDbConn;
+        $this->hWebPage = $hWebPage;
         $this->modName = $modName;
         $this->xslFile = $xslFile;
         $this->param1 = $param1;
         $this->param2 = $param2;
         
         $this->content = '';
+        $this->hDbConn = $this->hWebPage->getDataBaseHandler();
         
         if ($this->xslFile != 'null') {
             if (file_exists("xsl/".$this->xslFile)) {
@@ -65,7 +67,9 @@ class CModule
                 $this->mainPageList();
                 break;
             case "unit_page_unit":
-		    	$unit = new CUnit($this->hDbConn, $_GET['id']);
+		    	$unit = $this->hWebPage->getUnit(
+		    		$this->hWebPage->getGetValue('id')
+		    	);
 		    	$unit = $this->xmlDoc->importNode($unit->getUnitDOM(), true);
 				$this->eRoot->appendChild($unit);
                 break;
@@ -257,7 +261,7 @@ class CModule
 	    	
 	        $eUnit = $this->xmlDoc->createElement(
 	        	'unit',
-	        	$_GET['id']
+	        	$this->hWebPage->getGetValue('id')
 	        );
 	        $eUnit = $this->eRoot->appendChild($eUnit);
             $this->eRoot->appendChild($eUnit);
@@ -267,8 +271,8 @@ class CModule
 
             $cur_link = sprintf("https://%s/%s/%d#comment_form",
                 $realHost,
-                $_GET['page'],
-                $_GET['id']
+                $this->hWebPage->getGetValue('page'),
+                $this->hWebPage->getGetValue('id')
             );
 
             $_SESSION["user_referer"] = $cur_link;
@@ -426,7 +430,8 @@ class CModule
             $xmlSubTopAttr = $this->xmlDoc->createAttribute('id');
             $xmlSubTopAttr->value = $row['id']; 
             $xmlSubTop->appendChild($xmlSubTopAttr);
-            if (isset($_GET['vType']) && $_GET['vType']==$row['id']) {
+            if ($this->hWebPage->getGetValue('vType') && 
+            		$this->hWebPage->getGetValue('vType') == $row['id']) {
                 $xmlSubTopAttr = $this->xmlDoc->createAttribute('selected');
                 $xmlSubTopAttr->value = 'true';                 
                 $xmlSubTop->appendChild($xmlSubTopAttr);
@@ -451,7 +456,8 @@ class CModule
             $xmlSubTopAttr = $this->xmlDoc->createAttribute('id');
             $xmlSubTopAttr->value = $row['id']; 
             $xmlSubTop->appendChild($xmlSubTopAttr);
-            if (isset($_GET['vManuf']) && $_GET['vManuf']==$row['id']) {
+            if ($this->hWebPage->getGetValue('vManuf') &&
+            		$this->hWebPage->getGetValue('vManuf') == $row['id']) {
                 $xmlSubTopAttr = $this->xmlDoc->createAttribute('selected');
                 $xmlSubTopAttr->value = 'true';                 
                 $xmlSubTop->appendChild($xmlSubTopAttr);
@@ -471,7 +477,8 @@ class CModule
             $xmlSubTopAttr = $this->xmlDoc->createAttribute('id');
             $xmlSubTopAttr->value = $row['id']; 
             $xmlSubTop->appendChild($xmlSubTopAttr);
-            if (isset($_GET['vFedDistr']) && $_GET['vFedDistr']==$row['id']) {
+            if ($this->hWebPage->getGetValue('vFedDistr') && 
+            		$this->hWebPage->getGetValue('vFedDistr') == $row['id']) {
                 $xmlSubTopAttr = $this->xmlDoc->createAttribute('selected');
                 $xmlSubTopAttr->value = 'true';                 
                 $xmlSubTop->appendChild($xmlSubTopAttr);
@@ -486,24 +493,30 @@ class CModule
             case "page_search":
                 $bFirst = true;
 
-                if ($_GET['vType'] > 0) {
+                if ($this->hWebPage->getGetValue('vType') > 0) {
                     $stmt = $this->hDbConn->prepare('
                     	SELECT name 
 						FROM categories 
 						WHERE id=:id'
 					);
-                    $stmt->bindValue(':id', $_GET['vType'], \PDO::PARAM_INT);
+                    $stmt->bindValue(':id',
+                    	$this->hWebPage->getGetValue('vType'),
+                    	\PDO::PARAM_INT
+                    );
                     $stmt->execute();
                     $this->content = $stmt->fetch(\PDO::FETCH_ASSOC)['name'];
                     $bFirst = false;
                 }
-                if ($_GET['vManuf'] > 0) {
+                if ($this->hWebPage->getGetValue('vManuf') > 0) {
                     $stmt = $this->hDbConn->prepare('
                     	SELECT name
 						FROM manufacturers
 						WHERE id=:id'
 					);
-                    $stmt->bindValue(':id', $_GET['vManuf'], \PDO::PARAM_INT);
+                    $stmt->bindValue(':id',
+                    	$this->hWebPage->getGetValue('vManuf'),
+                    	\PDO::PARAM_INT
+                    );
                     $stmt->execute();
                     if (!$bFirst)
                         $this->content .= ' / ';
@@ -511,13 +524,16 @@ class CModule
                         $bFirst = false;
                     $this->content .= $stmt->fetch(\PDO::FETCH_ASSOC)['name'];
                 }
-                if ($_GET['vFedDistr'] > 0) {
+                if ($this->hWebPage->getGetValue('vFedDistr') > 0) {
                     $stmt = $this->hDbConn->prepare('
                     	SELECT name 
 						FROM fdistricts 
 						WHERE id=:id'
 					);
-                    $stmt->bindValue(':id', $_GET['vFedDistr'], \PDO::PARAM_INT);
+                    $stmt->bindValue(':id',
+                    	$this->hWebPage->getGetValue('vFedDistr'),
+                    	\PDO::PARAM_INT
+                    );
                     $stmt->execute();
                     if (!$bFirst)
                         $this->content .= ' / ';
@@ -529,7 +545,7 @@ class CModule
                     $this->content = "Агенство спецтехники Гусеница";
                 break;
             case "page_unit":
-                if ($_GET['id'] != 0) {
+                if ($this->hWebPage->getGetValue('id')) {
                     $q = sprintf('
                     	SELECT
         				CONCAT(m.name,\' \', u.name) as name 
@@ -537,7 +553,7 @@ class CModule
             			JOIN manufacturers m
             				ON u.manufacturer_id=m.id
             			WHERE u.id=%d',
-                        $_GET['id']);
+                        $this->hWebPage->getGetValue('id'));
                     $res = $this->hDbConn->query($q);
                     $this->content = $res->fetch(\PDO::FETCH_ASSOC)['name'];
                 }
@@ -555,18 +571,21 @@ class CModule
 						JOIN regions r ON c.rd_id=r.id
 		        		WHERE is_arch=FALSE';
 		
-		        if ($_GET['vType'] != 0) {
-		            $q .= sprintf(" AND u.cat_id=%d", $_GET['vType']);
+		        if ($this->hWebPage->getGetValue('vType') != 0) {
+		            $q .= sprintf(" AND u.cat_id=%d",
+		            	$this->hWebPage->getGetValue('vType'));
 		        }
-		        if ($_GET['vManuf']) {
-		            $q .= sprintf(" AND m.manufacturer_id=%d", $_GET[vManuf]);
+		        if ($this->hWebPage->getGetValue('vManuf')) {
+		            $q .= sprintf(" AND m.manufacturer_id=%d",
+		            	$this->hWebPage->getGetValue(vManuf));
 		        }
-		        if ($_GET['vFedDistr']) {
-		            $q .= sprintf(" AND r.fd_id=%d", $_GET[vFedDistr]);
+		        if ($this->hWebPage->getGetValue('vFedDistr')) {
+		            $q .= sprintf(" AND r.fd_id=%d",
+		            	$this->hWebPage->getGetValue(vFedDistr));
 		        }
 		
-		        if (isset($_GET['offset'])) {
-		            $iOffset = max($_GET['offset'], 1);
+		        if ($this->hWebPage->getGetValue('offset')) {
+		            $iOffset = max($this->hWebPage->getGetValue('offset'), 1);
 		        } else {
 		            $iOffset = 1;
 		        }        
@@ -577,39 +596,33 @@ class CModule
 		        );
 		
 		        $res = $this->hDbConn->query($q);
-		        $aId = array();
+		        $aCategories = array();
+		        $aManufacturers = array();
 		        while ($ur = $res->fetch(\PDO::FETCH_ASSOC)) {
-		        	$aId[] = $ur['id'];
+		        	$unit = $this->hWebPage->getUnit($ur['id']);
+		        	if (!in_array($unit->category, $aCategories))
+		        		$aCategories[] = $unit->category;
+		        	if (!in_array($unit->manufacturer, $aManufacturers))
+		        		$aManufacturers[] = $unit->manufacturer;
+		        		
 		        }
 		        
-		        $sId = implode(',', $aId);
-				
-		        $q = sprintf(
-		        		'SELECT 
-			        		c.name AS name
-		        		FROM units u
-						JOIN categories c ON u.cat_id=c.id
-						WHERE u.id IN (%1$s)
-						UNION
-		        		(SELECT 
-			        		m.name AS name
-		        		FROM units u
-		        		JOIN manufacturers m ON u.manufacturer_id = m.id
-		        		WHERE u.id IN (%1$s))',
-		        	$sId);
-		        $res = $this->hDbConn->query($q);
-		        $sDescr = '';
-		        while ($ur = $res->fetch(\PDO::FETCH_ASSOC)) {
-		        	$aDescr[] = $ur['name'];
+				if (count($aCategories) > 0)
+		        	$sDescr = implode(', ', $aCategories);
+		        if (count($aManufacturers) > 0) {
+		        	if (count($aCategories) > 0)
+		        		$sDescr .= ', ';
+		        	$sDescr .= implode(', ', $aManufacturers);
 		        }
-		        $sDescr = implode(', ', $aDescr);
 		        $sDescr .= '. Спецтехника б/у, продажа от собвтенника, низкие цены, лизинг.';
 		        
 				$this->content = $sDescr;
                 break;
             case "page_unit":
-                if ($_GET['id'] != 0) {
-                	$unit = new CUnit($this->hDbConn, $_GET['id']);
+                if ($this->hWebPage->getGetValue('id') != 0) {
+                	$unit = $this->hWebPage->getUnit(
+                		$this->hWebPage->getGetValue('id')
+                	);
                 	$this->content = $unit->getDescription();
                 }
                 break;
@@ -624,12 +637,14 @@ class CModule
      */
     function unitForm() {        
         // is it a new unit or editing existing one
-        if (isset($_GET['id'])) {
+        if ($this->hWebPage->getGetValue('id')) {
             $isEdit = true;
             
-            $unit = new CUnit($this->hDbConn, $_GET['id']);
+            $unit = $this->hWebPage->getUnit(
+            	$this->hWebPage->getGetValue('id')
+            );
             $xmlTop = $this->xmlDoc->createElement("id", 
-                htmlentities($_GET['id']));
+                htmlentities($this->hWebPage->getGetValue('id')));
             $xmlTop = $this->eRoot->appendChild($xmlTop);
             
             $actType = "unit_edit";            
@@ -776,7 +791,8 @@ class CModule
             $this->fillUser();
         }        
 
-        $sUnitId = $this->xmlDoc->createElement("unit_id", $_GET['id']);
+        $sUnitId = $this->xmlDoc->createElement("unit_id",
+        	$this->hWebPage->getGetValue('id'));
         $this->eRoot->appendChild($sUnitId);
         
         // fill comments list
@@ -792,7 +808,7 @@ class CModule
             		unit_id=%d AND
             		p_com_id IS NULL 
             	ORDER BY date ASC";
-        $q = sprintf($q, $_GET['id']);
+        $q = sprintf($q, $this->hWebPage->getGetValue('id'));
         $res = $this->hDbConn->query($q);        
         if ($res->rowCount() > 0) {
             $sComents = $this->xmlDoc->createElement("comments");
@@ -873,38 +889,44 @@ class CModule
 			WHERE is_arch=FALSE';
 
         $bNeedAND = false;
-        if ($_GET['vType'] != 0) {
-            $q .= sprintf(' AND cat_id=%d', $_GET['vType']);
+        if ($this->hWebPage->getGetValue('vType') != 0) {
+            $q .= sprintf(' AND cat_id=%d',
+            	$this->hWebPage->getGetValue('vType'));
         }
-        if ($_GET['vManuf']) {
-            $q .= sprintf(' AND manufacturer_id=%d', $_GET[vManuf]);
+        if ($this->hWebPage->getGetValue('vManuf')) {
+            $q .= sprintf(' AND manufacturer_id=%d', 
+            	$this->hWebPage->getGetValue(vManuf));
         }
-        if ($_GET['vFedDistr']) {
-            $q .= sprintf(' AND fd_id=%d', $_GET[vFedDistr]);
+        if ($this->hWebPage->getGetValue('vFedDistr')) {
+            $q .= sprintf(' AND fd_id=%d', 
+            	$this->hWebPage->getGetValue(vFedDistr));
         }
 
         $countRes = $this->hDbConn->query($q);
         $iTotal = $countRes->fetch(\PDO::FETCH_ASSOC)['total'];
 
         // current page number
-        if (isset($_GET['offset'])) {
-            $iOffset = max($_GET['offset'], 1);
+        if ($this->hWebPage->getGetValue('offset')) {
+            $iOffset = max($this->hWebPage->getGetValue('offset'), 1);
         } else {
             $iOffset = 1;
         }
         
-        $vType = isset($_GET['vType']) ? $_GET['vType'] : 0;
-        $vManuf = isset($_GET['vManuf']) ? $_GET['vManuf'] : 0;
-        $vFedDistr = isset($_GET['vFedDistr']) ? $_GET['vFedDistr'] : 0;
-        switch ($_GET['page']) {
+        $vType = $this->hWebPage->getGetValue('vType') ?
+        	$this->hWebPage->getGetValue('vTyep') : 0;
+        $vManuf = $this->hWebPage->getGetValue('vManuf') ?
+        	$this->hWebPage->getGetValue('vManuf') : 0;
+        $vFedDistr = $this->hWebPage->getGetValue('vFedDistr') ?
+        	$this->hWebPage->getGetValue('vFedDistr') : 0;
+        switch ($this->hWebPage->getGetValue('page')) {
             case "search":
             	$aVar = ['search', $vType, $vManuf, $vFedDistr, '%d'];
             	$sLinkPattern = htmlentities("/".implode("/", $aVar));
                 break;
             case "admin":
             	$aVar = array(
-            		'page'		=> $_GET['page'],
-            		'act'		=> $_GET['act'],
+            		'page'		=> $this->hWebPage->getGetValue('page'),
+            		'act'		=> $this->hWebPage->getGetValue('act'),
             		'vType'		=> $vType,
             		'vManut'	=> $vManuf,
             		'vFedDistr'	=> $vFedDistr,
@@ -930,18 +952,21 @@ class CModule
 				JOIN regions ON cities.rd_id=regions.id
         		WHERE is_arch=FALSE';
 
-        if ($_GET['vType'] != 0) {
-            $q .= sprintf(" AND cat_id=%d", $_GET['vType']);
+        if ($this->hWebPage->getGetValue('vType')) {
+            $q .= sprintf(" AND cat_id=%d",
+            	$this->hWebPage->getGetValue('vType'));
         }
-        if ($_GET['vManuf']) {
-            $q .= sprintf(" AND manufacturer_id=%d", $_GET[vManuf]);
+        if ($this->hWebPage->getGetValue('vManuf')) {
+            $q .= sprintf(" AND manufacturer_id=%d", 
+            	$this->hWebPage->getGetValue(vManuf));
         }
-        if ($_GET['vFedDistr']) {
-            $q .= sprintf(" AND fd_id=%d", $_GET[vFedDistr]);
+        if ($this->hWebPage->getGetValue('vFedDistr')) {
+            $q .= sprintf(" AND fd_id=%d", 
+            	$this->hWebPage->getGetValue(vFedDistr));
         }
 
-        if (isset($_GET['offset'])) {
-            $iOffset = max($_GET['offset'], 1);
+        if ($this->hWebPage->getGetValue('offset')) {
+            $iOffset = max($this->hWebPage->getGetValue('offset'), 1);
         } else {
             $iOffset = 1;
         }        
@@ -953,7 +978,7 @@ class CModule
 
         $res = $this->hDbConn->query($q);
         while ($ur = $res->fetch(\PDO::FETCH_ASSOC)) {
-        	$unit = new CUnit($this->hDbConn, $ur['id']);
+        	$unit = $this->hWebPage->getUnit($ur['id']);
         	$unit = $unit->getUnitDOM();
 			$unit = $this->xmlDoc->importNode($unit, true);
 			$this->eRoot->appendChild($unit);
@@ -993,7 +1018,7 @@ class CModule
             $q = sprintf($q, $cr['id']);
             $unit_res = $this->hDbConn->query($q);
             while ($ur = $unit_res->fetch(\PDO::FETCH_ASSOC)) {
-            	$unit = new CUnit($this->hDbConn, $ur['id']);
+            	$unit = $this->hWebPage->getUnit($ur['id']);
             	$unit = $unit->getUnitDOM();
 				$unit = $this->xmlDoc->importNode($unit, true);
 				$eCat->appendChild($unit);
