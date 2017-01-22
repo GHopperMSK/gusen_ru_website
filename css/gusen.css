@@ -142,7 +142,7 @@ svg:not(:root) {
     float: left;
 }
 
-.row-content h1 {
+.row-content H2 {
     font-size: 24px;
     color: rgb(0, 0, 0);
     font-weight: bold;
@@ -152,33 +152,10 @@ svg:not(:root) {
     margin-bottom: 30px;
 }
 
-.row-content h1:after, .row-content h1:before {
-    content: '';
-    display: inline-block;
-    vertical-align: middle;
-    box-sizing: border-box;
-    width: 100%;
-    height: 1px;
-    background: #868686;
-    border: solid #FFF;
-    border-width: 0 1px;
-    position: relative;
-}
-
 .img-responsive {
     width: 100%;
     height: 100%;
     position: relative;
-}
-
-.row-content h1:before {
-    margin-left: -100%;
-    left: -12px;
-}
-
-.row-content h1:after {
-    margin-right: -100%;
-    right: -12px;
 }
 
 .row-itemz {
@@ -261,7 +238,7 @@ svg:not(:root) {
    margin-bottom: 5px;
 }
 
-.col-lg-3 > A > P {
+.title-name {
     font-style: oblique;
     font-size: 16px;
     font-family: "Roboto";
@@ -319,7 +296,7 @@ svg:not(:root) {
     display: inline-block;
 }
 
-.footp1 span, .footp2 a {
+.footp1 SPAN, .footp2 A H5 {
     font-size: 14px;
 
     color: rgb(0, 0, 0);
@@ -355,11 +332,11 @@ svg:not(:root) {
     text-decoration: none;
 }
 
-.footp2 a {
+.footp2 A H5 {
     font-weight: bold;
 }
 
-.footp3 a {
+.footp3 A {
     font-size: 14px;
 
     color: rgb(0, 0, 0);
@@ -532,7 +509,6 @@ svg:not(:root) {
 
 .slider-header {
     font-size: 16px;
-
     color: rgb(0, 0, 0);
     font-weight: bold;
     font-style: italic;
@@ -540,6 +516,7 @@ svg:not(:root) {
     text-align: left;
     margin-top: 25px;
     margin-bottom: 25px;
+	text-align: left;    
 }
 
 .price {
@@ -556,7 +533,7 @@ svg:not(:root) {
     font-weight: bold;
 }
 
-.row.row-info H2 {
+.row.row-info H1 {
     font-size: 24px;
     color: rgb(0, 0, 0);
     font-weight: bold;
@@ -609,10 +586,6 @@ svg:not(:root) {
 }
 .row.row-info {
     margin-top: 25px;
-}
-
-.slider-header A {
-    color: #000;
 }
 
 .row-info DIV {
@@ -769,7 +742,7 @@ UL.pagination.gusen-pag {
 	.img-responsive {
     	width: 100%;
     }
-	.col-lg-3 > A > P {
+	.title-name {
 		text-align: center;
 	}
 }
@@ -791,10 +764,6 @@ UL.pagination.gusen-pag {
 	margin-bottom: 10px;
 }
 
-I .fa.fa-google {
-    left: 2px;
-}
-
 .media-list A.socseti:hover {
 	opacity: 0.7;
 }
@@ -808,4 +777,53 @@ I .fa.fa-google {
 	border-color: #f4f4f4;
 	border-radius: 0px;
 	color: #1b1b1b;
+}
+
+.slider-header H2,
+.slider-header H3 {
+	overflow: visible;
+    margin: 0;
+    font-size: 16px;
+    color: rgb(0, 0, 0);
+    font-weight: bold;
+    font-style: italic;
+    text-transform: uppercase;
+    display: inline-block;
+}
+
+.title-category:before {
+    margin-left: -100%;
+    left: -12px;
+}
+
+.title-category:after, .title-category:before {
+    content: '';
+    display: inline-block;
+    vertical-align: middle;
+    box-sizing: border-box;
+    width: 100%;
+    height: 1px;
+    background: #868686;
+    border: solid #FFF;
+    border-width: 0 1px;
+    position: relative;
+}
+
+.title-category {
+    font-size: 24px;
+    color: rgb(0, 0, 0);
+    font-weight: bold;
+    text-transform: uppercase;
+    overflow: hidden;
+    margin-top: 50px;
+    margin-bottom: 30px;
+}
+
+.title-category:after {
+    margin-right: -100%;
+    right: -12px;
+}
+
+.fa.fa-google {
+    left: 2px;
 }

@@ -28,7 +28,10 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 
     <div class="row row-content" itemscope="" itemtype="http://schema.org/Product">
         <link itemprop="itemCondition" href="http://schema.org/UsedCondition"/>
-        <meta itemprop="brand">
+        <meta itemprop="category">
+            <xsl:attribute name="content"><xsl:value-of select="category"/></xsl:attribute>
+        </meta>
+        <meta itemprop="brand manufacturer">
             <xsl:attribute name="content"><xsl:value-of select="manufacturer"/></xsl:attribute>
         </meta>
         <meta itemprop="model">
