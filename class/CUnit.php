@@ -224,10 +224,10 @@ class CUnit
     
     function getDescription() {
     	$sDescr = "{$this->category} / {$this->manufacturer} ".
-    		"{$this->name}, {$this->year} г/в. ".
+    		"{$this->name}, {$this->year} г.в. ".
     		"{$this->city['fdistrict']}, {$this->city['region']},г. ".
     		"{$this->city['name']}. Спецтехника б/у, продажа от ".
-    		"собвтенника, низкие цены, лизинг.";
+    		"собвтенника, конкурентная цена, лизинг.";
     	return $sDescr;
     }
     
@@ -360,9 +360,9 @@ class CUnit
         $stmt->bindValue(':manufacturer_id', $this->manuf_id, \PDO::PARAM_INT);    
         $stmt->bindValue(':price', $this->price, \PDO::PARAM_INT);
         $stmt->bindValue(':year', $this->year, \PDO::PARAM_INT);
-        $mileage = empty($this->mileage) ? 'NULL' : $this->mileage;
+        $mileage = empty($this->mileage) ? NULL : $this->mileage;
         $stmt->bindValue(':mileage', $mileage, \PDO::PARAM_STR);
-        $op_time =  empty($this->op_time) ? 'NULL' : $this->op_time;
+        $op_time = empty($this->op_time) ? NULL : $this->op_time;
         $stmt->bindValue(':op_time', $op_time, \PDO::PARAM_STR);
         $stmt->execute();
         $this->id = $this->hDbConn->lastInsertId();
@@ -419,9 +419,9 @@ class CUnit
         $stmt->bindValue(':manufacturer_id', $this->manuf_id, \PDO::PARAM_INT);    
         $stmt->bindValue(':price', $this->price, \PDO::PARAM_INT);
         $stmt->bindValue(':year', $this->year, \PDO::PARAM_INT);
-        $mileage = empty($this->mileage) ? 'NULL' : $this->mileage;
+        $mileage = empty($this->mileage) ? NULL : $this->mileage;
         $stmt->bindValue(':mileage', $mileage, \PDO::PARAM_STR);
-        $op_time =  empty($this->op_time) ? 'NULL' : $this->op_time;
+        $op_time =  empty($this->op_time) ? NULL : $this->op_time;
         $stmt->bindValue(':op_time', $op_time, \PDO::PARAM_STR);
         
         $stmt->bindValue(':id', $_POST['id'], \PDO::PARAM_INT);

@@ -35,7 +35,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 
         
             <p>
-                <select name="category" id="category">
+                <select class="selectpicker form-control" name="category" id="category">
                 <option value="0">Select a category</option>
                 <xsl:for-each select="categories/category">
                     <option>
@@ -50,8 +50,8 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
                 </select>
             </p>
             <p>
-                <select id="fdistrict" name="fdistrict" onchange="fillCity(this.value)">
-                <option value="0">Seelct a federal district</option>
+                <select class="selectpicker form-control" id="fdistrict" name="fdistrict">
+                <option value="0">Select a federal district</option>
                 <xsl:for-each select="fdistricts/fdistrict">
                     <option>
                         <xsl:attribute name="value"><xsl:value-of select="@id"/>
@@ -65,7 +65,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
                 </select>
             </p>
             <p>
-                <select id="city" name="city">
+                <select class="selectpicker form-control" id="city" name="city">
                 <option value="0">Seelct a city</option>
                 <xsl:for-each select="cities/city">
                     <option>
@@ -80,7 +80,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
                 </select>
             </p>
             <p>
-                <select id="manufacturer" name="manufacturer">
+                <select class="selectpicker form-control" id="manufacturer" name="manufacturer">
                 <option value="0">Seelct a manufacturer</option>
                 <xsl:for-each select="manufacturers/manufacturer">
                     <option>

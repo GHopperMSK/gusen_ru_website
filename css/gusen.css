@@ -77,6 +77,10 @@ svg:not(:root) {
     float: left;
 }
 
+.svglogo H1 {
+	margin: 0;
+}
+
 .infosection {
     height: 81px;
     float: right;
@@ -826,4 +830,52 @@ UL.pagination.gusen-pag {
 
 .fa.fa-google {
     left: 2px;
+}
+
+.btn.dropdown-toggle.btn-default {
+    border-radius: 0px;
+    z-index: 3;
+    background: transparent;
+    background-image: url(/img/searchcursor.png);
+    background-repeat: no-repeat;
+    background-position: right 0px top 0px;
+    height: 40px;
+    padding-right: 42px;
+}
+
+.form-control {
+    height: 40px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.filter-option {
+    text-overflow: ellipsis;
+}
+
+.bs-caret {
+    display: none;
+}
+
+.open > .dropdown-toggle.btn-default:hover,
+.btn-default:hover{
+    background-color:#f4f4f4;
+}
+    
+.dropdown-toggle:focus {
+    outline: thin dotted #333!important;
+    outline: 5px auto -webkit-focus-ring-color!important;
+    outline-offset: -2px;
+}
+
+@media (max-width: 991px){
+    .form-control {
+        max-width: 400px;
+        margin-left: auto;
+        margin-left: auto;
+    }
+}
+
+.slider-header H2:hover {
+	text-decoration: underline;
 }

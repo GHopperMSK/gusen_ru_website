@@ -9,23 +9,22 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:param name="text" select="string(.)"/>
   <xsl:choose>
     <xsl:when test="contains($text, '&#xa;')">
-      <xsl:value-of select="substring-before($text, '&#xa;')"/>
-      <br />
-      <xsl:call-template name="break">
+        <xsl:value-of select="substring-before($text, '&#xa;')" />
+        <br />
+        <xsl:call-template name="break">
         <xsl:with-param 
-          name="text" 
-          select="substring-after($text, '&#xa;')"
+            name="text" 
+            select="substring-after($text, '&#xa;')"
         />
-      </xsl:call-template>
+        </xsl:call-template>
     </xsl:when>
     <xsl:otherwise>
-      <xsl:value-of select="$text"/>
+        <xsl:value-of select="$text"/>
     </xsl:otherwise>
   </xsl:choose>
 </xsl:template>
 
 <xsl:template match="unit">
-
     <div class="row row-content" itemscope="" itemtype="http://schema.org/Product">
         <link itemprop="itemCondition" href="http://schema.org/UsedCondition"/>
         <meta itemprop="category">
@@ -95,8 +94,6 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
                 </p>
             </div> 
         </div>
-
-
     </div>
 
                   

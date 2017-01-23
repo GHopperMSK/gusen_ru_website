@@ -5,6 +5,9 @@ RewriteBase /
 RewriteCond %{THE_REQUEST} page=search&vType=(\d+)&vManuf=(\d+)&vFedDistr=(\d+)
 RewriteRule .* /search/%1/%2/%3/1? [L,R=301] 
 
+RewriteCond %{THE_REQUEST} page=unit&id=(\d+)
+RewriteRule .* /unit/%1? [L,R=301] 
+
 RewriteRule ^unit\/(\d+)[/]?$ /?page=unit&id=$1 
 RewriteRule ^search\/(\d+)[/]?$ /?page=search&vType=$1 
 RewriteRule ^search\/(\d+)\/(\d+)\/(\d+)[/]?$ /?page=search&vType=$1&vManuf=$2&vFedDistr=$3&offset=1

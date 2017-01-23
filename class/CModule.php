@@ -566,7 +566,6 @@ class CModule
             case "page_search":
 		        $q = 'SELECT u.id 
 		        		FROM units u
-		        		JOIN manufacturers m ON u.manufacturer_id = m.id
 						JOIN cities c ON u.city_id=c.id
 						JOIN regions r ON c.rd_id=r.id
 		        		WHERE is_arch=FALSE';
@@ -576,7 +575,7 @@ class CModule
 		            	$this->hWebPage->getGetValue('vType'));
 		        }
 		        if ($this->hWebPage->getGetValue('vManuf')) {
-		            $q .= sprintf(" AND m.manufacturer_id=%d",
+		            $q .= sprintf(" AND u.manufacturer_id=%d",
 		            	$this->hWebPage->getGetValue(vManuf));
 		        }
 		        if ($this->hWebPage->getGetValue('vFedDistr')) {
@@ -614,7 +613,9 @@ class CModule
 		        		$sDescr .= ', ';
 		        	$sDescr .= implode(', ', $aManufacturers);
 		        }
-		        $sDescr .= '. Спецтехника б/у, продажа от собвтенника, низкие цены, лизинг.';
+		        if (strlen($sDescr) > 0)
+		        	$sDescr .= '. ';
+		        $sDescr .= 'Спецтехника б/у, продажа от собвтенника, конкурентные цены, лизинг.';
 		        
 				$this->content = $sDescr;
                 break;

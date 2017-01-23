@@ -16,7 +16,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 	    </xsl:if>
 	    
 	    <div class="col-lg-3 col-md-3 col-sm-6">
-		    <select id="vType" name="vType">
+		    <select class="selectpicker form-control" data-size="9" id="vType" name="vType">
 		        <option value="0">- Категория -</option>
 		        <xsl:for-each select="categories/category">
 		            <option>
@@ -31,7 +31,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 		    </select>  
 	    </div>
 	    <div class="col-lg-3 col-md-3 col-sm-6">
-		    <select id="vManuf" name="vManuf">
+		    <select class="selectpicker form-control" data-size="9" id="vManuf" name="vManuf">
 		        <option value="0">- Производитель -</option>
 		        <xsl:for-each select="manufacturers/manufacturer">
 		            <option>
@@ -46,7 +46,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 		    </select>
 	    </div>
 	    <div class="col-lg-3 col-md-3 col-sm-6">
-		    <select id="vFedDistr" name="vFedDistr">
+		    <select class="selectpicker form-control" data-size="9" id="vFedDistr" name="vFedDistr">
 		        <option value="0">- Фед. округ -</option>
 		        <xsl:for-each select="fdistricts/fdistrict">
 		            <option>
