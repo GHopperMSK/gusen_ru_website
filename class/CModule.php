@@ -112,106 +112,6 @@ class CModule
         unset($this->xmlDoc);
     }  
     
-    /**
-     * Builds page navigation in CModule::xmlDoc
-     * 
-     * <?xml version="1.0" encoding="utf-8"?>
-     * <root>
-     *     <page type="first">
-     *         <number><</number>
-     *         <link>?page=search&offset=1</link>
-     *     </page>
-     *     <page current="regular">
-     *         <number>10</number>
-     *         <link>?page=search&offset=10</link>
-     *      </page>
-     *     <page current="current">
-     *         <number>11</number>
-     *         <link>?page=search&offset=11</link>
-     *      </page>
-     *      ...
-     *     <page current="last">
-     *         <number>68</number>
-     *         <link>?page=search&offset=68</link>
-     *      </page>
-     * </root>
-     * 
-     * Which is limited by *$nav_show_pages* around current page
-     * number *$page_cur*
-     *
-     * @param string $link_pattern
-     * @param int $units_total
-     * @param int $units_on_page
-     * @param int $page_cur
-     * @param int $nav_show_pages
-     *
-     * @return void
-     * 
-     */
-    function paginator(
-        $link_pattern, 
-        $units_total, 
-        $units_on_page, 
-        $page_cur, 
-        $nav_show_pages) 
-    {
-    	
-		$link_pattern = urldecode($link_pattern);
-		
-        // must be odd due to symmetric
-        $nav_show = round($nav_show_pages, 0, PHP_ROUND_HALF_ODD);
-
-        $iPagesTotal = ceil($units_total/$units_on_page);
-
-        if ($iPagesTotal>1) {
-            $iStartPage = max($page_cur-(($nav_show_pages-1)/2), 1);
-            $iEndPage = $iStartPage + $nav_show_pages - 1;
-            if ($iEndPage > $iPagesTotal) {
-                $iEndPage = $iPagesTotal;
-                $iStartPage = max($iEndPage - $nav_show_pages + 1, 1);
-            }
-            if ($iStartPage > 1) {
-                $ePage = $this->xmlDoc->createElement('page');
-                $ePage = $this->eRoot->appendChild($ePage);
-                $eNumber = $this->xmlDoc->createElement('number', 1);
-                $ePage->appendChild($eNumber);
-                $eLink = $this->xmlDoc->createElement('link', sprintf($link_pattern, 1));
-                $ePage->appendChild($eLink);
-                $eIsCurrent = $this->xmlDoc->createAttribute('type');
-                $eIsCurrent->value = 'first';
-                $ePage->appendChild($eIsCurrent);
-            }
-            
-            for ($i=$iStartPage; $i<=$iEndPage; $i++) {
-                $ePage = $this->xmlDoc->createElement('page');
-                $ePage = $this->eRoot->appendChild($ePage);
-                $eNumber = $this->xmlDoc->createElement('number', $i);
-                $ePage->appendChild($eNumber);
-                $eLink = $this->xmlDoc->createElement('link', sprintf($link_pattern, $i));
-                $ePage->appendChild($eLink);
-                $eIsCurrent = $this->xmlDoc->createAttribute('type');
-                if ($i == $page_cur) {
-                    $eIsCurrent->value = 'current';
-                }
-                else {
-                    $eIsCurrent->value = 'regular';
-                }
-                $ePage->appendChild($eIsCurrent);
-            }
-            if ($iEndPage < $iPagesTotal) {
-                $ePage = $this->xmlDoc->createElement('page');
-                $ePage = $this->eRoot->appendChild($ePage);
-                $eNumber = $this->xmlDoc->createElement('number', $iEndPage);
-                $ePage->appendChild($eNumber);
-                $eLink = $this->xmlDoc->createElement('link', sprintf($link_pattern, $iEndPage));
-                $ePage->appendChild($eLink);
-                $eIsCurrent = $this->xmlDoc->createAttribute('type');
-                $eIsCurrent->value = 'last';
-                $ePage->appendChild($eIsCurrent);
-            }
-        }
-    }
-
     function fillUser() {
         $sUser = $this->xmlDoc->createElement("user");
         $sUser = $this->eRoot->appendChild($sUser);
@@ -241,7 +141,6 @@ class CModule
 		    	' ',
 		    	$hProc->transformToXML($this->xmlDoc)
 		    );
-
             return $sModContent;
         }
         else {
@@ -936,14 +835,21 @@ class CModule
             	$sLinkPattern = htmlentities('?'.http_build_query($aVar));
                 break;
         }
-
-        $this->paginator(
+        
+        $oPaginator = new CPaginator(
             $sLinkPattern,
             $iTotal,
             PAGINATOR_SHOW_ON_PAGE,
             $iOffset,
             PAGINATOR_PAGES_IN_NAV
-        );        
+        );
+        
+		$this->eRoot->appendChild(
+		    $this->xmlDoc->importNode(
+		        $oPaginator->getXML(),
+		        TRUE
+		    )
+		);
     }
     
     function searchPageMain() {

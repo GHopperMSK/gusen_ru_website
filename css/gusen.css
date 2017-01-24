@@ -872,10 +872,13 @@ UL.pagination.gusen-pag {
     .form-control {
         max-width: 400px;
         margin-left: auto;
-        margin-left: auto;
     }
 }
 
 .slider-header H2:hover {
 	text-decoration: underline;
+}
+
+.cur_page SPAN {
+    font-weight: bold;
 }
