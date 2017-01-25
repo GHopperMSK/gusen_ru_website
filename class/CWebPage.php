@@ -46,12 +46,18 @@ class CWebPage
 		// TODO: ADD POST VARS
 		// TODO: ADD SESSION VARS
 
-		CacheManager::setDefaultConfig([
-			"path" => sys_get_temp_dir(),
-		]);
-		$this->instanceCache = CacheManager::getInstance(CACHE_TYPE);		
+		if (CACHE_ON) {
+			CacheManager::setDefaultConfig([
+				"path" => sys_get_temp_dir(),
+			]);
+			$this->instanceCache = CacheManager::getInstance(CACHE_TYPE);
+		}
 
         $this->pageProcess($this->aGetValues['page']);
+        
+        $this->renderTemplate();
+        
+        //$this->getPageContent();
     }
     
     function getDataBaseHandler() {
@@ -475,7 +481,12 @@ class CWebPage
     }
     
     function getPageContent() {
+    	// TODO: pass a header to a browser
         return $this->sPageContent;
+    }
+    
+    public function __toString() {
+        return $this->getPageContent();
     }    
     
     

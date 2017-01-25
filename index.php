@@ -10,7 +10,5 @@ new gusenru\CExceptionHandler();
 // setup DB connect
 $hDbConn = new gusenru\CDataBase(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 
-$hPage = new gusenru\CWebPage($hDbConn);
-$hPage->renderTemplate();
-echo $hPage->getPageContent();
+echo new gusenru\CWebPage($hDbConn);
 ?>

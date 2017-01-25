@@ -60,7 +60,32 @@
     
 		$(function() {
 			$('#fdistrict').on('change', function() {
-				fillCity($(this).find("option:selected").val());
+				$("body").css("cursor", "progress");
+				var curVal = $(this).find("option:selected").val();
+				fillCity(curVal).then(
+					function (resolve) {
+						$("body").css("cursor", "default");
+					    $('#city').html('');
+					    $('#city').append("<option value='0'>Select a city</option>");
+					    try {
+					    	var cities = JSON.parse(resolve);
+						    for(i=0;i<cities.length;i++) {
+						    	$('#city').append("<option value='"+
+						    		cities[i].id+"'>"+cities[i].name+
+						    		"</option>");
+						    }
+						    $('#city').selectpicker('refresh');
+					    }
+					    catch(e) {
+					    	console.log('Parse error: ');
+					    }
+					},
+					function (reject) {
+						$("body").css("cursor", "default");
+						console.log('Promise reject');
+						console.log(reject);
+					}
+				);
 		  	});
 		});
 		
@@ -111,38 +136,46 @@
 	        }        
 	        document.getElementById("afile").value = "";
 	    }
-	
-	    function fillCity(fdid) {
-	        if (fdid == 0) {
-	            $('#city').html('');
-	            $('#city').append("<option value='0'>Select a city</option>");
-	            $('#city').selectpicker('refresh');
-	            return;
-	        } else { 
-	            if (window.XMLHttpRequest) {
-	                // code for IE7+, Firefox, Chrome, Opera, Safari
-	                xmlhttp = new XMLHttpRequest();
-	            } else {
-	                // code for IE6, IE5
-	                xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
-	            }
-	            xmlhttp.onreadystatechange = function() {
-	                if (this.readyState == 4 && this.status == 200) {
-			            $('#city').html('');
-			            $('#city').append("<option value='0'>Select a city</option>");
-	                    var cities = JSON.parse(this.responseText);
-	
-	                    for(i=0;i<cities.length;i++) {
-	                    	$('#city').append("<option value='"+cities[i].id+"'>"+cities[i].name+"</option>");
-	                    }
-	                    $('#city').selectpicker('refresh');
-	                }
-	            };
-	            
-	            xmlhttp.open("GET","?page=ajax&ajax_mode=city&fdid="+fdid,true);
-	            xmlhttp.send();
-	        }
-	    }
+
+		function fillCity(fdid) {
+	    	const url = '/?page=ajax&ajax_mode=city&fdid='+fdid;
+	    	
+			// Return a new promise.
+			return new Promise(function(resolve, reject) {
+				// Do the usual XHR stuff
+				if (fdid == 0) {
+					var aEmptyCity = {};
+					var oEmptyCity = JSON.stringify(aEmptyCity);
+					resolve(oEmptyCity);
+				}
+				else {
+					var req = new XMLHttpRequest();
+					req.open('GET', url);
+					
+					req.onload = function() {
+						// This is called even on 404 etc
+						// so check the status
+						if (req.status == 200) {
+							// Resolve the promise with the response text
+							resolve(req.response);
+						}
+						else {
+							// Otherwise reject with the status text
+							// which will hopefully be a meaningful error
+							reject(Error(req.statusText));
+						}
+					};
+					
+					// Handle network errors
+					req.onerror = function() {
+						reject(Error("Network Error"));
+					};
+					
+					// Make the request
+					req.send();
+				}
+			});
+		}
 	    
 	    window.onload = function() {
 	        // avoid XSLT bug which returns <textarea />

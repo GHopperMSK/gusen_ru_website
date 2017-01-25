@@ -66,7 +66,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
             </p>
             <p>
                 <select class="selectpicker form-control" id="city" name="city">
-                <option value="0">Seelct a city</option>
+                <option value="0">Select a city</option>
                 <xsl:for-each select="cities/city">
                     <option>
                         <xsl:attribute name="value"><xsl:value-of select="@id"/>
