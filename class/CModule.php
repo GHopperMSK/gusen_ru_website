@@ -901,7 +901,7 @@ class CModule
     		FROM 
     			categories cat 
     		JOIN units u ON cat.id=u.cat_id 
-    		GROUP By cat.name 
+    		GROUP BY cat.name 
     		HAVING COUNT(cat.id)>0';
         $cat_res = $this->hDbConn->query($q);
         while ($cr = $cat_res->fetch(\PDO::FETCH_ASSOC)) {

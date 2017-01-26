@@ -137,19 +137,23 @@
 	        document.getElementById("afile").value = "";
 	    }
 
+		var aCities = [];
+		aCities[0] = JSON.stringify({}); // if district isn't choosen
+		const url_prefix = '/?page=ajax&ajax_mode=city&fdid=';
 		function fillCity(fdid) {
-	    	const url = '/?page=ajax&ajax_mode=city&fdid='+fdid;
+			// TODO: save catched city list
+	    	const url = url_prefix+fdid;
 	    	
 			// Return a new promise.
-			return new Promise(function(resolve, reject) {
+			return new Promise((resolve, reject) => {
 				// Do the usual XHR stuff
-				if (fdid == 0) {
-					var aEmptyCity = {};
-					var oEmptyCity = JSON.stringify(aEmptyCity);
-					resolve(oEmptyCity);
+				if (aCities[fdid]) {//fdid == 0) {
+					// return empty json-string
+					//resolve(JSON.stringify({}));
+					resolve(aCities[fdid]);
 				}
 				else {
-					var req = new XMLHttpRequest();
+    				var req = new XMLHttpRequest();
 					req.open('GET', url);
 					
 					req.onload = function() {
@@ -157,6 +161,7 @@
 						// so check the status
 						if (req.status == 200) {
 							// Resolve the promise with the response text
+							aCities[fdid] = req.response;
 							resolve(req.response);
 						}
 						else {
@@ -167,7 +172,7 @@
 					};
 					
 					// Handle network errors
-					req.onerror = function() {
+					req.onerror = () => {
 						reject(Error("Network Error"));
 					};
 					

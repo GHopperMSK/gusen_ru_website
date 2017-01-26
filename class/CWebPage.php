@@ -481,7 +481,9 @@ class CWebPage
     }
     
     function getPageContent() {
-    	// TODO: pass a header to a browser
+    	if (!empty($this->header)) {
+    		header($this->header);
+    	}
         return $this->sPageContent;
     }
     
@@ -759,8 +761,9 @@ class CWebPage
             $urlset->appendChild($url);
         }
         
-        header('Content-type: application/xml');
-        echo $xml->saveXML();
+        //header('Content-type: application/xml');
+        $this->header = 'Content-type: application/xml';
+        $this->sPageContent = $xml->saveXML();
     }
     
     //-----------------------------------------------------
@@ -919,6 +922,7 @@ class CWebPage
                         );
                     }
                 }
+                $this->header = 'Content-Type: application/json; charset=UTF-8';
                 $this->sPageContent = json_encode($json);
                 break;
             case 'image_load':
