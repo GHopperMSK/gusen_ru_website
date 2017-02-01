@@ -33,65 +33,73 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
             </input>
         </xsl:for-each>
 
-        <div class="col-md-12">
-            <select class="selectpicker form-control" name="category" id="category">
-            <option value="0">Select a category</option>
-            <xsl:for-each select="categories/category">
-                <option>
-                    <xsl:attribute name="value"><xsl:value-of select="@id"/>
-                    </xsl:attribute>
-                    <xsl:if test="@selected">
-                        <xsl:attribute name="selected">selected</xsl:attribute>
-                    </xsl:if>
-                    <xsl:value-of select="current()"/>
-                </option>
-            </xsl:for-each>
-            </select>
+        <div class="form-group">
+            <div class="col-md-12">
+                <select class="selectpicker form-control" name="category" id="category">
+                    <option value="0">Select a category</option>
+                    <xsl:for-each select="categories/category">
+                        <option>
+                            <xsl:attribute name="value"><xsl:value-of select="@id"/>
+                            </xsl:attribute>
+                            <xsl:if test="@selected">
+                                <xsl:attribute name="selected">selected</xsl:attribute>
+                            </xsl:if>
+                            <xsl:value-of select="current()"/>
+                        </option>
+                    </xsl:for-each>
+                </select>
+            </div>
         </div>
-        <div class="col-md-12">
-            <select class="selectpicker form-control" id="fdistrict" name="fdistrict">
-            <option value="0">Select a federal district</option>
-            <xsl:for-each select="fdistricts/fdistrict">
-                <option>
-                    <xsl:attribute name="value"><xsl:value-of select="@id"/>
-                    </xsl:attribute>
-                    <xsl:if test="@selected">
-                        <xsl:attribute name="selected">selected</xsl:attribute>
-                    </xsl:if>
-                    <xsl:value-of select="current()"/>                        
-                </option>
-            </xsl:for-each>
-            </select>
+        <div class="form-group">
+            <div class="col-md-12">
+                <select class="selectpicker form-control" id="fdistrict" name="fdistrict">
+                <option value="0">Select a federal district</option>
+                <xsl:for-each select="fdistricts/fdistrict">
+                    <option>
+                        <xsl:attribute name="value"><xsl:value-of select="@id"/>
+                        </xsl:attribute>
+                        <xsl:if test="@selected">
+                            <xsl:attribute name="selected">selected</xsl:attribute>
+                        </xsl:if>
+                        <xsl:value-of select="current()"/>                        
+                    </option>
+                </xsl:for-each>
+                </select>
+            </div>
         </div>
-        <div class="col-md-12">
-            <select class="selectpicker form-control" id="city" name="city">
-            <option value="0">Select a city</option>
-            <xsl:for-each select="cities/city">
-                <option>
-                    <xsl:attribute name="value"><xsl:value-of select="@id"/>
-                    </xsl:attribute>
-                    <xsl:if test="@selected">
-                        <xsl:attribute name="selected">selected</xsl:attribute>
-                    </xsl:if>
-                    <xsl:value-of select="current()"/>                        
-                </option>
-            </xsl:for-each>
-            </select>
+        <div class="form-group">
+            <div class="col-md-12">
+                <select class="selectpicker form-control" id="city" name="city">
+                <option value="0">Select a city</option>
+                <xsl:for-each select="cities/city">
+                    <option>
+                        <xsl:attribute name="value"><xsl:value-of select="@id"/>
+                        </xsl:attribute>
+                        <xsl:if test="@selected">
+                            <xsl:attribute name="selected">selected</xsl:attribute>
+                        </xsl:if>
+                        <xsl:value-of select="current()"/>                        
+                    </option>
+                </xsl:for-each>
+                </select>
+            </div>
         </div>
-        <div class="col-md-12">
-            <select class="selectpicker form-control" id="manufacturer" name="manufacturer">
-            <option value="0">Seelct a manufacturer</option>
-            <xsl:for-each select="manufacturers/manufacturer">
-                <option>
-                    <xsl:attribute name="value"><xsl:value-of select="@id"/>
-                    </xsl:attribute>
-                    <xsl:if test="@selected">
-                        <xsl:attribute name="selected">selected</xsl:attribute>
-                    </xsl:if>
-                    <xsl:value-of select="current()"/>                        
-                </option>
-            </xsl:for-each>
-            </select>
+        <div class="form-group">
+            <div class="col-md-12">
+                <select class="selectpicker form-control" id="manufacturer" name="manufacturer">
+                <option value="0">Seelct a manufacturer</option>
+                <xsl:for-each select="manufacturers/manufacturer">
+                    <option>
+                        <xsl:attribute name="value"><xsl:value-of select="@id"/>
+                        </xsl:attribute>
+                        <xsl:if test="@selected">
+                            <xsl:attribute name="selected">selected</xsl:attribute>
+                        </xsl:if>
+                        <xsl:value-of select="current()"/>                        
+                    </option>
+                </xsl:for-each>
+                </select>
+            </div>
         </div>
         <div class="form-group">
             <label class="control-label col-md-1" for="name">Unit name:</label>
@@ -148,20 +156,25 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
             </div>
         </div>
 	</fieldset>
-        
     </form>
 
     <div class="form-group" id="uploaded_images">
-    	<div class="col-md-12 col-xs-12 col-lg-12" id="del_img">DROP AN IMAGE HERE TO DELETE IT</div>
+    	<div class="col-md-12" id="del_img">DROP AN IMAGE HERE TO DELETE IT</div>
     </div>
 
-    <div class="form-group">
-		<input class="form-control" type="file" id="afile" multiple="multiple" accept="image/*" />
-	</div>
-    <div class="form-group">
-        <input class="btn btn-default btn-md col-md-4 col-md-offset-3" form="unitForm" type="submit" />
-        <input class="btn btn-default btn-md col-md-4 col-md-offset-1" form="unitForm" type="reset" />
-    </div>
+    <form class="form-horizontal">
+        <div class="form-group">
+            <div class="col-md-12">
+    		    <input class="form-control" type="file" id="afile" multiple="multiple" accept="image/*" />
+    	    </div>
+    	</div>
+        <div class="form-group">
+            <div class="col-md-12">
+                <input class="btn btn-default btn-md col-md-4" form="unitForm" type="submit" />
+                <input class="btn btn-default btn-md col-md-4 col-md-offset-4" form="unitForm" type="reset" />
+            </div>
+        </div>
+    </form>
 </xsl:template>
 
 </xsl:stylesheet>

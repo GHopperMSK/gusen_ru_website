@@ -6,7 +6,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 <xsl:output indent="no" method="html" />
 
 <xsl:template match="root">
-	<form method="GET" action="/">
+	<form class="form-horizontal" method="GET" action="/">
 	    <input type="hidden" name="page" >
 	        <xsl:attribute name="value"><xsl:value-of select="/root/page" />
 	        </xsl:attribute>

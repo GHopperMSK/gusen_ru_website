@@ -342,7 +342,7 @@
   </div>
 </nav>
 
-<div class="col-lg-12">
+<div class="container-fluid">
 %{admin_unit_form&admin_unit_form.xsl&0}%
 </div>
 

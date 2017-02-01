@@ -114,13 +114,15 @@ function postUnit(id) {
   </div>
 </nav>
 
-%{search_form&search_form.xsl&0&admin}%
+<div class="container-fluid">
+	%{search_form&search_form.xsl&0&admin}%
+</div>
 
-%{unit_list&admin_unit_list.xsl&0}%
+<div class="container-fluid">
+	%{unit_list&admin_unit_list.xsl&0}%
+</div>
 
-<div class="clearfix"></div>
-
-<section class="paginator">
+<section class="container-fluid paginator">
 	%{unit_list_paginator&search_paginator.xsl&0&admin}%
 </section>
 

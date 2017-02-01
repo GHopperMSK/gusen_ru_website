@@ -352,6 +352,10 @@ svg:not(:root) {
 		margin-bottom: 20px;
 	}
 
+	.search_button {
+	    max-width: 400px;
+	}
+
 	.mob {
 		text-align: center;
 	}
