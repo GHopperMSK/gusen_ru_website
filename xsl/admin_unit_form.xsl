@@ -35,6 +35,24 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 
         <div class="form-group">
             <div class="col-md-12">
+                <select class="selectpicker form-control" name="owner" id="owner">
+                    <option value="0">Select an owner</option>
+                    <xsl:for-each select="owners/owner">
+                        <option>
+                            <xsl:attribute name="value"><xsl:value-of select="@id"/>
+                            </xsl:attribute>
+                            <xsl:if test="@selected">
+                                <xsl:attribute name="selected">selected</xsl:attribute>
+                            </xsl:if>
+                            <xsl:value-of select="current()"/>
+                        </option>
+                    </xsl:for-each>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-md-12">
                 <select class="selectpicker form-control" name="category" id="category">
                     <option value="0">Select a category</option>
                     <xsl:for-each select="categories/category">

@@ -804,13 +804,13 @@ class CWebPage
                 break;
             case 'unit_edit':
                 if ($this->isAuth())
-                    $this->editUnit();
+                    $this->fillUnit('edit'); //$this->editUnit();
                 else
                     header('Location: ?page=admin&act=login_form&msg=access_denied');
                 break;
             case 'unit_add':
                 if ($this->isAuth())
-                    $this->addUnit();
+                    $this->fillUnit('add'); //$this->addUnit();
                 else
                     header('Location: ?page=admin&act=login_form&msg=access_denied');                
                 break;
@@ -830,6 +830,22 @@ class CWebPage
                 else
                     header('Location: ?page=admin&act=login_form&msg=access_denied');
                 break;
+            case 'owner_delete':
+                if ($this->isAuth()) {
+					$this->ownerDelete();
+                }
+                else
+                    header('Location: ?page=admin&act=login_form&msg=access_denied');
+            	break;
+			case 'owner_edit':
+				$this->ownerEdit();
+				break;
+			case 'owner_add':
+				$this->ownerAdd();
+				break;
+            case 'owner_form':
+            		$this->setTemplate('tpl/admin_owner_form.tpl');
+            	break;
             case 'main':
                 if ($this->isAuth())
                     $this->setTemplate('tpl/admin.tpl');
@@ -839,6 +855,12 @@ class CWebPage
             case 'unapproved_comments':
                 if ($this->isAuth())
                     $this->setTemplate('tpl/admin_unapproved_comments_list.tpl');
+                else
+                    header('Location: ?page=admin&act=login_form&msg=access_denied');
+                break;
+            case 'owners_list':
+                if ($this->isAuth())
+                    $this->setTemplate('tpl/admin_owners_list.tpl');
                 else
                     header('Location: ?page=admin&act=login_form&msg=access_denied');
                 break;
@@ -854,6 +876,86 @@ class CWebPage
         }        
     }
     
+    function fillUnit($mode) {
+        CWebPage::debug("CWebPage::fillUnit({$mode})");
+
+    	$unit = new CUnit($this->hDbConn);
+    	$unit->cat_id = $_POST['category'];
+    	$unit->manuf_id = $_POST['manufacturer'];
+    	$unit->name = $_POST['name'];
+    	$unit->owner_id = $_POST['owner'];
+    	$unit->description = $_POST['description'];
+    	$unit->price = $_POST['price'];
+    	$unit->year = $_POST['year'];
+    	$unit->mileage = $_POST['mileage'];
+    	$unit->op_time = $_POST['op_time'];
+        $unit->img= $_POST['images'];
+        $unit->setCityParam('id', $_POST['city']);
+
+		switch ($mode) {
+			case "add":
+		        $unit->addUnit();
+				break;
+			case "edit":
+				$unit->id = $_POST['id'];
+		        $unit->editUnit($_POST['available_images']);
+				break;
+		}
+    	header('Location: /?page=admin&act=main');
+    	
+    }
+    
+    function ownerAdd() {
+        $stmt = $this->hDbConn->prepare('
+    		INSERT INTO owners (
+    			name,
+    			description)
+    		VALUES (
+    			:name,
+    			:descr)'
+		);
+        $stmt->bindValue(':name', $_POST['name'], \PDO::PARAM_STR);
+        $stmt->bindValue(':descr', $_POST['description'], \PDO::PARAM_STR);
+        $stmt->execute();
+    	
+    	header('Location: /?page=admin&act=owners_list');
+    }
+    
+    function ownerEdit() {
+        $stmt = $this->hDbConn->prepare('
+    		UPDATE owners
+    		SET
+    			name=:name,
+    			description=:descr
+    		WHERE id=:owner_id'
+		);
+        $stmt->bindValue(':owner_id' ,$_POST['id'], \PDO::PARAM_INT);
+        $stmt->bindValue(':name', $_POST['name'], \PDO::PARAM_STR);
+        $stmt->bindValue(':descr', $_POST['description'], \PDO::PARAM_STR);
+        $stmt->execute();
+    	
+    	header('Location: /?page=admin&act=owners_list');
+    }
+    
+    function ownerDelete() {
+        $q = sprintf('
+    		SELECT COUNT(*) AS cnt
+    		FROM `units`
+    		WHERE owner_id=%d',
+    		$this->getGetValue('id')
+    	);
+        $res = $this->hDbConn->query($q);
+        if ($res->fetch(\PDO::FETCH_ASSOC)['cnt'] > 0) {
+        	$this->sPageContent = 'The owner is used! Remove it from all units before deleting.';
+        } else {
+        	$q = sprintf('DELETE FROM `owners` WHERE id=%d', 
+        		$this->getGetValue('id'));
+        	$this->hDbConn->query($q);
+        	header('Location: ' . $_SERVER['HTTP_REFERER']);
+        }
+    }
+    
+/*    
     function addUnit() {
         CWebPage::debug('CWebPage::addUnit()');
         
@@ -861,6 +963,7 @@ class CWebPage
     	$unit->cat_id = $_POST['category'];
     	$unit->manuf_id = $_POST['manufacturer'];
     	$unit->name = $_POST['name'];
+    	$unit->owner_id = $_POST['owner'];
     	$unit->description = $_POST['description'];
     	$unit->price = $_POST['price'];
     	$unit->year = $_POST['year'];
@@ -881,6 +984,7 @@ class CWebPage
     	$unit->cat_id = $_POST['category'];
     	$unit->manuf_id = $_POST['manufacturer'];
     	$unit->name = $_POST['name'];
+    	$unit->owner_id = $_POST['owner'];
     	$unit->description = $_POST['description'];
     	$unit->price = $_POST['price'];
     	$unit->year = $_POST['year'];
@@ -892,7 +996,7 @@ class CWebPage
         $unit->editUnit($_POST['available_images']);
     	header('Location: ?page=admin&act=main');     
     }
-
+*/
     //-----------------------------------------------------
     // Ajax page functionality
     //-----------------------------------------------------    
@@ -902,7 +1006,7 @@ class CWebPage
         switch ($mode) {
             case 'city':
                 $json = array();
-                $q = sprintf('SELECT 
+                $q = sprintf('SELECT
                 					id,
                 					name 
                 				FROM `cities` 

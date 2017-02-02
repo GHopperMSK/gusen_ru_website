@@ -21,83 +21,18 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" />
     <link href="https://fonts.googleapis.com/css?family=Roboto+Condensed:400,400i,700,700i%7CRoboto:400,400i,700,700i" rel="stylesheet" />
     
-	<script src="https://vk.com/js/api/openapi.js?137" type="text/javascript"></script>    
+    <script>
+	    window.onload = function() {
+	        // avoid XSLT bug which returns <textarea />
+	        var descr = document.getElementById('description');
+	        if (descr.value == 'Description') {
+	            descr.value = '';
+	        }
+	    }
+    </script>
+    
 </head>
 <body>
-<script type="text/javascript">
-
-VK.init({
-	apiId: 5768859
-});
-
-function wallPost(id) {
-console.log('wallPost');
-	$("body").css("cursor", "progress");
-	
-	VK.Auth.login(function(response) {
-		if (response.session) {
-			console.log('auth ok');
-			postUnit(id);
-			if (response.settings) {
-				console.log(response.settings);
-			}
-	  } else {
-			console.log('auth failed');
-	  }
-	}, VK.access.PHOTOS | VK.access.WALL);
-}
-
-function postUnit(id) {
-	VK.Api.call('photos.getWallUploadServer', {
-	    	group_id: 137789409
-	    }, function(r) {
-	    	if (r.response) {
-		    	console.log('uploadServer: '+r.response.upload_url);
-		    	$.post('/?page=ajax&ajax_mode=vk_upload', {
-	                    url: r.response.upload_url,
-	                    unit_id: id
-	                    //proccessData: false
-	                }, function (data) {
-	                	var p = JSON.parse(data);
-	                	var unit = JSON.parse(p.unit);
-
-						var message = unit.category+' / '+unit.manufacturer+' '+
-							unit.name+', '+
-							unit.year + " г.\n" + unit.fdistrict + ', ' +
-							unit.region + ', г. ' + unit.city + "\n\n";
-						message += unit.description;
-
-						VK.Api.call('photos.saveWallPhoto', {
-	                        group_id: 137789409,
-	                        photo: p.photo,
-	                        server: p.server,
-	                        hash: p.hash
-	                    	}, function (s) {
-	                    		$("body").css("cursor", "default");
-	                    		var attachments = '';
-	                    		for (i=0; i<s.response.length; i++) {
-	                    			attachments += s.response[i].id + ',';
-	                    		}
-	                    		attachments += 'https://gusen.ru/unit/'+id;
-	                    		VK.Api.call('wall.post', {
-		                    			owner_id: '-137789409',
-		                    			message: message,
-		                    			attachments: attachments
-	                    			},
-	                    			function(r) {
-	                    				console.log('Wall.post: '+ r);
-	                    			}
-	                    		);
-	                    	}
-	                    )
-	                }
-	            )
-	    	}
-	    }
-	)	
-}
-
-</script>
 
 <nav class="navbar navbar-inverse navbar-static-top">
 	<div class="container-fluid">
@@ -128,16 +63,11 @@ function postUnit(id) {
 </nav>
 
 <div class="container-fluid">
-	%{search_form&search_form.xsl&0&admin}%
+%{admin_owner_form&admin_owner_form.xsl&0}%
 </div>
 
-<div class="container-fluid">
-	%{unit_list&admin_unit_list.xsl&0}%
-</div>
-
-<section class="container-fluid paginator">
-	%{unit_list_paginator&search_paginator.xsl&0&admin}%
-</section>
+<div class="clearfix"></div>
+<br /><br />
 
 </body>
 </html>

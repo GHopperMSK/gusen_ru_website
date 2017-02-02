@@ -56,10 +56,8 @@ class CModule
                 $eRoot = $this->xmlDoc->createElement('root');
                 $this->eRoot = $this->xmlDoc->appendChild($eRoot);
             }
-            else {
-                echo "XSL file haven't found!";
-                exit;
-            }
+            else
+                throw new \Exception('XSL file haven\'t found!');
         }
 
         switch ($this->modName) {
@@ -88,6 +86,12 @@ class CModule
             case "admin_unit_form":
                 $this->unitForm();
                 break;
+            case 'owner_list':
+            	$this->ownerList();
+            	break;
+            case 'admin_owner_form':
+            	$this->ownerForm();
+            	break;
             case "search_form":
                 $this->searchForm();
                 break;
@@ -307,6 +311,25 @@ class CModule
             $attr = $this->xmlDoc->createAttribute('unit_id');
             $attr->value = $row['unit_id'];
             $sComent->appendChild($attr);
+        }
+    }
+    
+    function ownerList() {
+    	// TODO: pagination
+        $q = '
+        	SELECT id,name,description
+        	FROM owners';
+        $res = $this->hDbConn->query($q);
+        while ($row = $res->fetch(\PDO::FETCH_ASSOC)) {
+            $sOwner = $this->xmlDoc->createElement("owner",
+                htmlentities($row['description']));
+            $sOwner = $this->eRoot->appendChild($sOwner);
+            $attr = $this->xmlDoc->createAttribute('id');
+            $attr->value = $row['id'];
+            $sOwner->appendChild($attr);
+            $attr = $this->xmlDoc->createAttribute('name');
+            $attr->value = $row['name'];
+            $sOwner->appendChild($attr);
         }
     }
     
@@ -558,6 +581,24 @@ class CModule
             $actType);
         $xmlTop = $this->eRoot->appendChild($xmlTop);
 
+        $xmlTop = $this->xmlDoc->createElement("owners");
+        $xmlTop = $this->eRoot->appendChild($xmlTop);
+        $q = "SELECT id,name FROM owners ORDER BY name";
+        $res = $this->hDbConn->query($q);
+        while ($qrow = $res->fetch(\PDO::FETCH_ASSOC)) {
+            $xmlSubTop = $this->xmlDoc->createElement("owner",
+                htmlentities($qrow['name']));
+            $xmlSubTopAttr = $this->xmlDoc->createAttribute('id');
+            $xmlSubTopAttr->value = $qrow['id']; 
+            $xmlSubTop->appendChild($xmlSubTopAttr);
+            if (($isEdit) &&
+                    ($unit->owner_id === $qrow['id'])) {
+                $xmlSubTopAttr = $this->xmlDoc->createAttribute('selected');
+                $xmlSubTopAttr->value = 'true'; 
+                $xmlSubTop->appendChild($xmlSubTopAttr);                
+            }
+            $xmlTop->appendChild($xmlSubTop);
+        }
         $xmlTop = $this->xmlDoc->createElement("categories");
         $xmlTop = $this->eRoot->appendChild($xmlTop);
         $q = "SELECT id,name FROM categories ORDER BY name";
@@ -663,6 +704,29 @@ class CModule
                 $xmlSubTop = $this->xmlDoc->createElement("img", $img);
                 $xmlTop->appendChild($xmlSubTop);
             }
+        }
+    }
+    
+    function ownerForm() {
+        if ($this->hWebPage->getGetValue('id')) {
+	        $q = sprintf('
+	    		SELECT id,name,description
+	    		FROM `owners`
+	    		WHERE id=%d',
+	    		$this->hWebPage->getGetValue('id')
+	    	);
+	        $res = $this->hDbConn->query($q);
+	        $owner = $res->fetch(\PDO::FETCH_ASSOC);
+            
+            $xmlTop = $this->xmlDoc->createElement('owner', 
+                htmlentities($owner['description']));
+            $xmlTop = $this->eRoot->appendChild($xmlTop);
+            $xmlAttr = $this->xmlDoc->createAttribute('id');
+            $xmlAttr->value = $owner['id']; 
+            $xmlTop->appendChild($xmlAttr);
+            $xmlAttr = $this->xmlDoc->createAttribute('name');
+            $xmlAttr->value = $owner['name']; 
+            $xmlTop->appendChild($xmlAttr);
         }
     }
 

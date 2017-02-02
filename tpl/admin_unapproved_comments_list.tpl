@@ -96,11 +96,24 @@
       		<a class="navbar-brand" href="/?page=admin">GusenRu</a>
     	</div>
     <ul class="nav navbar-nav">
-     	<li class="active"><a class="" href="/?page=admin&act=unapproved_comments">Comments (%{comments_unapproved_total&null&0}%)</a></li>
-      	<li><a class="" href="/?page=admin&act=admin_unit_form">Add new unit</a></li>
+    	<li class="dropdown">
+			<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Units <span class="caret"></span></a>
+			<ul class="dropdown-menu">
+				<li><a href="/?page=admin">Units list</a></li>
+				<li><a href="/?page=admin&act=admin_unit_form">Add Unit</a></li>
+			</ul>
+    	</li>
+    	<li class="dropdown">
+			<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Owners <span class="caret"></span></a>
+			<ul class="dropdown-menu">
+				<li><a href="/?page=admin&act=owners_list">Owners list</a></li>
+				<li><a href="/?page=admin&act=owner_form">Add an Owner</a></li>
+			</ul>
+    	</li>
+    	<li><a class="" href="/?page=admin&act=unapproved_comments">Comments (%{comments_unapproved_total&null&0}%)</a></li>
     </ul>
     <ul class="nav navbar-nav navbar-right">
-    	<li><a href="/?page=admin&act=logout&msg=Successfully_Logged_out"><span class="glyphicon glyphicon-log-in"></span> Exit</a></li>
+    	<li><a href="/?page=admin&act=logout&msg=Successfully_Logged_out"><span class="glyphicon glyphicon-log-out"></span> Exit</a></li>
     </ul>    
   </div>
 </nav>

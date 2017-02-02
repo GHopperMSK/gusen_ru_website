@@ -5,6 +5,8 @@ use \ForceUTF8\Encoding;
 class CUnit
 {
 	private $id = NULL;
+	private $owner_id;
+	private $owner;
 	private $name;
 	private $description;
 	private $price;
@@ -27,7 +29,7 @@ class CUnit
 	private $img = array();
 	
 	private $int_params = array(
-		'id','price','year','mileage','op_time','cat_id','manuf_id'
+		'id','price','year','mileage','op_time','cat_id','manuf_id','owner_id'
 	);
 	private $int_city_params = array(
 		'id','reg_id','fdist_id'
@@ -130,6 +132,8 @@ class CUnit
 	        $q = '
 	        	SELECT
 					u.id AS id,
+					u.owner_id,
+					owners.name AS owner,
 					u.name AS name,
 					u.description AS description,
 					u.price AS price,
@@ -153,11 +157,12 @@ class CUnit
 						ORDER BY `ORDER` ASC
 						LIMIT 1) as img
 				FROM units u
-				JOIN cities ON u.city_id=cities.id
-				JOIN regions ON cities.rd_id=regions.id
-				JOIN fdistricts ON regions.fd_id=fdistricts.id
-				JOIN categories ON u.cat_id=categories.id
-				JOIN manufacturers ON manufacturers.id=u.manufacturer_id
+				JOIN owners ON u.owner_id = owners.id
+				JOIN cities ON u.city_id = cities.id
+				JOIN regions ON cities.rd_id = regions.id
+				JOIN fdistricts ON regions.fd_id = fdistricts.id
+				JOIN categories ON u.cat_id = categories.id
+				JOIN manufacturers ON manufacturers.id = u.manufacturer_id
 				WHERE u.id=%d';
 	
 	        $q = sprintf($q, $this->id);
@@ -165,6 +170,8 @@ class CUnit
 	        $ur = $res->fetch(\PDO::FETCH_ASSOC);
 	        
 			$this->name = isset($ur['name']) ? $ur['name'] : NULL;
+			$this->owner_id = $ur['owner_id'];
+			$this->owner = $ur['owner'];
 			$this->description = isset($ur['description']) ? 
 				$ur['description']: NULL;
 			$this->price = isset($ur['price']) ? $ur['price'] : NULL;
@@ -267,6 +274,12 @@ class CUnit
         $topAttr->value = $this->name;
         $top->appendChild($topAttr);
 
+        $sub = $xmlDoc->createElement('owner', $this->owner);
+        $subAttr = $xmlDoc->createAttribute('id');
+        $subAttr->value = $this->owner_id;
+        $sub->appendChild($subAttr);
+        $top->appendChild($sub);
+
         $sub = $xmlDoc->createElement('description', $this->description);
         $top->appendChild($sub);
         $sub = $xmlDoc->createElement('price', $this->price);
@@ -331,6 +344,7 @@ class CUnit
         $stmt = $this->hDbConn->prepare('
         	INSERT 
 			INTO units(
+				owner_id,
 				cat_id,
 				city_id,
 				manufacturer_id,
@@ -342,6 +356,7 @@ class CUnit
 				op_time
 			)
 			VALUES (
+				:owner_id,
 				:cat_id,
 				:city_id,
 				:manufacturer_id,
@@ -353,11 +368,12 @@ class CUnit
 				:op_time
 			)'
 		);
-        $stmt->bindValue(':name', $this->name, \PDO::PARAM_STR);
-        $stmt->bindValue(':description', $this->description, \PDO::PARAM_STR);
+        $stmt->bindValue(':owner_id', $this->owner_id, \PDO::PARAM_INT);
         $stmt->bindValue(':cat_id', $this->cat_id, \PDO::PARAM_INT);
         $stmt->bindValue(':city_id', $this->city['id'], \PDO::PARAM_INT);    
         $stmt->bindValue(':manufacturer_id', $this->manuf_id, \PDO::PARAM_INT);    
+        $stmt->bindValue(':name', $this->name, \PDO::PARAM_STR);
+        $stmt->bindValue(':description', $this->description, \PDO::PARAM_STR);
         $stmt->bindValue(':price', $this->price, \PDO::PARAM_INT);
         $stmt->bindValue(':year', $this->year, \PDO::PARAM_INT);
         $mileage = empty($this->mileage) ? NULL : $this->mileage;
@@ -399,6 +415,7 @@ class CUnit
         $stmt = $this->hDbConn->prepare('
         	UPDATE units 
 			SET 
+				owner_id=:owner_id,
 				cat_id=:cat_id,
 				city_id=:city_id,
 				manufacturer_id=:manufacturer_id,
@@ -413,6 +430,7 @@ class CUnit
 		
 		$stmt->bindValue(':id', $this->id, \PDO::PARAM_INT);
         $stmt->bindValue(':name', $this->name, \PDO::PARAM_STR);
+        $stmt->bindValue(':owner_id', $this->owner_id, \PDO::PARAM_INT);
         $stmt->bindValue(':description', $this->description, \PDO::PARAM_STR);
         $stmt->bindValue(':cat_id', $this->cat_id, \PDO::PARAM_INT);
         $stmt->bindValue(':city_id', $this->city['id'], \PDO::PARAM_INT);    
