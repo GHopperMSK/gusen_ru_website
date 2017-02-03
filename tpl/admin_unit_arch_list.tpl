@@ -21,19 +21,9 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" />
     <link href="https://fonts.googleapis.com/css?family=Roboto+Condensed:400,400i,700,700i%7CRoboto:400,400i,700,700i" rel="stylesheet" />
     
-    <script>
-	    window.onload = function() {
-	        // avoid XSLT bug which returns <textarea />
-	        var descr = document.getElementById('description');
-	        if (descr.value == 'Description') {
-	            descr.value = '';
-	        }
-	    }
-    </script>
-    
+	<script src="https://vk.com/js/api/openapi.js?137" type="text/javascript"></script>    
 </head>
 <body>
-
 <nav class="navbar navbar-inverse navbar-static-top">
 	<div class="container-fluid">
     	<div class="navbar-header">
@@ -64,11 +54,12 @@
 </nav>
 
 <div class="container-fluid">
-%{admin_owner_form&admin_owner_form.xsl&0}%
+	%{unit_arch_list&admin_unit_arch_list.xsl&0}%
 </div>
 
-<div class="clearfix"></div>
-<br /><br />
+<section class="container-fluid paginator">
+	%{unit_arch_list_paginator&search_paginator.xsl&0&admin}%
+</section>
 
 </body>
 </html>

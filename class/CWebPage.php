@@ -796,6 +796,12 @@ class CWebPage
                 $_SESSION = array();
                 header('Location: ?page=admin&act=login_form&msg=just_logout');
                 break;
+            case 'unit_arch_list':
+                if ($this->isAuth())
+                    $this->setTemplate('tpl/admin_unit_arch_list.tpl');
+                else
+                    header('Location: ?page=admin&act=login_form&msg=access_denied');
+                break;
             case 'admin_unit_form':
                 if ($this->isAuth())
                     $this->setTemplate('tpl/admin_unit_form.tpl');
@@ -830,6 +836,14 @@ class CWebPage
                 else
                     header('Location: ?page=admin&act=login_form&msg=access_denied');
                 break;
+            case 'unit_restore':
+                if ($this->isAuth()) {
+					CUnit::restoreUnit($this->aGetValues['id'], $this->hDbConn);
+					header('Location: ' . $_SERVER['HTTP_REFERER']);
+                }
+                else
+                    header('Location: ?page=admin&act=login_form&msg=access_denied');
+            	break;
             case 'owner_delete':
                 if ($this->isAuth()) {
 					$this->ownerDelete();
@@ -955,48 +969,6 @@ class CWebPage
         }
     }
     
-/*    
-    function addUnit() {
-        CWebPage::debug('CWebPage::addUnit()');
-        
-    	$unit = new CUnit($this->hDbConn);
-    	$unit->cat_id = $_POST['category'];
-    	$unit->manuf_id = $_POST['manufacturer'];
-    	$unit->name = $_POST['name'];
-    	$unit->owner_id = $_POST['owner'];
-    	$unit->description = $_POST['description'];
-    	$unit->price = $_POST['price'];
-    	$unit->year = $_POST['year'];
-    	$unit->mileage = $_POST['mileage'];
-    	$unit->op_time = $_POST['op_time'];
-        $unit->img= $_POST['images'];
-        $unit->setCityParam('id', $_POST['city']);
-
-        $unit->addUnit();
-        header('Location: ?page=admin&act=main');
-    }
-    
-    function editUnit() {
-        CWebPage::debug('CWebPage::editUnit()');
-        
-    	$unit = new CUnit($this->hDbConn);
-    	$unit->id = $_POST['id'];
-    	$unit->cat_id = $_POST['category'];
-    	$unit->manuf_id = $_POST['manufacturer'];
-    	$unit->name = $_POST['name'];
-    	$unit->owner_id = $_POST['owner'];
-    	$unit->description = $_POST['description'];
-    	$unit->price = $_POST['price'];
-    	$unit->year = $_POST['year'];
-    	$unit->mileage = $_POST['mileage'];
-    	$unit->op_time = $_POST['op_time'];
-        $unit->img= $_POST['images'];
-        $unit->setCityParam('id', $_POST['city']);  
-        
-        $unit->editUnit($_POST['available_images']);
-    	header('Location: ?page=admin&act=main');     
-    }
-*/
     //-----------------------------------------------------
     // Ajax page functionality
     //-----------------------------------------------------    

@@ -5,6 +5,7 @@ use \ForceUTF8\Encoding;
 class CUnit
 {
 	private $id = NULL;
+	private $is_arch;
 	private $owner_id;
 	private $owner;
 	private $name;
@@ -140,6 +141,7 @@ class CUnit
 					u.year AS year,
 					u.mileage AS mileage,
 					u.op_time AS op_time,
+					u.is_arch,
 					cities.id AS city_id,
 					cities.name AS city,
 					regions.id AS region_id,
@@ -184,6 +186,7 @@ class CUnit
 				$ur['manufacturer_id']: NULL;
 			$this->manufacturer= isset($ur['manufacturer']) ? 
 				$ur['manufacturer'] : NULL;
+			$this->is_arch = $ur['is_arch'];
 	
 			$this->city['id'] = $ur['city_id'];
 			$this->city['name'] = $ur['city'];
@@ -272,6 +275,9 @@ class CUnit
         $top->appendChild($topAttr);
         $topAttr = $xmlDoc->createAttribute('name');
         $topAttr->value = $this->name;
+        $top->appendChild($topAttr);
+        $topAttr = $xmlDoc->createAttribute('is_arch');
+        $topAttr->value = $this->is_arch ? 'TRUE' : 'FALSE';
         $top->appendChild($topAttr);
 
         $sub = $xmlDoc->createElement('owner', $this->owner);
@@ -532,6 +538,11 @@ class CUnit
 	
 	static function archUnit($uid, CDataBase $hDbConn) {
         $q = sprintf('UPDATE units SET is_arch=TRUE WHERE id=%d', $uid);
+        $hDbConn->exec($q);		
+	}
+	
+	static function restoreUnit($uid, CDataBase $hDbConn) {
+        $q = sprintf('UPDATE units SET is_arch=FALSE WHERE id=%d', $uid);
         $hDbConn->exec($q);		
 	}
 }

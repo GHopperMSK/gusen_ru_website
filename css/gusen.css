@@ -886,3 +886,7 @@ UL.pagination.gusen-pag {
 .cur_page SPAN {
     font-weight: bold;
 }
+
+.unit_sold_out {
+	text-decoration: line-through;
+}

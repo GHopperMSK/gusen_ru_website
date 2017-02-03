@@ -77,7 +77,13 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
                     <p>Наработка: <span><xsl:value-of select='translate(format-number(op_time, "###,###"),","," ")'/>&#160;м/ч.</span></p>
                 </xsl:if>
                 <p itemprop="offers" itemscope="" itemtype="http://schema.org/Offer">
-                    Цена: <span><xsl:value-of select='translate(format-number(price, "###,###"),","," ")'/> ₽</span>
+                    Цена: <span>
+                        <xsl:if test="@is_arch='TRUE'">
+                            <xsl:attribute name="class">unit_sold_out</xsl:attribute>
+                        </xsl:if>
+                        <xsl:value-of select='translate(format-number(price, "###,###"),","," ")'/> ₽
+                    </span>
+                    <xsl:if test="@is_arch='TRUE'">&#160;(продано)</xsl:if>
                     <meta itemprop="price">
                         <xsl:attribute name="content"><xsl:value-of select="price"/></xsl:attribute>
                     </meta>

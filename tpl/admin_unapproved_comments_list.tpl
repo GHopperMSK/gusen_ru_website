@@ -101,6 +101,7 @@
 			<ul class="dropdown-menu">
 				<li><a href="/?page=admin">Units list</a></li>
 				<li><a href="/?page=admin&act=admin_unit_form">Add Unit</a></li>
+				<li><a href="/?page=admin&act=unit_arch_list">Archive</a></li>
 			</ul>
     	</li>
     	<li class="dropdown">

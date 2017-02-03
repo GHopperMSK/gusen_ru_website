@@ -43,7 +43,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
         <div class="form-group">
             <label class="control-label col-md-1" for="description">Description:</label>
             <div class="col-md-11">
-                <textarea class="form-control" placeholder="Unit description" id="description" name="description" rows="4" cols="50">
+                <textarea class="form-control" placeholder="Unit description" id="description" name="description" rows="15">
 	        	<xsl:choose>
 					<xsl:when test="not(owner) or owner=''">Description</xsl:when>
 					<xsl:otherwise><xsl:value-of select="owner" /></xsl:otherwise>

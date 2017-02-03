@@ -36,6 +36,7 @@
 			<ul class="dropdown-menu">
 				<li><a href="/?page=admin">Units list</a></li>
 				<li><a href="/?page=admin&act=admin_unit_form">Add Unit</a></li>
+				<li><a href="/?page=admin&act=unit_arch_list">Archive</a></li>
 			</ul>
     	</li>
     	<li class="dropdown">
@@ -56,6 +57,11 @@
 <div class="container-fluid">
 	%{owner_list&owner_list.xsl&0}%
 </div>
+
+<div class="container-fluid">
+	%{owner_list_paginator&search_paginator.xsl&0}%
+</div>
+
 
 </body>
 </html>

@@ -74,6 +74,12 @@ class CModule
             case "unit_list":
                 $this->searchPageMain();
                 break;
+            case 'unit_arch_list':
+            	$this->unitArchList();
+            	break;
+            case 'unit_arch_list_paginator':
+            	$this->unitArchListPaginator();
+            	break;
             case "unit_list_paginator":
                 $this->searchPaginator($param1);
                 break;
@@ -88,6 +94,9 @@ class CModule
                 break;
             case 'owner_list':
             	$this->ownerList();
+            	break;
+            case 'owner_list_paginator':
+            	$this->ownersPaginator();
             	break;
             case 'admin_owner_form':
             	$this->ownerForm();
@@ -318,7 +327,29 @@ class CModule
     	// TODO: pagination
         $q = '
         	SELECT id,name,description
-        	FROM owners';
+        	FROM owners
+        	ORDER BY name';
+        	
+        if ($this->hWebPage->getGetValue('offset')) {
+            $iOffset = max($this->hWebPage->getGetValue('offset'), 1);
+        } else {
+            $iOffset = 1;
+        }        
+        
+        $q .= sprintf(" LIMIT %d,%d",
+            ($iOffset-1)*PAGINATOR_SHOW_ON_PAGE,
+            PAGINATOR_SHOW_ON_PAGE
+        );
+
+        $res = $this->hDbConn->query($q);
+        while ($ur = $res->fetch(\PDO::FETCH_ASSOC)) {
+        	$unit = $this->hWebPage->getUnit($ur['id']);
+        	$unit = $unit->getUnitDOM();
+			$unit = $this->xmlDoc->importNode($unit, true);
+			$this->eRoot->appendChild($unit);
+			unset($unit);
+        }        	
+        	
         $res = $this->hDbConn->query($q);
         while ($row = $res->fetch(\PDO::FETCH_ASSOC)) {
             $sOwner = $this->xmlDoc->createElement("owner",
@@ -331,6 +362,45 @@ class CModule
             $attr->value = $row['name'];
             $sOwner->appendChild($attr);
         }
+    }
+    
+    function ownersPaginator() {
+        $q = '
+        	SELECT
+			COUNT(*) AS total
+			FROM owners';
+
+        $countRes = $this->hDbConn->query($q);
+        $iTotal = $countRes->fetch(\PDO::FETCH_ASSOC)['total'];
+
+        // current page number
+        if ($this->hWebPage->getGetValue('offset')) {
+            $iOffset = max($this->hWebPage->getGetValue('offset'), 1);
+        } else {
+            $iOffset = 1;
+        }
+        
+    	$aVar = array(
+    		'page'		=> $this->hWebPage->getGetValue('page'),
+    		'act'		=> $this->hWebPage->getGetValue('act'),
+    		'offset'	=> '%d'
+    	);
+    	$sLinkPattern = htmlentities('?'.http_build_query($aVar));
+        
+        $oPaginator = new CPaginator(
+            $sLinkPattern,
+            $iTotal,
+            PAGINATOR_SHOW_ON_PAGE,
+            $iOffset,
+            PAGINATOR_PAGES_IN_NAV
+        );
+        
+		$this->eRoot->appendChild(
+		    $this->xmlDoc->importNode(
+		        $oPaginator->getXML(),
+		        TRUE
+		    )
+		);    	
     }
     
     function searchForm() {
@@ -916,6 +986,116 @@ class CModule
 		);
     }
     
+    function unitArchList() {
+        $q = 'SELECT u.id 
+        		FROM units u
+				JOIN cities ON u.city_id=cities.id
+				JOIN regions ON cities.rd_id=regions.id
+        		WHERE is_arch=TRUE';
+
+        if ($this->hWebPage->getGetValue('vType')) {
+            $q .= sprintf(" AND cat_id=%d",
+            	$this->hWebPage->getGetValue('vType'));
+        }
+        if ($this->hWebPage->getGetValue('vManuf')) {
+            $q .= sprintf(" AND manufacturer_id=%d", 
+            	$this->hWebPage->getGetValue(vManuf));
+        }
+        if ($this->hWebPage->getGetValue('vFedDistr')) {
+            $q .= sprintf(" AND fd_id=%d", 
+            	$this->hWebPage->getGetValue(vFedDistr));
+        }
+
+        if ($this->hWebPage->getGetValue('offset')) {
+            $iOffset = max($this->hWebPage->getGetValue('offset'), 1);
+        } else {
+            $iOffset = 1;
+        }        
+        
+        $q .= sprintf(" ORDER BY date DESC LIMIT %d,%d",
+            ($iOffset-1)*PAGINATOR_SHOW_ON_PAGE,
+            PAGINATOR_SHOW_ON_PAGE
+        );
+
+        $res = $this->hDbConn->query($q);
+        while ($ur = $res->fetch(\PDO::FETCH_ASSOC)) {
+        	$unit = $this->hWebPage->getUnit($ur['id']);
+        	$unit = $unit->getUnitDOM();
+			$unit = $this->xmlDoc->importNode($unit, true);
+			$this->eRoot->appendChild($unit);
+			unset($unit);
+        }
+	}
+	
+	function unitArchListPaginator() {
+        $q = '
+        	SELECT
+			COUNT(*) AS total
+			FROM units
+			JOIN cities ON units.city_id=cities.id
+			JOIN regions ON cities.rd_id=regions.id
+			JOIN fdistricts ON regions.fd_id=fdistricts.id
+			JOIN categories ON units.cat_id=categories.id
+			JOIN manufacturers ON manufacturers.id=units.manufacturer_id
+			WHERE is_arch=TRUE';
+
+        $bNeedAND = false;
+        if ($this->hWebPage->getGetValue('vType') != 0) {
+            $q .= sprintf(' AND cat_id=%d',
+            	$this->hWebPage->getGetValue('vType'));
+        }
+        if ($this->hWebPage->getGetValue('vManuf')) {
+            $q .= sprintf(' AND manufacturer_id=%d', 
+            	$this->hWebPage->getGetValue(vManuf));
+        }
+        if ($this->hWebPage->getGetValue('vFedDistr')) {
+            $q .= sprintf(' AND fd_id=%d', 
+            	$this->hWebPage->getGetValue(vFedDistr));
+        }
+
+        $countRes = $this->hDbConn->query($q);
+        $iTotal = $countRes->fetch(\PDO::FETCH_ASSOC)['total'];
+
+        // current page number
+        if ($this->hWebPage->getGetValue('offset')) {
+            $iOffset = max($this->hWebPage->getGetValue('offset'), 1);
+        } else {
+            $iOffset = 1;
+        }
+        
+        $vType = $this->hWebPage->getGetValue('vType') ?
+        	$this->hWebPage->getGetValue('vTyep') : 0;
+        $vManuf = $this->hWebPage->getGetValue('vManuf') ?
+        	$this->hWebPage->getGetValue('vManuf') : 0;
+        $vFedDistr = $this->hWebPage->getGetValue('vFedDistr') ?
+        	$this->hWebPage->getGetValue('vFedDistr') : 0;
+
+    	$aVar = array(
+    		'page'		=> $this->hWebPage->getGetValue('page'),
+    		'act'		=> $this->hWebPage->getGetValue('act'),
+    		'vType'		=> $vType,
+    		'vManut'	=> $vManuf,
+    		'vFedDistr'	=> $vFedDistr,
+    		'offset'	=> '%d'
+    	);
+    	$sLinkPattern = htmlentities('?'.http_build_query($aVar));
+        
+        $oPaginator = new CPaginator(
+            $sLinkPattern,
+            $iTotal,
+            PAGINATOR_SHOW_ON_PAGE,
+            $iOffset,
+            PAGINATOR_PAGES_IN_NAV
+        );
+        
+		$this->eRoot->appendChild(
+		    $this->xmlDoc->importNode(
+		        $oPaginator->getXML(),
+		        TRUE
+		    )
+		);		
+	}
+    
     function searchPageMain() {
         $q = 'SELECT u.id 
         		FROM units u
@@ -965,8 +1145,9 @@ class CModule
     		FROM 
     			categories cat 
     		JOIN units u ON cat.id=u.cat_id 
+    		WHERE u.is_arch = FALSE
     		GROUP BY cat.name 
-    		HAVING COUNT(cat.id)>0';
+    		HAVING COUNT(cat.id)>1';
         $cat_res = $this->hDbConn->query($q);
         while ($cr = $cat_res->fetch(\PDO::FETCH_ASSOC)) {
             $eCat = $this->xmlDoc->createElement('category');
