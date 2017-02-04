@@ -414,7 +414,7 @@ class CUnit
             $ord = $i + 1;
             
             $stmt->execute();
-        }        
+        } 
     }
     
     function editUnit($available_images = array()) {
@@ -510,7 +510,6 @@ class CUnit
             
             $stmt->execute();                
         }
-        
     }
     
     static function deleteUnit($uid, CDataBase $hDbConn) {
@@ -538,7 +537,7 @@ class CUnit
 	
 	static function archUnit($uid, CDataBase $hDbConn) {
         $q = sprintf('UPDATE units SET is_arch=TRUE WHERE id=%d', $uid);
-        $hDbConn->exec($q);		
+        $hDbConn->exec($q);
 	}
 	
 	static function restoreUnit($uid, CDataBase $hDbConn) {

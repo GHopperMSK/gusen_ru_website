@@ -534,16 +534,16 @@
         },
         {
             "name": "phpfastcache/phpfastcache",
-            "version": "5.0.14",
+            "version": "5.0.15",
             "source": {
                 "type": "git",
                 "url": "https://github.com/PHPSocialNetwork/phpfastcache.git",
-                "reference": "ab27cf51e35f55f72a8ff6e742806e1f2b013ee5"
+                "reference": "f9c09668b313dd53a6417be42e4af02649914a89"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/PHPSocialNetwork/phpfastcache/zipball/ab27cf51e35f55f72a8ff6e742806e1f2b013ee5",
-                "reference": "ab27cf51e35f55f72a8ff6e742806e1f2b013ee5",
+                "url": "https://api.github.com/repos/PHPSocialNetwork/phpfastcache/zipball/f9c09668b313dd53a6417be42e4af02649914a89",
+                "reference": "f9c09668b313dd53a6417be42e4af02649914a89",
                 "shasum": ""
             },
             "require": {
@@ -616,7 +616,7 @@
                 "zend memory cache",
                 "zend server"
             ],
-            "time": "2017-01-05 18:23:13"
+            "time": "2017-02-04 01:09:40"
         },
         {
             "name": "phpfastcache/phpssdb",

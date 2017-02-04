@@ -389,6 +389,16 @@ class CWebPage
         else
         	throw new \Exception("TPL $tpl doesn't exists!");
     }
+    
+    /**
+     * We should reset fastPhpCache after each data updates 
+     * for show changes immediately
+     */
+    function resetCache() { //$modName, $xslFile, $param1, $param2) {
+    	CWebPage::debug('CWebPage::resetCache()');
+
+		$this->instanceCache->clear();
+    }
 
     /**
      * Processing template and executing all modules from it.
@@ -419,7 +429,10 @@ class CWebPage
 				if (CACHE_ON && ($duration > 0)) {
 					$CachedString = $this->instanceCache->getItem(
 						md5(
-							$matches[1][$key].
+					    	$modName.
+					    	$xslFile.
+					    	$param1.
+					    	$param2.
 							$sUrl // add URL-specific key
 						)
 					);
@@ -459,8 +472,7 @@ class CWebPage
 				else {
 					if (CACHE_ON)
 						CWebPage::debug("{$modName} doesn't use a cache");
-					else
-						CWebPage::debug("The cache is turned off");
+
 				    $hMod = new CModule(
 				    	$this, //$this->hDbConn,
 				    	$modName,
@@ -637,12 +649,17 @@ class CWebPage
 
             $loc = $_SESSION['user_referer'];
             unset($_SESSION['user_referer']);
+            
+			$this->resetCache();
+            
             header("Location: $loc");
         }
     }
     
     function userLogout() {
         CWebPage::debug('CWebPage::userLogout()');
+
+		$this->resetCache();
         
         unset($_SESSION['user']);
         header('Location: ' . $_SERVER['HTTP_REFERER']);
@@ -684,6 +701,9 @@ class CWebPage
                 $stmt->execute();
             }
         }
+        
+		$this->resetCache();
+
         header('Location: ' . $_SERVER['HTTP_REFERER'].'#comment_form');
     }
     
@@ -809,20 +829,27 @@ class CWebPage
                     header('Location: ?page=admin&act=login_form&msg=access_denied');
                 break;
             case 'unit_edit':
-                if ($this->isAuth())
+                if ($this->isAuth()) {
                     $this->fillUnit('edit'); //$this->editUnit();
+            		$this->resetCache();
+    		    	header('Location: /?page=admin&act=main');
+                }
                 else
                     header('Location: ?page=admin&act=login_form&msg=access_denied');
                 break;
             case 'unit_add':
-                if ($this->isAuth())
+                if ($this->isAuth()) {
                     $this->fillUnit('add'); //$this->addUnit();
+            		$this->resetCache();
+            		header('Location: /?page=admin&act=main');
+                }
                 else
                     header('Location: ?page=admin&act=login_form&msg=access_denied');                
                 break;
             case 'unit_del':
                 if ($this->isAuth()) {
                 	CUnit::deleteUnit($this->aGetValues['id'], $this->hDbConn);
+                	$this->resetCache();
 					header('Location: ' . $_SERVER['HTTP_REFERER']);
                 }
                 else
@@ -915,8 +942,7 @@ class CWebPage
 		        $unit->editUnit($_POST['available_images']);
 				break;
 		}
-    	header('Location: /?page=admin&act=main');
-    	
+		$this->aUnits[$unit->id] = $unit;
     }
     
     function ownerAdd() {
@@ -931,7 +957,7 @@ class CWebPage
         $stmt->bindValue(':name', $_POST['name'], \PDO::PARAM_STR);
         $stmt->bindValue(':descr', $_POST['description'], \PDO::PARAM_STR);
         $stmt->execute();
-    	
+
     	header('Location: /?page=admin&act=owners_list');
     }
     

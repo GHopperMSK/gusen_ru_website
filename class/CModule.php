@@ -301,6 +301,8 @@ class CModule
                 $approve = in_array($com_id, $_POST['approved']) ? TRUE : FALSE;
                 $stmt->execute();
             }
+            
+            $this->hWebPage->resetCache();
         }
         $q = '
         	SELECT cm.id,cm.comment,un.id AS unit_id 
@@ -459,9 +461,13 @@ class CModule
         $xmlTop = $this->xmlDoc->createElement("fdistricts");
         $xmlTop = $this->eRoot->appendChild($xmlTop);
         $q = '
-        	SELECT id,name
-        	FROM `fdistricts`
-        	ORDER BY name';
+        	SELECT f.id,f.name
+        	FROM fdistricts f 
+        	LEFT JOIN regions r ON r.fd_id=f.id 
+        	LEFT JOIN cities c ON c.rd_id=r.id
+        	LEFT JOIN units u ON u.city_id=c.id
+        	GROUP BY f.id
+        	HAVING COUNT(u.id)>0;';
         $res = $this->hDbConn->query($q);
         while ($row = $res->fetch(\PDO::FETCH_ASSOC)) {
             $xmlSubTop = $this->xmlDoc->createElement("fdistrict",
