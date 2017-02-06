@@ -396,8 +396,9 @@ class CWebPage
      */
     function resetCache() { //$modName, $xslFile, $param1, $param2) {
     	CWebPage::debug('CWebPage::resetCache()');
-
-		$this->instanceCache->clear();
+		
+		if (CACHE_ON)
+			$this->instanceCache->clear();
     }
 
     /**
@@ -650,7 +651,7 @@ class CWebPage
             $loc = $_SESSION['user_referer'];
             unset($_SESSION['user_referer']);
             
-			$this->resetCache();
+			//$this->resetCache();
             
             header("Location: $loc");
         }
