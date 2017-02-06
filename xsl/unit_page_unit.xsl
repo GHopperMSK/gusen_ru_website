@@ -48,7 +48,9 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
             <h3><xsl:value-of select="manufacturer"/>&#160;<xsl:value-of select="@name"/></h3>
         </div>
         <div class="wrap-fotorama">
-            <div class="price"><xsl:value-of select='translate(format-number(price, "###,###"),","," ")'/>&#160;₽</div>
+            <xsl:if test="@is_arch='FALSE'">
+                <div class="price"><xsl:value-of select='translate(format-number(price, "###,###"),","," ")'/>&#160;₽</div>
+            </xsl:if>
             <div class="fotorama" data-allowfullscreen="true" data-width="100%" data-maxheight="550" data-loop="true" data-arrows="true" data-click="true" data-swipe="true" data-fit="cover">
 
                 <xsl:for-each select="images/img">
@@ -81,14 +83,14 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
                         <xsl:if test="@is_arch='TRUE'">
                             <xsl:attribute name="class">unit_sold_out</xsl:attribute>
                         </xsl:if>
-                        <xsl:value-of select='translate(format-number(price, "###,###"),","," ")'/> ₽
+                        <span itemprop="price">
+                            <xsl:attribute name="content"><xsl:value-of select="price"/></xsl:attribute>
+                            <xsl:value-of select='translate(format-number(price, "###,###"),","," ")'/>
+                        </span>
+                        <span itemprop="priceCurrency" content="RUB">₽</span>
+                        <link itemprop="availability" href="http://schema.org/InStock" />
                     </span>
                     <xsl:if test="@is_arch='TRUE'">&#160;(продано)</xsl:if>
-                    <meta itemprop="price">
-                        <xsl:attribute name="content"><xsl:value-of select="price"/></xsl:attribute>
-                    </meta>
-                    <meta itemprop="priceCurrency" content="RUB" />
-                    <link itemprop="availability" href="http://schema.org/InStock" />
                 </p>
             </div>                   
             <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">

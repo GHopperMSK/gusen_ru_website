@@ -46,12 +46,12 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 	            </img>
 	            
 	            <div class="prices" itemprop="offers" itemscope="" itemtype="http://schema.org/Offer">
-	            	<xsl:value-of select='translate(format-number(price, "###,###"),","," ")'/>&#160;₽
-	                <meta itemprop="price">
-	                    <xsl:attribute name="content"><xsl:value-of select="price"/></xsl:attribute>
-	                </meta>
-	                <meta itemprop="priceCurrency" content="RUB" />
-	                <link itemprop="availability" href="http://schema.org/InStock" />
+                    <span itemprop="price">
+                        <xsl:attribute name="content"><xsl:value-of select="price"/></xsl:attribute>
+                        <xsl:value-of select='translate(format-number(price, "###,###"),","," ")'/>
+                    </span>&#160;
+                    <span itemprop="priceCurrency" content="RUB">₽</span>
+                    <link itemprop="availability" href="http://schema.org/InStock" />
 	            </div>
 	            <div class="infomachines">
 	            	<p><xsl:value-of select="year"/>&#160;г.</p>

@@ -62,7 +62,13 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 	                <xsl:value-of select="manufacturer"/>&#160;<xsl:value-of select="@name"/>
 	            </a>
 			</p>
-			<p><xsl:value-of select="owner" /></p>
+			<p>
+				<a>
+	                <xsl:attribute name="href">?page=admin&amp;act=owner_form&amp;id=<xsl:value-of select="owner/@id"/>
+	                </xsl:attribute>
+					<xsl:value-of select="owner" />
+				</a>
+			</p>
             <p><xsl:value-of select="fdistrict"/> / <xsl:value-of select="region"/> / <xsl:value-of select="city"/></p>
             <p>Год выпуска: <xsl:value-of select="year"/></p>
             <xsl:if test="mileage">

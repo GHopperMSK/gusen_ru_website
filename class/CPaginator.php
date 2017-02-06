@@ -20,7 +20,7 @@ class CPaginator {
     		$iCurPage,
     		$iNavShowPages) {
     	CWebPage::debug("CPaginator::__construct({$sLinkPattern},".
-    		"{$iUnitsTotal}, {$iUnitsOnPage}, {$iCurPage},{$iNavShowPages})");
+    		"{$iUnitsTotal},{$iUnitsOnPage},{$iCurPage},{$iNavShowPages})");
     	
     	$this->sLinkPattern = urldecode($sLinkPattern);
     	$this->iUnitsTotal = $iUnitsTotal;

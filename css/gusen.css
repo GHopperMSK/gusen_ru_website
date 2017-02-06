@@ -217,10 +217,6 @@ svg:not(:root) {
     font-weight: bold;
 }
 
-.prices SPAN {
-    font-weight: normal;
-}
-
 .infomachines {
     position: absolute;
     left: 0;
