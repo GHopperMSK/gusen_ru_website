@@ -92,7 +92,7 @@
                 $('#charNum').text(char+'/5000');
                 
             });
-        
+
             $('#users_list').each(function() {
                 var aUsers = $(this).val().split(';');
                 for (i=0; i<aUsers.length; i++) {

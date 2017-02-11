@@ -61,7 +61,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 		    </select>    
 		</div>
 		<div class="col-lg-3 col-md-3 col-sm-6">
-	    	<input class="search_button" type="submit" />
+	    	<input class="search_button" value="Применить" type="submit" />
 	    </div>
 	</form>
 </xsl:template>

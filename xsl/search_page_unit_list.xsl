@@ -41,7 +41,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 	            <img class="img-responsive" itemprop="image">
 	                <xsl:attribute name="alt"><xsl:value-of select="manufacturer"/><xsl:text> </xsl:text><xsl:value-of select="@name"/>
 	                </xsl:attribute>
-	                <xsl:attribute name="src">/images/tmb/<xsl:value-of select="images/img"/>
+	                <xsl:attribute name="src">/images/tmb/<xsl:value-of select="images/image"/>
 	                </xsl:attribute>
 	            </img>
 	            

@@ -3,65 +3,66 @@ namespace gusenru;
 
 /**
   * PDO wrapper
+  * Singleton pattern. Use CDataBase::getInstance() to get the object instance
+  * instead of new CDataBase(...) (it is denied due to the constructor is
+  * private)
   *
-  * A simple class for:
+  * The wrapper is used for:
   * - unified error handler
   * - easy queries monitor
-  * - query results caching
+  * - db queries caching
   *
-  * @param string $host MySQLi database ip-address
-  * @user string $user database user name
-  * @pass string $pass database user pass
-  * @db string $db database name
+  * @param	string	$host	database ip-address
+  * @param	string	$user	database user name
+  * @param	string	$pass	database user pass
+  * @param	string	$db		database name
   *
-  * @return void
+  * @return	void
   */
 class CDataBase extends \PDO 
 {
-	private $host;
-	private $user;
-	private $pass;
-	private $db;
-    private $isConnected;
+	private $_host;
+	private $_user;
+	private $_pass;
+	private $_db;
+    
+    static private $_instance = NULL;
 
-	/**
-	 * Prepare data. Don't connect until it is necessary. Many web-pages
-	 * don't need database at all (ajax photo upload page, oAuth for example)
-	 */
     function __construct($host, $user, $pass, $db) {
-    	$this->host = $host;
-    	$this->user = $user;
-    	$this->pass = $pass;
-    	$this->db = $db;
-    	$this->isConnected = FALSE;
+    	CWebPage::debug("CDataBase::__construct({$host},{$user},PASS,{$db})");
+    	
+    	$this->_host = $host;
+    	$this->_user = $user;
+    	$this->_pass = $pass;
+    	$this->_db = $db;
+
+		$dsn = sprintf('mysql:host=%s;dbname=%s;charset=%s',
+			$this->_host,
+			$this->_db,
+			DB_CHARSET);
+    	parent::__construct(
+        	$dsn,
+        	$this->_user,
+        	$this->_pass,
+        	array(\PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION)
+    	);
     }
     
     function __destruct () {
-        $this->isConnected = FALSE;
+    	$this->_instance = NULL;
     }
-    
-    private function connect() {
-		try {
-			$dsn = sprintf('mysql:host=%s;dbname=%s;charset=%s',
-				$this->host,
-				$this->db,
-				DB_CHARSET);
-	    	parent::__construct(
-	        	$dsn,
-	        	$this->user,
-	        	$this->pass,
-	        	array(\PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION)
-	    	);
-	    	$this->isConnected = TRUE;
-		}
-		catch (\PDOException $ex) {
-			throw new \Exception($ex->getMessage());
-		}
+
+	// Magic method clone is empty to prevent duplication of connection
+	private function __clone() { }
+
+	static public function getInstance()  {
+        if(self::$_instance == NULL) {
+            self::$_instance = new self(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+        }
+        return self::$_instance;
     }
     
     public function query($q) {
-    	if (!$this->isConnected)
-    		$this->connect();
         try {
             return parent::query($q);
         }
@@ -71,8 +72,6 @@ class CDataBase extends \PDO
     }
 
     public function exec($q) {
-    	if (!$this->isConnected)
-    		$this->connect();
         try {
             return parent::exec($q);
         }
@@ -82,11 +81,15 @@ class CDataBase extends \PDO
     }
     
     public function prepare($sql, $options = array()) {
-    	if (!$this->isConnected)
-    		$this->connect();
-		return parent::prepare($sql, $options);
+    	try {
+			return parent::prepare($sql, $options);
+        }
+        catch(\PDOException $ex) {
+			throw new \Exception($ex->getMessage());
+        }        
     }
 
 }
+
 
 ?>

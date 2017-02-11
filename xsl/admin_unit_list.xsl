@@ -27,7 +27,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
     <xsl:for-each select="unit">
         <div class="col-lg-12 admin_page_unit_list_div clearfix">
             <img class="pull-left">
-                <xsl:attribute name="src">images/tmb/<xsl:value-of select="images/img"/>
+                <xsl:attribute name="src">images/tmb/<xsl:value-of select="images/image"/>
                 </xsl:attribute>
             </img>
             <p>

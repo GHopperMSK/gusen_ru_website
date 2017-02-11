@@ -38,15 +38,16 @@ class CUnit
 	
 	private $hDbConn = null;
 	
-	function __construct(CDataBase $hDbConn, $id=NULL) {
+	function __construct($id=NULL) {
 		CWebPage::debug("CUnit::__construct({$id})");
-		
+/*
         if ($hDbConn instanceof CDataBase) {
-            $this->hDbConn = $hDbConn;
+            $this->hDbConn = CDataBase::getInstance();
         }
         else {
         	throw new \Exception('Wrong CDataBase connection was passed!');
         }
+*/
         if (!empty($id)) {
         	$this->id = $id;
         	$this->fillUnitData();
@@ -129,6 +130,7 @@ class CUnit
     }
     
     function fillUnitData() {
+    	$hDbConn = CDataBase::getInstance();
     	if ($this->id) {
 	        $q = '
 	        	SELECT
@@ -168,7 +170,7 @@ class CUnit
 				WHERE u.id=%d';
 	
 	        $q = sprintf($q, $this->id);
-	        $res = $this->hDbConn->query($q);
+	        $res = $hDbConn->query($q);
 	        $ur = $res->fetch(\PDO::FETCH_ASSOC);
 	        
 			$this->name = isset($ur['name']) ? $ur['name'] : NULL;
@@ -202,7 +204,7 @@ class CUnit
 	        		ORDER BY `order`";
 	
 	        $q = sprintf($q, $this->id);
-	        $res = $this->hDbConn->query($q);
+	        $res = $hDbConn->query($q);
 	        while ($ir = $res->fetch(\PDO::FETCH_ASSOC)) {
 	        	$this->img[] = $ir['img'];
 	        }
@@ -263,6 +265,7 @@ class CUnit
      * </root>
      * 
      */
+/*     
     function getUnitDOM() {
         $xmlDoc = new \DOMDocument('1.0', 'utf-8');
         $eRoot = $xmlDoc->createElement('root');
@@ -345,9 +348,64 @@ class CUnit
 
 		return $top;
     }
+*/ 
+    /**
+     * Returns array of user data
+     * 
+     * @return array
+     */
+    function get() {
+        $aUnit = array();
+        $aUnit['unit']['@attributes'] = array(
+        	'id' => $this->id,
+        	'name' => $this->name,
+        	'is_arch' => $this->is_arch ? 'TRUE' : 'FALSE'
+        );
+        $aUnit['unit']['owner']['@content'] = $this->owner;
+        $aUnit['unit']['owner']['@attributes'] = array(
+        	'id' => $this->owner_id
+    	);
+    	$aUnit['unit']['description'] = $this->description;
+    	$aUnit['unit']['price'] = $this->price;
+    	$aUnit['unit']['year'] = $this->year;
+    	$aUnit['unit']['category']['@content'] = $this->category;
+    	$aUnit['unit']['category']['@attributes'] = array(
+        	'id' => $this->cat_id
+    	);
+    	$aUnit['unit']['fdistrict']['@content'] = $this->city['fdistrict'];
+    	$aUnit['unit']['fdistrict']['@attributes'] = array(
+        	'id' => $this->city['fdist_id'],
+        	'short' => $this->city['fdistrict_short']
+    	);
+    	$aUnit['unit']['region']['@content'] = $this->city['region'];
+    	$aUnit['unit']['region']['@attributes'] = array(
+        	'id' => $this->city['reg_id']
+    	);
+    	$aUnit['unit']['city']['@content'] = $this->city['name'];
+    	$aUnit['unit']['city']['@attributes'] = array(
+        	'id' => $this->city['id']
+    	);
+    	$aUnit['unit']['manufacturer']['@content'] = $this->manufacturer;
+    	$aUnit['unit']['manufacturer']['@attributes'] = array(
+        	'id' => $this->manuf_id
+    	);
+    	if (isset($this->mileage)) {
+    		$aUnit['unit']['mileage'] = $this->mileage;
+    	}
+    	if (isset($this->op_time)) {
+    		$aUnit['unit']['op_time'] = $this->op_time;
+    	}
+    	$aUnit['unit']['images'] = array();
+    	
+    	for ($i=0;$i<count($this->img);$i++) {
+    		$aUnit['unit']['images']["image{$i}"] = $this->img[$i];
+    	}
+		return $aUnit;    	
+    }
     
     function addUnit() {
-        $stmt = $this->hDbConn->prepare('
+    	$hDbConn = CDataBase::getInstance();
+        $stmt = $hDbConn->prepare('
         	INSERT 
 			INTO units(
 				owner_id,
@@ -387,9 +445,9 @@ class CUnit
         $op_time = empty($this->op_time) ? NULL : $this->op_time;
         $stmt->bindValue(':op_time', $op_time, \PDO::PARAM_STR);
         $stmt->execute();
-        $this->id = $this->hDbConn->lastInsertId();
+        $this->id = $hDbConn->lastInsertId();
 
-        $stmt = $this->hDbConn->prepare('
+        $stmt = $hDbConn->prepare('
         	INSERT
 			INTO images (
 				unit_id,
@@ -418,7 +476,8 @@ class CUnit
     }
     
     function editUnit($available_images = array()) {
-        $stmt = $this->hDbConn->prepare('
+    	$hDbConn = CDataBase::getInstance();
+        $stmt = $hDbConn->prepare('
         	UPDATE units 
 			SET 
 				owner_id=:owner_id,
@@ -466,7 +525,7 @@ class CUnit
             }
         }
             
-        $stmt = $this->hDbConn->prepare('
+        $stmt = $hDbConn->prepare('
         	DELETE 
 			FROM images 
 			WHERE unit_id=:id'
@@ -474,7 +533,7 @@ class CUnit
         $stmt->bindValue(':id', $this->id, \PDO::PARAM_INT);
         $stmt->execute();
         
-        $stmt = $this->hDbConn->prepare('
+        $stmt = $hDbConn->prepare('
         	INSERT 
 			INTO images (
 				unit_id,
@@ -512,7 +571,8 @@ class CUnit
         }
     }
     
-    static function deleteUnit($uid, CDataBase $hDbConn) {
+    static function deleteUnit($uid) {
+    	$hDbConn = CDataBase::getInstance();
         $q = sprintf('SELECT img 
         				FROM images 
         				WHERE unit_id=%d',
@@ -535,14 +595,14 @@ class CUnit
         $hDbConn->exec($q);
     }
 	
-	static function archUnit($uid, CDataBase $hDbConn) {
+	static function archUnit($uid) {
         $q = sprintf('UPDATE units SET is_arch=TRUE WHERE id=%d', $uid);
-        $hDbConn->exec($q);
+        CDataBase::getInstance()->exec($q);
 	}
 	
-	static function restoreUnit($uid, CDataBase $hDbConn) {
+	static function restoreUnit($uid) {
         $q = sprintf('UPDATE units SET is_arch=FALSE WHERE id=%d', $uid);
-        $hDbConn->exec($q);		
+        CDataBase::getInstance()->exec($q);
 	}
 }
 ?>

@@ -53,7 +53,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
             </xsl:if>
             <div class="fotorama" data-allowfullscreen="true" data-width="100%" data-maxheight="550" data-loop="true" data-arrows="true" data-click="true" data-swipe="true" data-fit="cover">
 
-                <xsl:for-each select="images/img">
+                <xsl:for-each select="images/image">
                     <img>
                         <xsl:if test="position() = 1">
                             <xsl:attribute name="itemprop">image</xsl:attribute>

@@ -4,9 +4,45 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "e9549b2b57b49bb27a0e724318fb0b75",
-    "content-hash": "2db28b760863f31adb394f7b6a174d54",
+    "hash": "3e4b03dba8f711f2c18a6d7f68816350",
+    "content-hash": "24216dcefdd35f0f99b5c0a4db212553",
     "packages": [
+        {
+            "name": "dbrisinajumi/array2xml",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/DBRisinajumi/array2xml.git",
+                "reference": "ba7a942fa0c45271050221051c3e8a6fc1ce7c44"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/DBRisinajumi/array2xml/zipball/ba7a942fa0c45271050221051c3e8a6fc1ce7c44",
+                "reference": "ba7a942fa0c45271050221051c3e8a6fc1ce7c44",
+                "shasum": ""
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Dbr\\Array2Xml\\": ""
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-2-Clause"
+            ],
+            "authors": [
+                {
+                    "name": "Anton Vasylyev"
+                }
+            ],
+            "description": "Array -> XML Converter Class",
+            "keywords": [
+                "php",
+                "xml"
+            ],
+            "time": "2016-04-26 10:39:52"
+        },
         {
             "name": "facebook/graph-sdk",
             "version": "5.4.4",
@@ -1111,7 +1147,8 @@
     "aliases": [],
     "minimum-stability": "stable",
     "stability-flags": {
-        "neitanod/forceutf8": 20
+        "neitanod/forceutf8": 20,
+        "dbrisinajumi/array2xml": 20
     },
     "prefer-stable": false,
     "prefer-lowest": false,

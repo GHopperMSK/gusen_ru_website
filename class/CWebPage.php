@@ -1,5 +1,8 @@
 <?php
 namespace gusenru;
+// ЭТО ПИЗДЕЦ!
+require_once 'vendor/dbrisinajumi/array2xml/array2xml.php';
+
 use phpFastCache\CacheManager;
 
 /**
@@ -23,26 +26,25 @@ use phpFastCache\CacheManager;
  */
 class CWebPage
 {
-    private $sPageContent; // the whole page content
-    private $hDbConn;
-    private $instanceCache;
-    private $aGetValues = array();
-    private $aUnits = array();
+    private $_sTemplate;
+    private $_sContent; // the whole page content
+    private $_sHeader;
     
+    private $_aGetValues = array();
+    private $_aUnits = array();
+    private $_aModules = array();
     
-    function __construct($hDbConn) {
+    private $_instanceCache;
+
+    static private $_instance = NULL;
+    
+    private function __construct() {
     	if (DEBUG_MODE)
     		openlog('gusenru', LOG_NDELAY, LOG_USER);
 
-        CWebPage::debug("CWebPage::__construct(CDataBase)");
-        
-        if ($hDbConn instanceof CDataBase) {
-            $this->hDbConn = $hDbConn;
-        }
-        else
-        	throw new \Exception('Wrong CDataBase connection was passed!');
+        CWebPage::debug(__METHOD__);
 
-		$this->fillGetValues();
+		$this->_processGetValues();
 		// TODO: ADD POST VARS
 		// TODO: ADD SESSION VARS
 
@@ -50,38 +52,30 @@ class CWebPage
 			CacheManager::setDefaultConfig([
 				"path" => sys_get_temp_dir(),
 			]);
-			$this->instanceCache = CacheManager::getInstance(CACHE_TYPE);
+			$this->_instanceCache = CacheManager::getInstance(CACHE_TYPE);
 		}
 
-        $this->pageProcess($this->aGetValues['page']);
+		$this->_processPage($this->_aGetValues['page']);
         
-        $this->renderTemplate();
-        
-        //$this->getPageContent();
     }
-    
-    function getDataBaseHandler() {
-    	return $this->hDbConn;
-    }
-    
-    function getGetValue($name) {
-    	if (array_key_exists($name, $this->aGetValues))
-    		return $this->aGetValues[$name];
-    	else
-    		return FALSE;
-    }
-    
-    function getUnit($id) {
-    	if (!array_key_exists($id, $this->aUnits))
-			$this->aUnits[$id] = new CUnit($this->hDbConn, $id);
 
-    	return $this->aUnits[$id];
+	// Magic method clone is empty to prevent duplication of connection
+	private function __clone() { }
+
+	static public function getInstance()  {
+		CWebPage::debug("CWebPage::getInstance()");
+		
+        if (self::$_instance == NULL) {
+        	CWebPage::debug("CWebPage::getInstance() creating WebPage object");
+            self::$_instance = new self();
+        }
+        return self::$_instance;
     }
-    
+
     /**
      * Processing of GET values
      */
-    private function fillGetValues() {
+    private function _processGetValues() {
     	foreach ($_GET as $key => $value) {
     		if (in_array($key, GET_INT_VALS)) {
 				$value = filter_var(
@@ -89,13 +83,7 @@ class CWebPage
                     FILTER_SANITIZE_NUMBER_INT
                 );
     		}
-    		$this->aGetValues[$key] = $value;
-    	}
-    }
-    
-    static function debug($message, $priority = LOG_INFO) {
-    	if (DEBUG_MODE) {
-			syslog($priority, $message);
+    		$this->_aGetValues[$key] = $value;
     	}
     }
 
@@ -105,13 +93,13 @@ class CWebPage
      * 
      * It defines a content which will be loaded.
      */
-    private function pageProcess($page) {
+    private function _processPage($page) {
         switch ($page) {
             case 'comment_add':
                 $this->commentAdd();
                 break;
             case 'ajax':
-                $this->ajaxPage($this->aGetValues['ajax_mode']);
+                $this->_ajaxPage($this->_aGetValues['ajax_mode']);
                 break;
             case 'oauth_vk':
                 $this->oauth('vk');
@@ -127,7 +115,7 @@ class CWebPage
                 break;
             case 'unit':
                 // if unit_id doesn't exists in the DB, send 404 page
-                $stmt = $this->hDbConn->prepare('
+                $stmt = CDataBase::getInstance()->prepare('
                 	SELECT
 						COUNT(*) as cnt 
 					FROM units 
@@ -135,47 +123,216 @@ class CWebPage
 				);
                 $stmt->bindValue(
                     ':id',
-                    $this->aGetValues['id'],
+                    $this->_aGetValues['id'],
                     \PDO::PARAM_INT
                 );
                 $stmt->execute();
                 if ($stmt->fetch(\PDO::FETCH_ASSOC)['cnt'] == 1) {
-                    $this->setTemplate('tpl/unit.tpl');
+                    $this->_setTemplate('tpl/unit.tpl');
                 }
                 else {
                     header('Location: /404');
-                    exit;
                 }                    
                 break;
             case 'search':
-                $this->setTemplate('tpl/search.tpl');
+                $this->_setTemplate('tpl/search.tpl');
                 break;
             case 'about':
-                $this->setTemplate('tpl/about.tpl');
+                $this->_setTemplate('tpl/about.tpl');
                 break;
             case 'admin':
-                $this->adminPage($this->aGetValues['act']);
+                $this->_adminPage($this->_aGetValues['act']);
                 break;
             case 'sitemap':
-                $this->sitemap();
+                $this->_sitemap();
                 break;
             case 'copyright':
-                $this->setTemplate('tpl/copyright.tpl');
+                $this->_setTemplate('tpl/copyright.tpl');
                 break;
             case '404':
-                $this->setTemplate('tpl/404.tpl');
+                $this->_setTemplate('tpl/404.tpl');
                 break;
             case 'error':
-            	$this->setTemplate('tpl/error.tpl');
+            	$this->_setTemplate('tpl/error.tpl');
             	break;
             case 'main':
             default:
-                $this->setTemplate('tpl/main.tpl');
+                $this->_setTemplate('tpl/main.tpl');
         }        
     }
     
+    /**
+     * Sets current page template and defines all modules within it
+     * 
+     * @param string $tpl template name
+     * 
+     * @return void
+     */
+    private function _setTemplate($tpl) {
+        CWebPage::debug("CWebPage::_setTemplate({$tpl})");
+        
+        if (file_exists($tpl)) {
+            $this->_sTemplate = $tpl;
+            
+            $this->_sContent = file_get_contents($this->_sTemplate);
+            if (!$this->_sContent)
+            	throw new \Exception("CWebPage::renderTemplate({$tpl}): ".
+            		"Can't load template or it's empty");
+            
+            preg_match_all('/%{(.+)}%/', $this->_sContent, $aModules);
+
+            foreach ($aModules[1] as $key => $value) {
+                list($modName, $viewFile, $duration, $param1, $param2) = 
+                	explode('&', $value);
+
+                if (empty($modName) || empty($viewFile) || !isset($duration)) {
+					throw new \Exception("Error module parameters! {$aModules[0][$key]}");
+                }
+                
+                $this->_aModules[$aModules[0][$key]] = array(
+                	'name' => $modName,
+                	'view' => $viewFile == 'null' ? NULL : $viewFile,
+                	'duration' => $duration,
+                	'param1' => empty($param1) ? NULL : $param1,
+                	'param2' => empty($param2) ? NULL : $param2//,
+            	);
+            }
+        }
+        else
+        	throw new \Exception("TPL {$tpl} doesn't exists!");
+    }
+    
+    /**
+     * Runs all modules from the page and applies the corresponding
+     * views (if they are exist)
+     * 
+     * @return void 
+     */
+    private function _render() {
+        CWebPage::debug('CWebPage::renderTemplate()');
+
+		$xml = new \DOMDocument;
+        $xsl = new \DOMDocument();
+        $hProc = new \XSLTProcessor();
+		$array2xml = new \Array2xml();
+		$array2xml->setFilterNumbersInTags(TRUE);
+        
+    	foreach ($this->_aModules as $key => $value) {
+			$sModContent = '';
+
+			$sCache = NULL;
+			if (CACHE_ON && ($value['duration'] > 0)) {
+				$sUrl = http_build_query($this->_aGetValues);
+
+				$sCache = $this->_instanceCache->getItem(
+					md5(
+				    	$value['name'].
+				    	$value['view'].
+				    	$value['param1'].
+				    	$value['param2'].
+						$sUrl // add URL-specific key
+					)
+				);
+
+				if ($sCache->isHit()) {
+					CWebPage::debug("Get from cache {$key}");
+
+					$sModContent = $sCache->get();						
+				}
+
+			}
+			
+			if (empty($sModContent)) {
+				$hMod = new CModule(
+			    	$value['name'], // Avoid this parameter!!!
+			    	$value['param1'],
+			    	$value['param2']
+				);
+				$aData = $hMod->execute();
+		        unset($hMod);
+
+	    		if ($value['view']) {
+		    		$sXml = $array2xml->convert($aData);
+	
+					$xml->loadXML($sXml);
+	                $xsl->load("xsl/".$value['view']);	            
+		            $hProc->importStylesheet($xsl);
+		            $sModContent = $hProc->transformToXML($xml);
+	    		} else {
+	    			$sModContent = $aData[0];
+	    		}
+	    		
+// if ($value['name'] == 'unit_comments') {
+// 	d($sModContent);
+// 	exit;
+// }
+			    
+			    if (CACHE_ON && ($value['duration'] > 0)) {
+					CWebPage::debug("Write to cache {$key} on {$duration} minutes");
+				
+					$sCache
+						->set($sModContent)
+						->expiresAfter($value['duration'] * 60);
+				    $this->_instanceCache->save($sCache);
+			    }
+			    elseif (CACHE_ON && ($value['duration'] == 0)) {
+			    	CWebPage::debug("{$key} doesn't use a cache");
+			    }
+			}
+			unset($sCache);
+			
+		    $this->_sContent = str_replace(
+		    	$key,
+		    	$sModContent,
+		    	$this->_sContent
+		    );
+		    unset($sModContent);
+    	}
+    }
+    
+    function resetCache() {
+    	CWebPage::debug('CWebPage::resetCache()');
+		
+		if (CACHE_ON)
+			$this->_instanceCache->clear();
+    }
+    
+    function getContent() {
+		// $this->_executeModules();
+    	$this->_render();
+    	
+    	if (!empty($this->_sHeader)) {
+    		header($this->_sHeader);
+    	}
+        return $this->_sContent;
+    }
+    
+    public function __toString() {
+        return $this->getContent();
+    }
+    
+    function getGetValue($name) {
+    	if (array_key_exists($name, $this->_aGetValues))
+    		return $this->_aGetValues[$name];
+    	else
+    		return FALSE;
+    }
+    
+    function getUnit($id) {
+    	if (!array_key_exists($id, $this->_aUnits))
+			$this->_aUnits[$id] = new CUnit($id);
+
+    	return $this->_aUnits[$id];
+    }
+    
+    static function debug($message, $priority = LOG_INFO) {
+    	if (DEBUG_MODE) {
+			syslog($priority, $message);
+    	}
+    }
+    
     // WBMP->resourse convertor
-    function ImageCreateFromBMP($filename) {
+    private function ImageCreateFromBMP($filename) {
         if (! $f1 = fopen($filename,'rb')) return FALSE; 
         $FILE = unpack('vfile_type/Vfile_size/Vreserved/Vbitmap_offset', fread($f1,14)); 
         if ($FILE['file_type'] != 19778) return FALSE; 
@@ -262,8 +419,8 @@ class CWebPage
      * 
      * @return resource resized image resource
      */
-    function resizeImage($file, $w, $h, $crop=FALSE) {
-        CWebPage::debug("CWebPage::resizeImage({$file}, {$w}, {$h}, {$crop})");
+    private function _resizeImage($file, $w, $h, $crop=FALSE) {
+        CWebPage::debug("CWebPage::_resizeImage({$file}, {$w}, {$h}, {$crop})");
 
         // get image type
         $src = null;
@@ -355,7 +512,7 @@ class CWebPage
             return $dst;
         }
         else 
-            return false;
+            return FALSE;
     }
     
     /**
@@ -363,7 +520,7 @@ class CWebPage
      * 
      * @return bool
      */
-    function isAuth() {
+    private function isAuth() {
         CWebPage::debug('CWebPage::isAuth()');
 
         if(isset($_SESSION['username'])) {
@@ -373,138 +530,6 @@ class CWebPage
             return FALSE;
     }
 
-    /**
-     * Sets current page template
-     * 
-     * @param string $tpl template name
-     * 
-     * @return void
-     */
-    function setTemplate($tpl) {
-        CWebPage::debug("CWebPage::setTemplate({$tpl})");
-        
-        if (file_exists($tpl)) {
-            $this->tpl = $tpl;
-        }
-        else
-        	throw new \Exception("TPL $tpl doesn't exists!");
-    }
-    
-    /**
-     * We should reset fastPhpCache after each data updates 
-     * for show changes immediately
-     */
-    function resetCache() { //$modName, $xslFile, $param1, $param2) {
-    	CWebPage::debug('CWebPage::resetCache()');
-		
-		if (CACHE_ON)
-			$this->instanceCache->clear();
-    }
-
-    /**
-     * Processing template and executing all modules from it.
-     * Eventually sets $sPageContent content.
-     * 
-     * @return void 
-     */
-    function renderTemplate() {
-        CWebPage::debug('CWebPage::renderTemplate()');
-
-        if (isset($this->tpl)) {
-            $this->sPageContent = file_get_contents($this->tpl);
-            if (!$this->sPageContent)
-            	throw new \Exception("CWebPage::renderTemplate(): Can't load template {$this->tpl}");
-            
-            preg_match_all('/%{(.+)}%/', $this->sPageContent, $matches);
-
-			$sUrl = http_build_query($this->aGetValues); //implode('', $this->aGetValues);
-            
-            foreach ($matches[1] as $key => $value) {
-                list($modName, $xslFile, $duration, $param1, $param2) = 
-                	explode('&', $value);
-
-                if (empty($modName) || empty($xslFile) || !isset($duration)) {
-					throw new \Exception("Error module parameters! {$matches[0][$key]}");
-                }
-
-				if (CACHE_ON && ($duration > 0)) {
-					$CachedString = $this->instanceCache->getItem(
-						md5(
-					    	$modName.
-					    	$xslFile.
-					    	$param1.
-					    	$param2.
-							$sUrl // add URL-specific key
-						)
-					);
-					
-					if (!$CachedString->isHit()) {
-					    $hMod = new CModule(
-					    	$this,
-					    	$modName,
-					    	$xslFile,
-					    	$param1,
-					    	$param2
-					    );
-					    $sModContent = $hMod->execute();
-						CWebPage::debug("Write to cache {$matches[1][$key]} on {$duration} minutes");
-					    $this->sPageContent = str_replace(
-					    	$matches[0][$key],
-					    	$sModContent,
-					    	$this->sPageContent
-					    );
-					
-						$CachedString
-							->set($sModContent)
-							->expiresAfter($duration * 60);
-					    unset($hMod);
-					    $this->instanceCache->save($CachedString);
-					} else {
-						CWebPage::debug("Get from cache {$matches[1][$key]}");
-						
-					    $this->sPageContent = str_replace(
-					    	$matches[0][$key],
-					    	$CachedString->get(),
-					    	$this->sPageContent
-					    );
-					}
-					unset($CachedString);
-				}
-				else {
-					if (CACHE_ON)
-						CWebPage::debug("{$modName} doesn't use a cache");
-
-				    $hMod = new CModule(
-				    	$this, //$this->hDbConn,
-				    	$modName,
-				    	$xslFile,
-				    	$param1,
-				    	$param2
-				    );
-				    $sModContent = $hMod->execute();
-				    unset($hMod);
-				    $this->sPageContent = str_replace(
-				    	$matches[0][$key],
-				    	$sModContent,
-				    	$this->sPageContent
-				    );
-				}
-            }
-        }
-    }
-    
-    function getPageContent() {
-    	if (!empty($this->header)) {
-    		header($this->header);
-    	}
-        return $this->sPageContent;
-    }
-    
-    public function __toString() {
-        return $this->getPageContent();
-    }    
-    
-    
     //======================================================================
     
     /**
@@ -518,14 +543,14 @@ class CWebPage
      * 
      * @return void
      */
-    function oauth($type) {
+    private function oauth($type) {
         CWebPage::debug("CWebPage::oauth({$type})");
         
         list($realHost,)=explode(':',$_SERVER['HTTP_HOST']);
 
         $cur_link = sprintf('https://%s/?page=%s',
             $realHost,
-            $this->aGetValues['page']
+            $this->_aGetValues['page']
         );
         
         $getUser = FALSE;    
@@ -617,7 +642,7 @@ class CWebPage
 				);
 				
 				try {
-					$client->authenticate($this->aGetValues['code']);
+					$client->authenticate($this->_aGetValues['code']);
 					$client->setAccessToken($client->getAccessToken());
 					
 					$objOAuthService = new \Google_Service_Oauth2($client);
@@ -651,13 +676,11 @@ class CWebPage
             $loc = $_SESSION['user_referer'];
             unset($_SESSION['user_referer']);
             
-			//$this->resetCache();
-            
             header("Location: $loc");
         }
     }
     
-    function userLogout() {
+    private function userLogout() {
         CWebPage::debug('CWebPage::userLogout()');
 
 		$this->resetCache();
@@ -666,15 +689,14 @@ class CWebPage
         header('Location: ' . $_SERVER['HTTP_REFERER']);
     }
     
-    function commentAdd() {
+    private function commentAdd() {
         CWebPage::debug('CWebPage::commentAdd()');
-
         if (isset($_POST['user_id'])) {
             if (!filter_var($_POST['unit_id'], FILTER_VALIDATE_INT)) {
                 echo 'Wrong parameters were passed!';
             }
             else {        
-                $stmt = $this->hDbConn->prepare("
+                $stmt = CDataBase::getInstance()->prepare("
                 		INSERT 
                 		INTO comments (
                 			unit_id,
@@ -709,8 +731,10 @@ class CWebPage
     }
     
     // generator of sitexml.xml
-    function sitemap() {
+    private function _sitemap() {
         CWebPage::debug('CWebPage::sitemap()');
+        
+        $hDbConn = CDataBase::getInstance();
         
         $xml = new \DOMDocument('1.0', 'UTF-8');
         $urlset = $xml->createElement('urlset');
@@ -720,7 +744,7 @@ class CWebPage
         $urlset->appendChild($attr);
 
         $q = 'SELECT date FROM units ORDER BY date LIMIT 1';
-        $res = $this->hDbConn->query($q);
+        $res = $hDbConn->query($q);
         $row = $res->fetch(\PDO::FETCH_ASSOC);
 
         $url = $xml->createElement('url');
@@ -757,8 +781,8 @@ class CWebPage
         $url->appendChild($l);        
         $urlset->appendChild($url);
 
-        $q = 'SELECT id,date FROM units';
-        $res = $this->hDbConn->query($q);
+        $q = 'SELECT id,date FROM units WHERE is_arch=FALSE';
+        $res = CDataBase::getInstance()->query($q);
         while ($row = $res->fetch(\PDO::FETCH_ASSOC)) {
             $url = $xml->createElement('url');
             $l = $xml->createElement('loc',
@@ -782,15 +806,14 @@ class CWebPage
             $urlset->appendChild($url);
         }
         
-        //header('Content-type: application/xml');
-        $this->header = 'Content-type: application/xml';
-        $this->sPageContent = $xml->saveXML();
+        $this->_sHeader = 'Content-type: application/xml';
+        $this->_sContent = $xml->saveXML();
     }
     
     //-----------------------------------------------------
     // Admin page functionality
     //-----------------------------------------------------    
-    private function adminPage($act) {
+    private function _adminPage($act) {
         switch ($act) {
             case 'check_login':
                 if(isset($_POST['username'], $_POST['password'])) {
@@ -819,13 +842,13 @@ class CWebPage
                 break;
             case 'unit_arch_list':
                 if ($this->isAuth())
-                    $this->setTemplate('tpl/admin_unit_arch_list.tpl');
+                    $this->_setTemplate('tpl/admin_unit_arch_list.tpl');
                 else
                     header('Location: ?page=admin&act=login_form&msg=access_denied');
                 break;
             case 'admin_unit_form':
                 if ($this->isAuth())
-                    $this->setTemplate('tpl/admin_unit_form.tpl');
+                    $this->_setTemplate('tpl/admin_unit_form.tpl');
                 else
                     header('Location: ?page=admin&act=login_form&msg=access_denied');
                 break;
@@ -849,7 +872,7 @@ class CWebPage
                 break;
             case 'unit_del':
                 if ($this->isAuth()) {
-                	CUnit::deleteUnit($this->aGetValues['id'], $this->hDbConn);
+                	CUnit::deleteUnit($this->_aGetValues['id']);
                 	$this->resetCache();
 					header('Location: ' . $_SERVER['HTTP_REFERER']);
                 }
@@ -858,7 +881,7 @@ class CWebPage
                 break;
             case 'unit_arch':
                 if ($this->isAuth()) {
-					CUnit::archUnit($this->aGetValues['id'], $this->hDbConn);
+					CUnit::archUnit($this->_aGetValues['id']);
 					header('Location: ' . $_SERVER['HTTP_REFERER']);
                 }
                 else
@@ -866,7 +889,7 @@ class CWebPage
                 break;
             case 'unit_restore':
                 if ($this->isAuth()) {
-					CUnit::restoreUnit($this->aGetValues['id'], $this->hDbConn);
+					CUnit::restoreUnit($this->_aGetValues['id']);
 					header('Location: ' . $_SERVER['HTTP_REFERER']);
                 }
                 else
@@ -886,23 +909,23 @@ class CWebPage
 				$this->ownerAdd();
 				break;
             case 'owner_form':
-            		$this->setTemplate('tpl/admin_owner_form.tpl');
+            		$this->_setTemplate('tpl/admin_owner_form.tpl');
             	break;
             case 'main':
                 if ($this->isAuth())
-                    $this->setTemplate('tpl/admin.tpl');
+                    $this->_setTemplate('tpl/admin.tpl');
                 else
                     header('Location: ?page=admin&act=login_form&msg=access_denied');
                 break;
             case 'unapproved_comments':
                 if ($this->isAuth())
-                    $this->setTemplate('tpl/admin_unapproved_comments_list.tpl');
+                    $this->_setTemplate('tpl/admin_unapproved_comments_list.tpl');
                 else
                     header('Location: ?page=admin&act=login_form&msg=access_denied');
                 break;
             case 'owners_list':
                 if ($this->isAuth())
-                    $this->setTemplate('tpl/admin_owners_list.tpl');
+                    $this->_setTemplate('tpl/admin_owners_list.tpl');
                 else
                     header('Location: ?page=admin&act=login_form&msg=access_denied');
                 break;
@@ -912,13 +935,13 @@ class CWebPage
                     header('Location: ?page=admin&act=main');
                 }
                 else {
-                    $this->setTemplate('tpl/admin_login.tpl');
+                    $this->_setTemplate('tpl/admin_login.tpl');
                 }                    
                 break;
         }        
     }
     
-    function fillUnit($mode) {
+    private function fillUnit($mode) {
         CWebPage::debug("CWebPage::fillUnit({$mode})");
 
     	$unit = new CUnit($this->hDbConn);
@@ -946,8 +969,8 @@ class CWebPage
 		$this->aUnits[$unit->id] = $unit;
     }
     
-    function ownerAdd() {
-        $stmt = $this->hDbConn->prepare('
+    private function ownerAdd() {
+        $stmt = CDataBase::getInstance()->prepare('
     		INSERT INTO owners (
     			name,
     			description)
@@ -962,8 +985,8 @@ class CWebPage
     	header('Location: /?page=admin&act=owners_list');
     }
     
-    function ownerEdit() {
-        $stmt = $this->hDbConn->prepare('
+    private function ownerEdit() {
+        $stmt = CDataBase::getInstance()->prepare('
     		UPDATE owners
     		SET
     			name=:name,
@@ -978,20 +1001,22 @@ class CWebPage
     	header('Location: /?page=admin&act=owners_list');
     }
     
-    function ownerDelete() {
+    private function ownerDelete() {
+    	$hDbConn = CDataBase::getInstance();
+    	
         $q = sprintf('
     		SELECT COUNT(*) AS cnt
     		FROM `units`
     		WHERE owner_id=%d',
     		$this->getGetValue('id')
     	);
-        $res = $this->hDbConn->query($q);
+        $res = $hDbConn->query($q);
         if ($res->fetch(\PDO::FETCH_ASSOC)['cnt'] > 0) {
-        	$this->sPageContent = 'The owner is used! Remove it from all units before deleting.';
+        	$this->_sContent = 'The owner is used! Remove it from all units before deleting.';
         } else {
         	$q = sprintf('DELETE FROM `owners` WHERE id=%d', 
         		$this->getGetValue('id'));
-        	$this->hDbConn->query($q);
+        	$hDbConn->query($q);
         	header('Location: ' . $_SERVER['HTTP_REFERER']);
         }
     }
@@ -999,25 +1024,29 @@ class CWebPage
     //-----------------------------------------------------
     // Ajax page functionality
     //-----------------------------------------------------    
-    private function ajaxPage($mode) {
+    private function _ajaxPage($mode) {
         CWebPage::debug("CWebPage::ajaxPage({$mode})");
-        
+
         switch ($mode) {
             case 'city':
                 $json = array();
-                $q = sprintf('SELECT
-                					id,
-                					name 
-                				FROM `cities` 
-                				WHERE `rd_id` IN (
-                					SELECT id 
-                					FROM `regions` 
-                					WHERE fd_id=%d
-                				) 
-                				ORDER BY name', 
-                    filter_var($this->aGetValues['fdid'], FILTER_SANITIZE_NUMBER_INT)
+                $q = sprintf('
+                	SELECT
+    					id,
+    					name 
+    				FROM `cities` 
+    				WHERE `rd_id` IN (
+    					SELECT id 
+    					FROM `regions` 
+    					WHERE fd_id=%d
+    				) 
+    				ORDER BY name', 
+                    filter_var(
+                    	$this->_aGetValues['fdid'],
+                    	FILTER_SANITIZE_NUMBER_INT
+                    )
                 );
-                if ($res = $this->hDbConn->query($q)) {
+                if ($res = CDataBase::getInstance()->query($q)) {
                     while ($r = $res->fetch(\PDO::FETCH_ASSOC)) {
                         $json[] = array(
                             'id' => $r['id'],
@@ -1025,15 +1054,15 @@ class CWebPage
                         );
                     }
                 }
-                $this->header = 'Content-Type: application/json; charset=UTF-8';
-                $this->sPageContent = json_encode($json);
+                $this->_header = 'Content-Type: application/json; charset=UTF-8';
+                $this->_sContent = json_encode($json);
                 break;
             case 'image_load':
                 if ($_FILES['afile']['error'] === UPLOAD_ERR_OK ) {
                     $fName = uniqid() . '.jpeg';
                 
-                    $img = $this->resizeImage($_FILES['afile']['tmp_name'], 1280, 1024);
-                    $tmb = $this->resizeImage($_FILES['afile']['tmp_name'], 190, 190, TRUE);
+                    $img = $this->_resizeImage($_FILES['afile']['tmp_name'], 1280, 1024);
+                    $tmb = $this->_resizeImage($_FILES['afile']['tmp_name'], 190, 190, TRUE);
                 
                     imagejpeg($img, 'tmp_images/'.$fName);
                     imagejpeg($tmb, 'tmp_images/tmb/'.$fName);
@@ -1048,7 +1077,7 @@ class CWebPage
                     	'type' => $fileType,
                     	'dataUrl' => $dataUrl,
                     ));
-                    $this->sPageContent = $json;
+                    $this->_sContent = $json;
                 }
                 break;
             case 'vk_upload':
@@ -1056,6 +1085,8 @@ class CWebPage
 				//if (true) {
 				//    $_POST['unit_id'] = 37;
 				//    $_POST['url'] = "https://pu.vk.com/c604829/upload.php?act=do_add&mid=47192372&aid=-14&gid=137789409&hash=0cf4ca2d4e19002f61d503083505b44b&rhash=9044348098bb9c9d2309bca8b493138b&swfupload=1&api=1&wallphoto=1";
+				    
+				    $hDbConn = CDataBase::getInstance();
 				    
                     $unit_id = filter_var(
                         $_POST['unit_id'], 
@@ -1072,7 +1103,7 @@ class CWebPage
 	                				$unit_id
 	                );
 	                
-	                if ($res = $this->hDbConn->query($q)) {
+	                if ($res = $hDbConn->query($q)) {
 	                	$i = 0;
 	                    while ($r = $res->fetch(\PDO::FETCH_ASSOC)) {
 	                    	$i++;
@@ -1094,14 +1125,13 @@ class CWebPage
 				    $result = curl_exec($ch);
 				    curl_close($ch);
 
-                    $unit = new CUnit($this->hDbConn, $unit_id);
+                    $unit = new CUnit($unit_id);
 
 				    $aResult = json_decode($result, TRUE);
 				    $aResult['unit'] = $unit->jsonData();
 				    $result = json_encode($aResult);
 				
-					$this->sPageContent = $result;
-				 
+					$this->_sContent = $result;
 				}            	
             	break;
         }

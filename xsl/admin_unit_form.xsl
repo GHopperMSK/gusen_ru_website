@@ -26,7 +26,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 				</xsl:choose>
 			</legend>
 
-        <xsl:for-each select="images/img">
+        <xsl:for-each select="images/image">
             <input type="hidden" name="available_images[]">
                 <xsl:attribute name="value"><xsl:value-of select="current()"/>
                 </xsl:attribute>

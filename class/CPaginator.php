@@ -34,41 +34,10 @@ class CPaginator {
     	);
     }
     
-	/**
-	 * Return DOMElement object with pagination elements:
-	 *  <paginator>
-	 *     <page type="first">
-	 *         <number>1</number>
-	 *         <link>?page=search&offset=1</link>
-	 *     </page>
-	 *     <page type="prev">
-	 *         <number>3</number>
-	 *         <link>?page=search&offset=3</link>
-	 *     </page>
-	 *     <page type="regular">
-	 *         <number>3</number>
-	 *         <link>?page=search&offset=10</link>
-	 *      </page>
-	 *     <page type="current">
-	 *         <number>4</number>
-	 *         <link>?page=search&offset=11</link>
-	 *      </page>
-	 *      ...
-	 *     <page type="next">
-	 *         <number>5</number>
-	 *         <link>?page=search&offset=5</link>
-	 *      </page>
-	 *     <page type="last">
-	 *         <number>68</number>
-	 *         <link>?page=search&offset=68</link>
-	 *      </page>
-	 * </paginator>
-	 */
-    function getXML() {
-        $xmlDoc = new \DOMDocument('1.0', 'utf-8');
-        $ePaginator = $xmlDoc->createElement('paginator');
-        $ePaginator = $xmlDoc->appendChild($ePaginator);
-
+  
+    function get() {
+    	$aPageNav = array();
+    	
         $iPagesTotal = ceil($this->iUnitsTotal/$this->iUnitsOnPage);
 
         if ($iPagesTotal>1) {
@@ -79,67 +48,54 @@ class CPaginator {
                 $iStartPage = max($iEndPage - $this->iNavShowPages + 1, 1);
             }
             if ($iStartPage > 1) {
-                $ePage = $xmlDoc->createElement('page');
-                $ePage = $ePaginator->appendChild($ePage);
-                $eNumber = $xmlDoc->createElement('number', 1);
-                $ePage->appendChild($eNumber);
-                $eLink = $xmlDoc->createElement('link', sprintf($this->sLinkPattern, 1));
-                $ePage->appendChild($eLink);
-                $eIsCurrent = $xmlDoc->createAttribute('type');
-                $eIsCurrent->value = 'first';
-                $ePage->appendChild($eIsCurrent);
+            	$aPageNav['paginator']['page1']['number'] = 1;
+            	$aPageNav['paginator']["page1"]['link'] =
+            		sprintf($this->sLinkPattern, 1);
+            	$aPageNav['paginator']['page1']['@attributes'] = array(
+            		'type' => 'first'
+        		);
+                
             }
             if ($this->iCurPage > 1) {
-                $ePage = $xmlDoc->createElement('page');
-                $ePage = $ePaginator->appendChild($ePage);
-                $eNumber = $xmlDoc->createElement('number', $this->iCurPage - 1);
-                $ePage->appendChild($eNumber);
-                $eLink = $xmlDoc->createElement('link', sprintf($this->sLinkPattern, $this->iCurPage - 1));
-                $ePage->appendChild($eLink);
-                $eIsCurrent = $xmlDoc->createAttribute('type');
-                $eIsCurrent->value = 'prev';
-                $ePage->appendChild($eIsCurrent);
+            	$prev = $this->iCurPage - 1;
+            	$aPageNav['paginator']["page{$prev}00"]['number'] = $prev;
+            	$aPageNav['paginator']["page{$prev}00"]['link'] =
+            		sprintf($this->sLinkPattern, $prev);
+            	$aPageNav['paginator']["page{$prev}00"]['@attributes'] = array(
+        			'type' => 'prev'
+    			);
             }
             for ($i=$iStartPage; $i<=$iEndPage; $i++) {
-                $ePage = $xmlDoc->createElement('page');
-                $ePage = $ePaginator->appendChild($ePage);
-                $eNumber = $xmlDoc->createElement('number', $i);
-                $ePage->appendChild($eNumber);
-                $eLink = $xmlDoc->createElement('link', sprintf($this->sLinkPattern, $i));
-                $ePage->appendChild($eLink);
-                $eIsCurrent = $xmlDoc->createAttribute('type');
-                if ($i == $this->iCurPage) {
-                    $eIsCurrent->value = 'current';
-                } else {
-                    $eIsCurrent->value = 'regular';
-                }
-                $ePage->appendChild($eIsCurrent);
+            	$aPageNav['paginator']["page{$i}"]['number'] = $i;
+            	$aPageNav['paginator']["page{$i}"]['link'] = 
+            		sprintf($this->sLinkPattern, $i);
+            	$aPageNav['paginator']["page{$i}"]['@attributes'] = array(
+            		'type' => ($i == $this->iCurPage) ? 'current' : 'regular'
+        		);
             }
             if ($this->iCurPage < $iEndPage) {
-                $ePage = $xmlDoc->createElement('page');
-                $ePage = $ePaginator->appendChild($ePage);
-                $eNumber = $xmlDoc->createElement('number', $this->iCurPage + 1);
-                $ePage->appendChild($eNumber);
-                $eLink = $xmlDoc->createElement('link', sprintf($this->sLinkPattern, $this->iCurPage + 1));
-                $ePage->appendChild($eLink);
-                $eIsCurrent = $xmlDoc->createAttribute('type');
-                $eIsCurrent->value = 'next';
-                $ePage->appendChild($eIsCurrent);
+            	$next = $this->iCurPage + 1;
+            	$aPageNav['paginator']["page{$next}00"]['number'] = $next;
+            	$aPageNav['paginator']["page{$next}00"]['link'] =
+            		sprintf($this->sLinkPattern, $next);
+            	$aPageNav['paginator']["page{$next}00"]['@attributes'] = array(
+            		'type' => 'next'
+        		);
             }
             if ($iEndPage < $iPagesTotal) {
-                $ePage = $xmlDoc->createElement('page');
-                $ePage = $ePaginator->appendChild($ePage);
-                $eNumber = $xmlDoc->createElement('number', $iPagesTotal);
-                $ePage->appendChild($eNumber);
-                $eLink = $xmlDoc->createElement('link', sprintf($this->sLinkPattern, $iPagesTotal));
-                $ePage->appendChild($eLink);
-                $eIsCurrent = $xmlDoc->createAttribute('type');
-                $eIsCurrent->value = 'last';
-                $ePage->appendChild($eIsCurrent);
+            	$aPageNav['paginator']["page{$iPagesTotal}"]['number'] = 
+            		$iPagesTotal;
+            	$aPageNav['paginator']["page{$iPagesTotal}"]['link'] =
+            		sprintf($this->sLinkPattern, $iPagesTotal);
+            	$aPageNav['paginator']
+            			["page{$iPagesTotal}"]['@attributes'] = array(
+            		'type' => 'last'
+        		);
             }
         }
-        return $ePaginator;
-    }
+        return $aPageNav;
+    }    
+    
 }
 
 ?>

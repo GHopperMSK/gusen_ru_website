@@ -6,7 +6,8 @@
         "vladkens/vk": "^0.1.9",
         "facebook/graph-sdk": "^5.0",
         "phpFastCache/phpFastCache": "^5.0",
-        "neitanod/forceutf8": "dev-master"
+        "neitanod/forceutf8": "dev-master",
+        "dbrisinajumi/array2xml": "dev-master"
     },
     "autoload": {
     	"psr-4": {"gusenru\\": "class"}

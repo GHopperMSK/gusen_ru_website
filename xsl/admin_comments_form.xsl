@@ -49,7 +49,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 
 <xsl:template match="root">
 	<form method="POST">
-	    <xsl:apply-templates select="comment" />
+	    <xsl:apply-templates select="comments/comment" />
 	    <input class="search_button" type="submit" />
 	</form>
 </xsl:template>

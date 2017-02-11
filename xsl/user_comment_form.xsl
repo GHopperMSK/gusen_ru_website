@@ -10,7 +10,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
     <xsl:choose>
         <xsl:when test="user">
         	<li class="media">
-	        	<div class="pull-left"><img><xsl:attribute name="src"><xsl:value-of select="/root/user/img" /></xsl:attribute></img></div>
+	        	<div class="pull-left"><img><xsl:attribute name="src"><xsl:value-of select="/root/user/image" /></xsl:attribute></img></div>
 	        	<div class="media-body">
 	        		<h4 class="media-heading"><span><xsl:value-of select="/root/user/@name"/></span><a href="/logout">(выйти)</a></h4>
 		            <form role="form" class="wrap_com" id="comment_form" method="POST" action="/?page=comment_add">
