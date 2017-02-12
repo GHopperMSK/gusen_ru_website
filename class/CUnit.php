@@ -168,7 +168,7 @@ class CUnit
 	        $ur = $res->fetch(\PDO::FETCH_ASSOC);
 
 			if (MOD_REWRITE)
-				$this->_link = "/user/{$this->id}";
+				$this->_link = "/unit/{$this->id}";
 			else
 				$this->_link = "/?page=unit&id={$this->id}";
 
