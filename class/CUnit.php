@@ -35,19 +35,13 @@ class CUnit
 	private $int_city_params = array(
 		'id','reg_id','fdist_id'
 	);
-	
-	private $hDbConn = null;
+
+	private $_link;
+	private $_catLink;
 	
 	function __construct($id=NULL) {
 		CWebPage::debug("CUnit::__construct({$id})");
-/*
-        if ($hDbConn instanceof CDataBase) {
-            $this->hDbConn = CDataBase::getInstance();
-        }
-        else {
-        	throw new \Exception('Wrong CDataBase connection was passed!');
-        }
-*/
+
         if (!empty($id)) {
         	$this->id = $id;
         	$this->fillUnitData();
@@ -172,7 +166,12 @@ class CUnit
 	        $q = sprintf($q, $this->id);
 	        $res = $hDbConn->query($q);
 	        $ur = $res->fetch(\PDO::FETCH_ASSOC);
-	        
+
+			if (MOD_REWRITE)
+				$this->_link = "/user/{$this->id}";
+			else
+				$this->_link = "/?page=unit&id={$this->id}";
+
 			$this->name = isset($ur['name']) ? $ur['name'] : NULL;
 			$this->owner_id = $ur['owner_id'];
 			$this->owner = $ur['owner'];
@@ -184,6 +183,12 @@ class CUnit
 			$this->op_time = isset($ur['op_time']) ? $ur['op_time'] : NULL;
 			$this->cat_id = isset($ur['cat_id']) ? $ur['cat_id'] : NULL;
 			$this->category = isset($ur['category']) ? $ur['category'] : NULL;
+			
+			if ($this->cat_id) {
+				$this->_catLink = MOD_REWRITE ? "/search/{$this->cat_id}"
+					: "/?page=search&vType={$this->cat_id}";
+			}
+			
 			$this->manuf_id = isset($ur['manufacturer_id']) ? 
 				$ur['manufacturer_id']: NULL;
 			$this->manufacturer= isset($ur['manufacturer']) ? 
@@ -239,116 +244,10 @@ class CUnit
     		"{$this->name}, {$this->year} г.в. ".
     		"{$this->city['fdistrict']}, {$this->city['region']},г. ".
     		"{$this->city['name']}. Спецтехника б/у, продажа от ".
-    		"собвтенника, конкурентная цена, лизинг.";
+    		"собственника, конкурентная цена, лизинг.";
     	return $sDescr;
     }
     
-    /**
-     * Returns a DOMDocument with unit data
-     * <?xml version="1.0" encoding="utf-8"?>
-     * <root>
-     *	<unit id="UNIT_ID" name="UNIT_NAME">
-     *		<description>UNIT_DESCRIPTION</description>
-     *		<price>UNIT_PRICE</price>
-     *		<year>UNIT_YEAR</year>
-     *		<category id="CAT_ID">UNIT_CATEGORY</category>
-     *		<fdistrict id="FD_ID" short="УФО">Уральский федеральный округ</fdistrict>
-     *		<region id="REG_ID">Свердловская обл.</region>
-     *		<city id="CITY_ID">CITY_NAME</city>
-     *		<manufacturer id="MANUF_ID">LIEBHERR</manufacturer>
-     *		<images>
-     *			<img>584da0e1f350c.jpeg</img>
-     *			<img>584da0e225549.jpeg</img>
-     *			<img>584da0e24bc40.jpeg</img>
-     *		</images>
-     *	</unit>
-     * </root>
-     * 
-     */
-/*     
-    function getUnitDOM() {
-        $xmlDoc = new \DOMDocument('1.0', 'utf-8');
-        $eRoot = $xmlDoc->createElement('root');
-        $eRoot = $xmlDoc->appendChild($eRoot);
-
-        $top = $xmlDoc->createElement('unit');
-        $top = $eRoot->appendChild($top);
-        $topAttr = $xmlDoc->createAttribute('id');
-        $topAttr->value = $this->id;
-        $top->appendChild($topAttr);
-        $topAttr = $xmlDoc->createAttribute('name');
-        $topAttr->value = $this->name;
-        $top->appendChild($topAttr);
-        $topAttr = $xmlDoc->createAttribute('is_arch');
-        $topAttr->value = $this->is_arch ? 'TRUE' : 'FALSE';
-        $top->appendChild($topAttr);
-
-        $sub = $xmlDoc->createElement('owner', $this->owner);
-        $subAttr = $xmlDoc->createAttribute('id');
-        $subAttr->value = $this->owner_id;
-        $sub->appendChild($subAttr);
-        $top->appendChild($sub);
-
-        $sub = $xmlDoc->createElement('description', $this->description);
-        $top->appendChild($sub);
-        $sub = $xmlDoc->createElement('price', $this->price);
-        $top->appendChild($sub);
-        $sub = $xmlDoc->createElement('year', $this->year);
-        $top->appendChild($sub);
-
-        $sub = $xmlDoc->createElement('category', $this->category);
-        $subAttr = $xmlDoc->createAttribute('id');
-        $subAttr->value = $this->cat_id;
-        $sub->appendChild($subAttr);
-        $top->appendChild($sub);
-        
-        $sub = $xmlDoc->createElement('fdistrict', $this->city['fdistrict']);
-        $subAttr = $xmlDoc->createAttribute('id');
-        $subAttr->value = $this->city['fdist_id'];
-        $sub->appendChild($subAttr);
-        $subAttr = $xmlDoc->createAttribute('short');
-        $subAttr->value = $this->city['fdistrict_short'];
-        $sub->appendChild($subAttr);
-        $top->appendChild($sub);
-  
-        $sub = $xmlDoc->createElement('region', $this->city['region']);
-        $subAttr = $xmlDoc->createAttribute('id');
-        $subAttr->value = $this->city['reg_id'];
-        $sub->appendChild($subAttr);
-        $top->appendChild($sub);
-  
-        $sub = $xmlDoc->createElement('city', $this->city['name']);
-        $subAttr = $xmlDoc->createAttribute('id');
-        $subAttr->value = $this->city['id'];
-        $sub->appendChild($subAttr);
-        $top->appendChild($sub);
-
-        $sub = $xmlDoc->createElement('manufacturer', $this->manufacturer);
-        $subAttr = $xmlDoc->createAttribute('id');
-        $subAttr->value = $this->manuf_id;
-        $sub->appendChild($subAttr);
-        $top->appendChild($sub);
-
-        if (isset($this->mileage)) {
-            $sub = $xmlDoc->createElement('mileage', $this->mileage);
-            $top->appendChild($sub);
-        }
-        if (isset($this->op_time)) {
-            $sub = $xmlDoc->createElement('op_time', $this->op_time);
-            $top->appendChild($sub);
-        }
-        
-        $eImages = $xmlDoc->createElement('images');
-        $eImages = $top->appendChild($eImages);
-        foreach ($this->img as $img) {
-
-            $eImg = $xmlDoc->createElement('img', $img);
-            $eImages->appendChild($eImg);
-        }
-
-		return $top;
-    }
-*/ 
     /**
      * Returns array of user data
      * 
@@ -361,6 +260,7 @@ class CUnit
         	'name' => $this->name,
         	'is_arch' => $this->is_arch ? 'TRUE' : 'FALSE'
         );
+        $aUnit['unit']['link'] = $this->_link;
         $aUnit['unit']['owner']['@content'] = $this->owner;
         $aUnit['unit']['owner']['@attributes'] = array(
         	'id' => $this->owner_id
@@ -368,10 +268,13 @@ class CUnit
     	$aUnit['unit']['description'] = $this->description;
     	$aUnit['unit']['price'] = $this->price;
     	$aUnit['unit']['year'] = $this->year;
+    	
     	$aUnit['unit']['category']['@content'] = $this->category;
     	$aUnit['unit']['category']['@attributes'] = array(
-        	'id' => $this->cat_id
+        	'id' => $this->cat_id,
+        	'link' => $this->_catLink
     	);
+    	
     	$aUnit['unit']['fdistrict']['@content'] = $this->city['fdistrict'];
     	$aUnit['unit']['fdistrict']['@attributes'] = array(
         	'id' => $this->city['fdist_id'],

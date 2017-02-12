@@ -38,7 +38,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
         </meta>
         <div class="slider-header">
             <a>
-                <xsl:attribute name="href">/search/<xsl:value-of select="category/@id" />
+                <xsl:attribute name="href"><xsl:value-of select="category/@link" />
                 </xsl:attribute>
                 <h2>
                     <xsl:value-of select="category"/>

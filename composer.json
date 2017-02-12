@@ -10,6 +10,9 @@
         "dbrisinajumi/array2xml": "dev-master"
     },
     "autoload": {
-    	"psr-4": {"gusenru\\": "class"}
+    	"psr-4": {
+    		"gusenru\\": "class",
+    		"gusenru\\module\\": "class/module"
+    	}
 	}
 }

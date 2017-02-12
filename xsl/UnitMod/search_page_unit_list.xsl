@@ -36,7 +36,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
         </meta>
 
     	<a itemprop="url">
-        	<xsl:attribute name="href">/unit/<xsl:value-of select="@id"/></xsl:attribute>
+        	<xsl:attribute name="href"><xsl:value-of select="link"/></xsl:attribute>
         	<div class="itemz">
 	            <img class="img-responsive" itemprop="image">
 	                <xsl:attribute name="alt"><xsl:value-of select="manufacturer"/><xsl:text> </xsl:text><xsl:value-of select="@name"/>
@@ -63,11 +63,11 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 	</div> 
 </xsl:template>
 
-<xsl:template match="unit[not(position() mod 2 = 1)]"/> 
+<xsl:template match="unit[not(position() mod 2 = 1)]" /> 
 
 <xsl:template match="root">
     <div class="row row-itemz">
-    	<xsl:apply-templates />
+    	<xsl:apply-templates select="unit" />
     </div>
 </xsl:template>
 

@@ -1,39 +1,23 @@
 <?php
 namespace gusenru;
 
-interface iModDriver
-{
-    public function execute();
-}
-
-class CModule implements iModDriver
+class CModule
 {
 	private $_hDriver = NULL;
 	
-	function __construct($modName, $param1, $param2) {
-        // TODO: the Driver depends of modName. Driver loads with only two parameters
-		$this->_hDriver = new CMod(
-				$modName,
-				$param1,
-				$param2
+	function __construct($modKey, $param1, $param2) {
+        $this->_param1 = $param1;
+        $this->_param2 = $param2;
+
+		$this->_setDriver($modKey);
+	}
+	
+	private function _setDriver($key) {
+		$mod = "gusenru\module\C{$key}";
+		$this->_hDriver = new $mod (
+				$this->_param1,
+				$this->_param2
 		);        
-/*
-		if ($viewFile == 'null') {
-			$this->_hDriver = new CTextDriver(
-				$modName,
-				$param1,
-				$param2
-			);
-		}
-		else {
-			$this->_hDriver = new CXMLDriver(
-				$modName,
-				$viewFile,
-				$param1,
-				$param2
-			);
-		}
-*/
 	}
 	
 	function execute() {

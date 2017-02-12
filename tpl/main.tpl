@@ -66,12 +66,12 @@
         
         <div class="row">
             <div class="searchline">
-                %{search_form&search_form.xsl&6&search}%
+                %{SearchFormMod&search_form.xsl&6&search_ref}%
             </div>
         </div>
         
         <div class="content">
-            %{main_page_unit_list&main_page_unit_list.xsl&6}%
+            %{UnitMod&main_page_unit_list.xsl&6&main_page}%
         </div>
     </div>
     <div class="footer">

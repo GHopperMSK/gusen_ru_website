@@ -111,7 +111,7 @@
 				<li><a href="/?page=admin&act=owner_form">Add an Owner</a></li>
 			</ul>
     	</li>
-    	<li><a class="" href="/?page=admin&act=unapproved_comments">Comments (%{comments_unapproved_total&null&0}%)</a></li>
+    	<li><a class="" href="/?page=admin&act=unapproved_comments">Comments (%{UnitMod&null&0&unapproved_count}%)</a></li>
     </ul>
     <ul class="nav navbar-nav navbar-right">
     	<li><a href="/?page=admin&act=logout&msg=Successfully_Logged_out"><span class="glyphicon glyphicon-log-out"></span> Exit</a></li>
@@ -119,7 +119,7 @@
   </div>
 </nav>
 
-%{admin_comments_list&admin_comments_form.xsl&0}%
+%{UnitMod&admin_comments_form.xsl&0&unapproved_comments_page}%
 
 </body>
 </html>

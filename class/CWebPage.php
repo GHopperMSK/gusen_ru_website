@@ -244,7 +244,7 @@ class CWebPage
 			
 			if (empty($sModContent)) {
 				$hMod = new CModule(
-			    	$value['name'], // Avoid this parameter!!!
+			    	$value['name'],
 			    	$value['param1'],
 			    	$value['param2']
 				);
@@ -255,7 +255,7 @@ class CWebPage
 		    		$sXml = $array2xml->convert($aData);
 	
 					$xml->loadXML($sXml);
-	                $xsl->load("xsl/".$value['view']);	            
+	                $xsl->load("xsl/{$value['name']}/{$value['view']}");	            
 		            $hProc->importStylesheet($xsl);
 		            $sModContent = $hProc->transformToXML($xml);
 	    		} else {

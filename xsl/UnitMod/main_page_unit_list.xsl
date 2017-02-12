@@ -27,7 +27,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
         </meta>
     	
     	<a itemprop="url">
-        	<xsl:attribute name="href">/unit/<xsl:value-of select="@id"/></xsl:attribute>
+        	<xsl:attribute name="href"><xsl:value-of select="link"/></xsl:attribute>
         	<div class="itemz">
             <img class="img-responsive" itemprop="image">
                 <xsl:attribute name="alt"><xsl:value-of select="manufacturer"/><xsl:text> </xsl:text><xsl:value-of select="@name"/>
@@ -60,7 +60,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
             <div class="row row-content">
                 <div>
 	            	<a>
-	                	<xsl:attribute name="href">/search/<xsl:value-of select="@id" />
+	                	<xsl:attribute name="href"><xsl:value-of select="link" />
 	                	</xsl:attribute>
 	                	<h2 class="title-category"><xsl:value-of select="@name" /></h2>
 	                </a>
@@ -68,13 +68,13 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
             </div>
 
 		    <div class="row row-itemz">
-				<xsl:apply-templates />
+				<xsl:apply-templates select="unit"/>
             </div>
         
-            <xsl:if test="count(*) = 4">
+            <xsl:if test="count(unit) = 4">
 	            <div>
 	                <a class="allc">
-	                	<xsl:attribute name="href">/search/<xsl:value-of select="@id"/>
+	                	<xsl:attribute name="href"><xsl:value-of select="link"/>
 	                    </xsl:attribute>Все предложения из категории
 	                </a>
 	            </div>
