@@ -178,21 +178,6 @@ class CUnitMod extends \gusenru\CMod
     	$hDbConn = \gusenru\CDataBase::getInstance();
     	$aComments = array();
     	
-        if (isset($_POST['comment_id'])) {
-            $stmt = $hDbConn->prepare('
-            	UPDATE comments
-            	SET approved=:approve 
-            	WHERE id=:id'
-            );
-            $stmt->bindParam(':approve', $approve, \PDO::PARAM_BOOL);
-            $stmt->bindParam(':id', $com_id, \PDO::PARAM_INT);
-            foreach ($_POST['comment_id'] as $com_id) {
-                $approve = in_array($com_id, $_POST['approved']) ? TRUE : FALSE;
-                $stmt->execute();
-            }
-            
-            \gusenru\CWebPage::getInstance()->resetCache();
-        }
         $q = '
         	SELECT cm.id,cm.comment,un.id AS unit_id 
         	FROM comments cm
@@ -204,8 +189,11 @@ class CUnitMod extends \gusenru\CMod
 		$aRes = $hDbConn->query($q)->fetchAll(\PDO::FETCH_ASSOC);
 		
 		for ($i=0;$i<count($aRes);$i++) {
-			$aComments['comments']["comment{$i}"]['@content'] =
+			$aComments['comments']["comment{$i}"]['text'] =
 				$aRes[$i]['comment'];
+			$aComments['comments']["comment{$i}"]['link'] = MOD_REWRITE
+					? "/unit/{$aRes[$i]['unit_id']}"
+					: "/?page=unit&id={$aRes[$i]['unit_id']}";
 			$aComments['comments']["comment{$i}"]['@attributes'] = array(
 				'id' => $aRes[$i]['id'],
 				'unit_id' => $aRes[$i]['unit_id']

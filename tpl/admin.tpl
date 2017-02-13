@@ -120,7 +120,7 @@ function postUnit(id) {
 				<li><a href="/?page=admin&act=owner_form">Add an Owner</a></li>
 			</ul>
     	</li>
-    	<li><a class="" href="/?page=admin&act=unapproved_comments">Comments (%{UnitMod&null&0&unapproved_count}%)</a></li>
+    	<li><a class="" href="/?page=admin&act=comments_unapproved_list">Comments (%{UnitMod&null&0&unapproved_count}%)</a></li>
     </ul>
     <ul class="nav navbar-nav navbar-right">
     	<li><a href="/?page=admin&act=logout&msg=Successfully_Logged_out"><span class="glyphicon glyphicon-log-out"></span> Exit</a></li>

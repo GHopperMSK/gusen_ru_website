@@ -20,76 +20,6 @@
     <link href="https://fonts.googleapis.com/css?family=Roboto+Condensed:400,400i,700,700i%7CRoboto:400,400i,700,700i" rel="stylesheet" />
 </head>
 <body>
-<script type="text/javascript">
-
-	VK.init({
-		apiId: 5768859
-	});
-	
-	function wallPost(id) {
-		VK.Auth.login(function(response) {
-			if (response.session) {
-				console.log('auth ok');
-				postUnit(id);
-				if (response.settings) {
-					console.log(response.settings);
-				}
-		  } else {
-				console.log('auth failed');
-		  }
-		}, VK.access.PHOTOS | VK.access.WALL);	
-	}
-	
-	function postUnit(id) {
-		VK.Api.call('photos.getWallUploadServer', {
-		    	group_id: 137789409
-		    }, function(r) {
-		    	if (r.response) {
-			    	console.log('uploadServer: '+r.response.upload_url);
-			    	$.post('/?page=ajax&ajax_mode=vk_upload', {
-		                    url: r.response.upload_url,
-		                    unit_id: id
-		                    //proccessData: false
-		                }, function (data) {
-		                	var p = JSON.parse(data);
-		                	var unit = JSON.parse(p.unit);
-	
-							var message = unit.category+' / '+unit.name+', '+
-								unit.year + " г.\n" + unit.fdistrict + ', ' +
-								unit.region + ', г. ' + unit.city + "\n\n";
-							message += unit.description;
-	
-							VK.Api.call('photos.saveWallPhoto', {
-		                        group_id: 137789409,
-		                        photo: p.photo,
-		                        server: p.server,
-		                        hash: p.hash
-		                    	}, function (s) {
-		                    		var attachments = '';
-		                    		for (i=0; i<s.response.length; i++) {
-		                    			attachments += s.response[i].id + ',';
-		                    		}
-		                    		attachments += 'https://gusen.ru/unit/'+id;
-		                    		VK.Api.call('wall.post', {
-			                    			owner_id: '-137789409',
-			                    			message: message,
-			                    			attachments: attachments
-		                    			},
-		                    			function(r) {
-		                    				console.log('Wall.post: '+ r);
-		                    			}
-		                    		);
-		                    	}
-		                    )
-		                }
-		            )
-		    	}
-		    }
-		)	
-	}
-
-</script>
-
 <nav class="navbar navbar-inverse navbar-static-top">
 	<div class="container-fluid">
     	<div class="navbar-header">
@@ -111,7 +41,7 @@
 				<li><a href="/?page=admin&act=owner_form">Add an Owner</a></li>
 			</ul>
     	</li>
-    	<li><a class="" href="/?page=admin&act=unapproved_comments">Comments (%{UnitMod&null&0&unapproved_count}%)</a></li>
+    	<li><a class="" href="/?page=admin&act=comments_unapproved_list">Comments ({UnitMod&null&0&unapproved_count}%)</a></li>
     </ul>
     <ul class="nav navbar-nav navbar-right">
     	<li><a href="/?page=admin&act=logout&msg=Successfully_Logged_out"><span class="glyphicon glyphicon-log-out"></span> Exit</a></li>

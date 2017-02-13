@@ -37,10 +37,10 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
             </xsl:attribute>
         </input>
         <a target="_blank">
-            <xsl:attribute name="href">/unit/<xsl:value-of select="@unit_id" />
-            </xsl:attribute>        
+            <xsl:attribute name="href"><xsl:value-of select="link" />
+            </xsl:attribute>
             <xsl:call-template name="break">
-                <xsl:with-param name="text" select="text()" />
+                <xsl:with-param name="text" select="text" />
             </xsl:call-template><br />
         </a>
     </div>
@@ -48,7 +48,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 
 
 <xsl:template match="root">
-	<form method="POST">
+	<form method="POST" action="/?page=admin&amp;act=comments_approve">
 	    <xsl:apply-templates select="comments/comment" />
 	    <input class="search_button" type="submit" />
 	</form>

@@ -215,6 +215,7 @@ class CWebPage
         $xsl = new \DOMDocument();
         $hProc = new \XSLTProcessor();
 		$array2xml = new \Array2xml();
+		// $array2xml->setCDataKeys(array('comment'));
 		$array2xml->setFilterNumbersInTags(TRUE);
         
     	foreach ($this->_aModules as $key => $value) {
@@ -262,7 +263,9 @@ class CWebPage
 	    			$sModContent = $aData[0];
 	    		}
 	    		
-// if ($value['name'] == 'unit_comments') {
+// if ($value['name'] == 'UnitMod') {
+// 	d($aData);
+// 	d($sXml);
 // 	d($sModContent);
 // 	exit;
 // }
@@ -689,47 +692,6 @@ class CWebPage
         header('Location: ' . $_SERVER['HTTP_REFERER']);
     }
     
-    private function commentAdd() {
-        CWebPage::debug('CWebPage::commentAdd()');
-        if (isset($_POST['user_id'])) {
-            if (!filter_var($_POST['unit_id'], FILTER_VALIDATE_INT)) {
-                echo 'Wrong parameters were passed!';
-            }
-            else {        
-                $stmt = CDataBase::getInstance()->prepare("
-                		INSERT 
-                		INTO comments (
-                			unit_id,
-                			user_id,
-                			p_com_id,
-                			type,
-                			name,
-                			comment
-                		) 
-                		VALUES (:id, :uid, :p_com_id, :type, :name, :comment)");
-                $stmt->bindValue(':id', $_POST['unit_id'], \PDO::PARAM_INT);
-                $stmt->bindValue(':uid', $_POST['user_id'], \PDO::PARAM_INT);
-                $stmt->bindValue(
-                	':p_com_id',
-                	isset($_POST['p_com_id']) ? $_POST['p_com_id'] : NULL, 
-                	\PDO::PARAM_INT
-                );
-                $stmt->bindValue(':type', $_POST['type'], \PDO::PARAM_STR);
-                $stmt->bindValue(
-            		':name', 
-            		$_SESSION['user']['name'], 
-            		\PDO::PARAM_STR
-            	);
-                $stmt->bindValue(':comment', $_POST['comment'], \PDO::PARAM_STR);
-                $stmt->execute();
-            }
-        }
-        
-		$this->resetCache();
-
-        header('Location: ' . $_SERVER['HTTP_REFERER'].'#comment_form');
-    }
-    
     // generator of sitexml.xml
     private function _sitemap() {
         CWebPage::debug('CWebPage::sitemap()');
@@ -917,12 +879,15 @@ class CWebPage
                 else
                     header('Location: ?page=admin&act=login_form&msg=access_denied');
                 break;
-            case 'unapproved_comments':
+            case 'comments_unapproved_list':
                 if ($this->isAuth())
                     $this->_setTemplate('tpl/admin_unapproved_comments_list.tpl');
                 else
                     header('Location: ?page=admin&act=login_form&msg=access_denied');
                 break;
+            case 'comments_approve':
+            	$this->_commentsApprove();
+            	break;
             case 'owners_list':
                 if ($this->isAuth())
                     $this->_setTemplate('tpl/admin_owners_list.tpl');
@@ -968,7 +933,71 @@ class CWebPage
 		}
 		$this->aUnits[$unit->id] = $unit;
     }
-    
+
+    private function commentAdd() {
+        CWebPage::debug('CWebPage::commentAdd()');
+        if (isset($_POST['user_id'])) {
+            if (!filter_var($_POST['unit_id'], FILTER_VALIDATE_INT)) {
+                echo 'Wrong parameters were passed!';
+            }
+            else {        
+                $stmt = CDataBase::getInstance()->prepare("
+                		INSERT 
+                		INTO comments (
+                			unit_id,
+                			user_id,
+                			p_com_id,
+                			type,
+                			name,
+                			comment
+                		) 
+                		VALUES (:id, :uid, :p_com_id, :type, :name, :comment)");
+                $stmt->bindValue(':id', $_POST['unit_id'], \PDO::PARAM_INT);
+                $stmt->bindValue(':uid', $_POST['user_id'], \PDO::PARAM_INT);
+                $stmt->bindValue(
+                	':p_com_id',
+                	isset($_POST['p_com_id']) ? $_POST['p_com_id'] : NULL, 
+                	\PDO::PARAM_INT
+                );
+                $stmt->bindValue(':type', $_POST['type'], \PDO::PARAM_STR);
+                $stmt->bindValue(
+            		':name', 
+            		$_SESSION['user']['name'], 
+            		\PDO::PARAM_STR
+            	);
+                $stmt->bindValue(':comment', $_POST['comment'], \PDO::PARAM_STR);
+                $stmt->execute();
+            }
+        }
+        
+		$this->resetCache();
+
+        header('Location: ' . $_SERVER['HTTP_REFERER'].'#comment_form');
+    }
+
+    private function _commentsApprove() {
+    	$hDbConn = CDataBase::getInstance();
+    	
+        if (isset($_POST['comment_id'])) {
+            $stmt = $hDbConn->prepare('
+            	UPDATE comments
+            	SET approved=:approve AND
+            		`date`=`date`
+            	WHERE id=:id'
+            );
+            $stmt->bindParam(':approve', $approve, \PDO::PARAM_BOOL);
+            $stmt->bindParam(':id', $com_id, \PDO::PARAM_INT);
+            foreach ($_POST['comment_id'] as $com_id) {
+                $approve = in_array($com_id, $_POST['approved']) ? TRUE : FALSE;
+                $stmt->execute();
+            }
+            
+            $this->resetCache();
+        }
+
+    	header('Location: ' . $_SERVER['HTTP_REFERER']);
+    }
+
     private function ownerAdd() {
         $stmt = CDataBase::getInstance()->prepare('
     		INSERT INTO owners (
