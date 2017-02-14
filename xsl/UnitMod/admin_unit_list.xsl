@@ -32,7 +32,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
             </img>
             <p>
                 <a class="btn btn-info">
-                <xsl:attribute name="href">?page=admin&amp;act=admin_unit_form&amp;id=<xsl:value-of select="@id"/>
+                <xsl:attribute name="href">/?page=admin&amp;act=admin_unit_form&amp;id=<xsl:value-of select="@id"/>
                 </xsl:attribute>Edit</a>&#160;
                 <a class="btn btn-info" href="#">
                 	<xsl:attribute name="onclick">
@@ -41,15 +41,15 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
                 	Post in VK
                 </a>&#160;
                 <a class="btn btn-warning" onclick="return confirm('Are you sure you want to move the unit to the archive?!');">
-                <xsl:attribute name="href">?page=admin&amp;act=unit_arch&amp;id=<xsl:value-of select="@id"/>
+                <xsl:attribute name="href"><xsl:value-of select="links/arch"/>
                 </xsl:attribute>Move to archive</a>&#160;
                 <a class="btn btn-danger" onclick="return confirm('Are you sure you want to delete the unit?');">
-                <xsl:attribute name="href">?page=admin&amp;act=unit_del&amp;id=<xsl:value-of select="@id"/>
+                <xsl:attribute name="href"><xsl:value-of select="links/delete"/>
                 </xsl:attribute>Delete</a>
             </p>
 			<p>
 	            <a>
-	                <xsl:attribute name="href">?page=admin&amp;act=main&amp;vType=<xsl:value-of select="category/@cat_id"/>
+	                <xsl:attribute name="href"><xsl:value-of select="category/@link"/>
 	                </xsl:attribute>
 	                <xsl:value-of select="category"/>
 	            </a>
@@ -57,16 +57,16 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 	            /
 	
 	            <a>
-	                <xsl:attribute name="href">/unit/<xsl:value-of select="@id"/>
+	                <xsl:attribute name="href"><xsl:value-of select="links/show"/>
 	                </xsl:attribute>
 	                <xsl:value-of select="manufacturer"/>&#160;<xsl:value-of select="@name"/>
 	            </a>
 			</p>
 			<p>
 				<a>
-	                <xsl:attribute name="href">?page=admin&amp;act=owner_form&amp;id=<xsl:value-of select="owner/@id"/>
+	                <xsl:attribute name="href"><xsl:value-of select="owner/links/edit"/>
 	                </xsl:attribute>
-					<xsl:value-of select="owner" />
+					<xsl:value-of select="owner/@name" />
 				</a>
 			</p>
             <p><xsl:value-of select="fdistrict"/> / <xsl:value-of select="region"/> / <xsl:value-of select="city"/></p>

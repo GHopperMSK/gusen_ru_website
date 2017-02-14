@@ -28,16 +28,16 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 	    	<xsl:value-of select="@name"/><br />
             <p>
                 <a class="btn btn-info">
-                <xsl:attribute name="href">?page=admin&amp;act=owner_form&amp;id=<xsl:value-of select="@id"/>
+                <xsl:attribute name="href"><xsl:value-of select="links/edit"/>
                 </xsl:attribute>Edit</a>&#160;
                 <a class="btn btn-danger" onclick="return confirm('Are you sure you want to delete the owner?');">
-                <xsl:attribute name="href">?page=admin&amp;act=owner_delete&amp;id=<xsl:value-of select="@id"/>
+                <xsl:attribute name="href"><xsl:value-of select="links/delete"/>
                 </xsl:attribute>Delete</a>
             </p>
 	    </div>
 	    <div class="col-md-10">
 			 <xsl:call-template name="break">
-                <xsl:with-param name="text" select="current()" />
+                <xsl:with-param name="text" select="description" />
             </xsl:call-template>
 	    </div>
 	</div><br />

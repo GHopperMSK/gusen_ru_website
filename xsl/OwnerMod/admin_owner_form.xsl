@@ -11,7 +11,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 				<xsl:otherwise>?page=admin&amp;act=owner_add</xsl:otherwise>
 			</xsl:choose>
         </xsl:attribute>
-		<xsl:if test="owner">
+		<xsl:if test="owner/@id">
 			<input type="hidden" name="id">
 		        <xsl:attribute name="value">
 		        	<xsl:value-of select="owner/@id" />
@@ -46,7 +46,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
                 <textarea class="form-control" placeholder="Unit description" id="description" name="description" rows="15">
 	        	<xsl:choose>
 					<xsl:when test="not(owner) or owner=''">Description</xsl:when>
-					<xsl:otherwise><xsl:value-of select="owner" /></xsl:otherwise>
+					<xsl:otherwise><xsl:value-of select="owner/description" /></xsl:otherwise>
 				</xsl:choose>
                 </textarea>
         	</div>

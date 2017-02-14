@@ -859,7 +859,13 @@ class CWebPage
             	break;
             case 'owner_delete':
                 if ($this->isAuth()) {
-					$this->ownerDelete();
+					try {
+						COwner::delete($this->getGetValue('id'));
+						
+						header('Location: ' . $_SERVER['HTTP_REFERER']);
+					} catch (\Exception $ex) {
+						$this->_sContent = $ex->getMessage();
+					}
                 }
                 else
                     header('Location: ?page=admin&act=login_form&msg=access_denied');
@@ -913,7 +919,7 @@ class CWebPage
     	$unit->cat_id = $_POST['category'];
     	$unit->manuf_id = $_POST['manufacturer'];
     	$unit->name = $_POST['name'];
-    	$unit->owner_id = $_POST['owner'];
+    	$unit->owner = new COwner($_POST['owner']);
     	$unit->description = $_POST['description'];
     	$unit->price = $_POST['price'];
     	$unit->year = $_POST['year'];
@@ -999,55 +1005,21 @@ class CWebPage
     }
 
     private function ownerAdd() {
-        $stmt = CDataBase::getInstance()->prepare('
-    		INSERT INTO owners (
-    			name,
-    			description)
-    		VALUES (
-    			:name,
-    			:descr)'
-		);
-        $stmt->bindValue(':name', $_POST['name'], \PDO::PARAM_STR);
-        $stmt->bindValue(':descr', $_POST['description'], \PDO::PARAM_STR);
-        $stmt->execute();
+		$owner = new COwner();
+		$owner->_name = $_POST['name'];
+		$owner->_description = $_POST['description'];
+		$owner->add();
 
     	header('Location: /?page=admin&act=owners_list');
     }
     
     private function ownerEdit() {
-        $stmt = CDataBase::getInstance()->prepare('
-    		UPDATE owners
-    		SET
-    			name=:name,
-    			description=:descr
-    		WHERE id=:owner_id'
-		);
-        $stmt->bindValue(':owner_id' ,$_POST['id'], \PDO::PARAM_INT);
-        $stmt->bindValue(':name', $_POST['name'], \PDO::PARAM_STR);
-        $stmt->bindValue(':descr', $_POST['description'], \PDO::PARAM_STR);
-        $stmt->execute();
-    	
+		$owner = new COwner($_POST['id']);
+		$owner->_name = $_POST['name'];
+		$owner->_description = $_POST['description'];
+		$owner->edit();
+
     	header('Location: /?page=admin&act=owners_list');
-    }
-    
-    private function ownerDelete() {
-    	$hDbConn = CDataBase::getInstance();
-    	
-        $q = sprintf('
-    		SELECT COUNT(*) AS cnt
-    		FROM `units`
-    		WHERE owner_id=%d',
-    		$this->getGetValue('id')
-    	);
-        $res = $hDbConn->query($q);
-        if ($res->fetch(\PDO::FETCH_ASSOC)['cnt'] > 0) {
-        	$this->_sContent = 'The owner is used! Remove it from all units before deleting.';
-        } else {
-        	$q = sprintf('DELETE FROM `owners` WHERE id=%d', 
-        		$this->getGetValue('id'));
-        	$hDbConn->query($q);
-        	header('Location: ' . $_SERVER['HTTP_REFERER']);
-        }
     }
     
     //-----------------------------------------------------

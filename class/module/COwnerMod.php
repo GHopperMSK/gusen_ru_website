@@ -16,20 +16,6 @@ class COwnerMod extends \gusenru\CMod
         }
     }
     
-    function __destruct () {
-    	\gusenru\CWebPage::debug('CModule::__destruct()');
-    	
-        $this->_aContent = NULL;
-    }
-    
-    private function _addContent($aContent) {
-    	$this->_aContent = array_merge($this->_aContent, $aContent);
-    }
-
-    function execute() {
-    	return $this->_aContent;
-    }
-    
     //------------------------------------------------------
     // Page functionality
     //------------------------------------------------------
@@ -40,7 +26,7 @@ class COwnerMod extends \gusenru\CMod
     	$aOwner = array();
     	
         $q = '
-        	SELECT id,name,description
+        	SELECT id
         	FROM owners
         	ORDER BY name';
         	
@@ -58,47 +44,22 @@ class COwnerMod extends \gusenru\CMod
 		$aRes = $hDbConn->query($q)->fetchAll(\PDO::FETCH_ASSOC);
 		
 		for ($i=0;$i<count($aRes);$i++) {
-			$aOwner['owners']["owner{$i}"]['@content'] =
-				$aRes[$i]['description'];
-			$aOwner['owners']["owner{$i}"]['@attributes'] = array(
-				'id' => $aRes[$i]['id'],
-				'name' => $aRes[$i]['name']
-			);
+			$owner = new \gusenru\COwner($aRes[$i]['id']);
+			$aOwner['owners']["owner{$i}"] = $owner->get()['owner'];
 		}
-		
+
 		$this->_addContent($aOwner);
     }
     
     function _ownerForm() {
     	$hWebPage = \gusenru\CWebPage::getInstance();
     	
-    	$aForm = array();
+    	$owner = array();
     	
-        if ($hWebPage->getGetValue('id')) {
-        	$hDbConn = \gusenru\CDataBase::getInstance();
-        	
-	        $stmt = $hDbConn->prepare('
-	    		SELECT id,name,description
-	    		FROM `owners`
-	    		WHERE id=:owner_id
-	    	');
-	    	
-	    	$stmt->bindValue(
-	    		':owner_id',
-	    		$hWebPage->getGetValue('id'),
-	    		\PDO::PARAM_INT
-	    	);
-			$stmt->execute();
-	        $aRes = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+    	if ($hWebPage->getGetValue('id'))
+    		$owner = (new \gusenru\COwner($hWebPage->getGetValue('id')))->get();
 
-			$aForm['owner']['@content'] = $aRes[0]['description'];
-			$aForm['owner']['@attributes'] = array(
-				'id' => $aRes[0]['id'],
-				'name' => $aRes[0]['name']
-			);
-        }
-        
-        $this->_addContent($aForm);
+        $this->_addContent($owner);
     }
 }
 

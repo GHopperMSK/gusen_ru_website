@@ -27,7 +27,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
         </meta>
     	
     	<a itemprop="url">
-        	<xsl:attribute name="href"><xsl:value-of select="link"/></xsl:attribute>
+        	<xsl:attribute name="href"><xsl:value-of select="links/show"/></xsl:attribute>
         	<div class="itemz">
             <img class="img-responsive" itemprop="image">
                 <xsl:attribute name="alt"><xsl:value-of select="manufacturer"/><xsl:text> </xsl:text><xsl:value-of select="@name"/>

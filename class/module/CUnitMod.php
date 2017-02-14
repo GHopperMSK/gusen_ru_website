@@ -335,7 +335,7 @@ class CUnitMod extends \gusenru\CMod
         	$aForm['owners']["owner{$i}"]['@content'] = $aRes[$i]['name'];
         	$aForm['owners']["owner{$i}"]['@attributes']['id'] =
         		$aRes[$i]['id'];
-            if (($isEdit) && ($unit->owner_id === $aRes[$i]['id'])) {
+            if (($isEdit) && ($unit->owner->_id === $aRes[$i]['id'])) {
                 $aForm['owners']["owner{$i}"]['@attributes']['selected'] = 
                 	'TRUE'; 
             }
