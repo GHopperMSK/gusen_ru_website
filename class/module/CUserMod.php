@@ -4,6 +4,8 @@ namespace gusenru\module;
 class CUserMod extends \gusenru\CMod
 {
     function __construct($param1, $param2) {
+    	\gusenru\CWebPage::debug();
+    	
     	parent::__construct($param1, $param2);
 
         $this->_commentForm();

@@ -14,10 +14,13 @@ class CExceptionHandler
 	
 	public static function errorProcess($exception) {
 		if (DEBUG_MODE) {
+			header("Content-Type: text/plain");
+			
 			echo 'File: ', $exception->getFile();
-			echo ' (', $exception->getLine(), ')<br />';
+			echo ' (', $exception->getLine(), ')'.PHP_EOL;
 			echo 'Code (', $exception->getCode(), '): ';
-			echo $exception->getMessage()."<br />";
+			echo $exception->getMessage().PHP_EOL.PHP_EOL;
+			print_r($exception->getTrace());
 			exit;
 		}
 		else {

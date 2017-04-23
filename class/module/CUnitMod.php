@@ -1,9 +1,13 @@
 <?php
 namespace gusenru\module;
 
+use ghopper\CNestedSet;
+
 class CUnitMod extends \gusenru\CMod
 {
     function __construct($param1, $param2) {
+    	\gusenru\CWebPage::debug();
+    	
     	parent::__construct($param1, $param2);
 
         switch ($this->_param1) {
@@ -26,7 +30,7 @@ class CUnitMod extends \gusenru\CMod
             case "unapproved_comments_page":
                 $this->_unapprovedCommentsList();
                 break;
-            case "comments":
+            case 'comments':
                 $this->_unitComments();
                 break;
             case "unapproved_count":
@@ -55,7 +59,7 @@ class CUnitMod extends \gusenru\CMod
     		HAVING COUNT(cat.id)>1'
 	    );
         $stmt->execute();
-        $aRes = $stmt->fetchAll(\PDO::FETCH_ASSOC);    	
+        $aRes = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
     	$stmt = $hDbConn->prepare('
 			SELECT id
@@ -177,26 +181,37 @@ class CUnitMod extends \gusenru\CMod
     function _unapprovedCommentsList() {
     	$hDbConn = \gusenru\CDataBase::getInstance();
     	$aComments = array();
-    	
+
         $q = '
-        	SELECT cm.id,cm.comment,un.id AS unit_id 
+			SELECT
+				id,
+				comment
+			FROM comments
+			WHERE comments.approved IS NULL';
+		$aRes = $hDbConn->query($q)->fetchAll(\PDO::FETCH_ASSOC);
+/*
+        $q = '
+        	SELECT
+        		cm.id,
+        		cm.comment,
+        		un.id AS unit_id 
         	FROM comments cm
-            JOIN units un ON cm.unit_id=un.id
+            JOIN units un ON cm.node_id=un.cmnt_tree_id
             WHERE approved IS NULL
             ORDER BY cm.date ASC 
             LIMIT 200';
 
 		$aRes = $hDbConn->query($q)->fetchAll(\PDO::FETCH_ASSOC);
-		
+*/
 		for ($i=0;$i<count($aRes);$i++) {
 			$aComments['comments']["comment{$i}"]['text'] =
 				$aRes[$i]['comment'];
-			$aComments['comments']["comment{$i}"]['link'] = MOD_REWRITE
-					? "/unit/{$aRes[$i]['unit_id']}"
-					: "/?page=unit&id={$aRes[$i]['unit_id']}";
+			// $aComments['comments']["comment{$i}"]['link'] = MOD_REWRITE
+			// 		? "/unit/{$aRes[$i]['unit_id']}"
+			// 		: "/?page=unit&id={$aRes[$i]['unit_id']}";
 			$aComments['comments']["comment{$i}"]['@attributes'] = array(
-				'id' => $aRes[$i]['id'],
-				'unit_id' => $aRes[$i]['unit_id']
+				'id' => $aRes[$i]['id'] //,
+				// 'unit_id' => $aRes[$i]['unit_id']
 			);
 		}
 
@@ -206,104 +221,63 @@ class CUnitMod extends \gusenru\CMod
     private function _unitComments() {
     	$hDbConn = \gusenru\CDataBase::getInstance();
     	$hWebPage = \gusenru\CWebPage::getInstance();
+
+    	$unit = $hWebPage->getUnit($hWebPage->getGetValue('id'));
+    	$tree_id = $unit->cmnt_tree_id;
     	
+		$aConfig = array(
+		    'tb_name' => 'comments_tree'
+		);
+		$commentsTree = new \gusenru\CCommentsTree($hDbConn, $aConfig);
+		$this->_addContent($commentsTree->commentsList($tree_id));
+/*
+        $q = sprintf("
+			SELECT 
+			    nested_tree.id,
+			    nested_tree.depth,
+			    comments.user_id,
+			    comments.type,
+			    comments.name,
+			    comments.comment,
+			    comments.approved,
+			    comments.date
+			FROM (SELECT
+			    node.id,
+			    (COUNT(parent.id) - 1) AS depth
+			FROM
+			    comments_tree AS node,
+			    comments_tree AS parent
+			WHERE node.lft
+			    BETWEEN parent.lft AND parent.rgt
+			AND parent.lft > (
+			    SELECT lft 
+			    FROM comments_tree
+			    WHERE id=%d
+			)
+			GROUP BY node.id
+			ORDER BY node.lft) nested_tree
+			JOIN comments ON comments.node_id=nested_tree.id
+			",
+            $tree_id
+        );
+		$aRes = $hDbConn->query($q)->fetchAll(\PDO::FETCH_ASSOC);
+
 		$aComments = array();
-		
-        // fill comments list
-        $stmt = $hDbConn->prepare('
-        	SELECT *
-        	FROM (
-	    		SELECT 
-	        		id,
-	        		user_id,
-	        		type,
-	        		name,
-	        		comment,
-	        		CASE approved
-	        			WHEN FALSE THEN FALSE
-	        			ELSE TRUE
-	        		END AS approved,
-	        		date
-	    		FROM comments
-	        	WHERE 
-	        		unit_id=:unit_id AND
-	        		p_com_id IS NULL 
-	        	ORDER BY date DESC
-	        	LIMIT 40) tmp
-	        ORDER BY tmp.date'
-	    );
-        $stmt->bindValue(
-        	':unit_id',
-        	$hWebPage->getGetValue('id'),
-        	\PDO::PARAM_INT
-        );
-        $stmt->execute();
-        $aRes = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-
-        $stmt = $hDbConn->prepare('
-        	SELECT *
-        	FROM (
-	    		SELECT 
-	        		id,
-	        		user_id,
-	        		type,
-	        		name,
-	        		comment,
-	        		CASE approved
-	        			WHEN FALSE THEN FALSE
-	        			ELSE TRUE
-	        		END AS approved,
-	        		date
-	    		FROM comments
-	        	WHERE 
-	        		unit_id=:unit_id AND
-	        		p_com_id=:p_com_id 
-	        	ORDER BY date DESC
-	        	LIMIT 20) tmp
-	        ORDER BY tmp.date'
-	    );
-        $stmt->bindValue(
-        	':unit_id',
-        	$hWebPage->getGetValue('id'),
-        	\PDO::PARAM_INT
-        );
-	    $stmt->bindParam(':p_com_id', $p_com_id, \PDO::PARAM_INT);
-
         for ($i=0;$i<count($aRes);$i++) {
-        	$p_com_id = $aRes[$i]['id'];
-
 			$aComments["comments"]["comment{$i}"]['text'] = $aRes[$i]['comment'];
+			$aComments["comments"]["comment{$i}"]['name'] = $aRes[$i]['name'];
+			$aComments["comments"]["comment{$i}"]['depth'] = $aRes[$i]['depth'];
         	$aComments["comments"]["comment{$i}"]['@attributes'] = array(
-        		'name' => $aRes[$i]['name'],
         		'id' => $aRes[$i]['id'],
         		'user_id' => $aRes[$i]['user_id'],
         		'type' => $aRes[$i]['type'],
-        		'approved' => ($aRes[$i]['approved']) ?
-        			'TRUE' : 'FALSE'
+        		'approved' => ($aRes[$i]['approved'] === '0') ?
+        			'FALSE' : 'TRUE'
     		);
-    		
-	        $stmt->execute();
-	        $aRes2 = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-	        for ($x=0;$x<count($aRes2);$x++) {
-	        	$aComments["comments"]["comment{$i}"]
-	        			["comment{$x}"]['@content'] = 
-	        		$aRes2[$x]['comment'];
-	
-	        	$aComments["comments"]["comment{$i}"]
-	        			["comment{$x}"]['@attributes'] = array(
-	        		'name' => $aRes2[$x]['name'],
-	        		'id' => $aRes2[$x]['id'],
-	        		'user_id' => $aRes2[$x]['user_id'],
-	        		'type' => $aRes2[$x]['type'],
-	        		'approved' => ($aRes2[$x]['approved']) ? 
-	        			'TRUE' : 'FALSE'
-	    		);
-	        	
-	        }
-	        unset($aRes2);
         }
 
         $this->_addContent($aComments);
+*/
     }
 
     function _unitForm() {

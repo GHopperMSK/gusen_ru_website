@@ -7,7 +7,8 @@
         "facebook/graph-sdk": "^5.0",
         "phpFastCache/phpFastCache": "^5.0",
         "neitanod/forceutf8": "dev-master",
-        "dbrisinajumi/array2xml": "dev-master"
+        "dbrisinajumi/array2xml": "dev-master",
+        "ghopper/nested_set": "^0.3.1"
     },
     "autoload": {
     	"psr-4": {

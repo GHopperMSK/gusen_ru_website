@@ -6,6 +6,8 @@ class CModule
 	private $_hDriver = NULL;
 	
 	function __construct($modKey, $param1, $param2) {
+		CWebPage::debug();
+		
         $this->_param1 = $param1;
         $this->_param2 = $param2;
 

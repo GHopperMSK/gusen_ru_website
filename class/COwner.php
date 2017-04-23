@@ -9,7 +9,7 @@ class COwner
 	private $_link = array();
 	
 	function __construct($id=NULL) {
-		CWebPage::debug("COwner::__construct({$id})");
+		CWebPage::debug();
 
         if (!empty($id))
         	$this->_fillOwnerData($id);

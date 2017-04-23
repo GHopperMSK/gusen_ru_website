@@ -4,6 +4,8 @@ namespace gusenru\module;
 class CSearchFormMod extends \gusenru\CMod
 {
     function __construct($param1, $param2) {
+    	\gusenru\CWebPage::debug();
+    	
     	parent::__construct($param1, $param2);
 
         $this->_searchForm($this->_param1);

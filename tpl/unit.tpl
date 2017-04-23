@@ -187,8 +187,8 @@
         </div>
         <div class="line-w"></div>
         <ul class="media-list">
-            %{UnitMod&unit_comments.xsl&10&comments}%
             %{UserMod&user_comment_form.xsl&0}%
+            %{UnitMod&unit_comments.xsl&10&comments}%
         </ul>
         
     </div>

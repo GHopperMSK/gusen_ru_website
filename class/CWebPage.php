@@ -9,18 +9,17 @@ use phpFastCache\CacheManager;
  * CWebPage class
  * 
  * Provides next functionality:
- * - general the site logic
+ * - general site logic
  * - URL and POST data processing 
  * - templates processing
  * - modules execution
  * - users access control
  * - data caching
  * 
- * Member $sPageContent contains HTML-code of the page.
- * The class looks for pattern %{MOD_NAME&MOD_PARAM}% in $sPageContent and
- * loads appropriate module MOD_NAME with params.
- * 
- * @param CDataBase $hDbConn
+ * Member $sContent contains HTML-code of the page.
+ * The class looks for pattern %{MOD_NAME&MOD_VIEW&MOD_DURATION&MOD_PARAM1&
+ * MOD_PARAM2}% in $_sContent and loads appropriate module MOD_NAME with the
+ * params.
  * 
  * @return void
  */
@@ -42,7 +41,7 @@ class CWebPage
     	if (DEBUG_MODE)
     		openlog('gusenru', LOG_NDELAY, LOG_USER);
 
-        CWebPage::debug(__METHOD__);
+        CWebPage::debug();
 
 		$this->_processGetValues();
 		// TODO: ADD POST VARS
@@ -63,12 +62,12 @@ class CWebPage
 	private function __clone() { }
 
 	static public function getInstance()  {
-		CWebPage::debug("CWebPage::getInstance()");
-		
+    	CWebPage::debug("");
+
         if (self::$_instance == NULL) {
-        	CWebPage::debug("CWebPage::getInstance() creating WebPage object");
             self::$_instance = new self();
         }
+        	
         return self::$_instance;
     }
 
@@ -169,7 +168,7 @@ class CWebPage
      * @return void
      */
     private function _setTemplate($tpl) {
-        CWebPage::debug("CWebPage::_setTemplate({$tpl})");
+        CWebPage::debug();
         
         if (file_exists($tpl)) {
             $this->_sTemplate = $tpl;
@@ -209,7 +208,7 @@ class CWebPage
      * @return void 
      */
     private function _render() {
-        CWebPage::debug('CWebPage::renderTemplate()');
+        CWebPage::debug();
 
 		$xml = new \DOMDocument;
         $xsl = new \DOMDocument();
@@ -219,9 +218,9 @@ class CWebPage
 		$array2xml->setFilterNumbersInTags(TRUE);
         
     	foreach ($this->_aModules as $key => $value) {
-			$sModContent = '';
-
+			$sModContent = NULL;
 			$sCache = NULL;
+
 			if (CACHE_ON && ($value['duration'] > 0)) {
 				$sUrl = http_build_query($this->_aGetValues);
 
@@ -236,14 +235,13 @@ class CWebPage
 				);
 
 				if ($sCache->isHit()) {
-					CWebPage::debug("Get from cache {$key}");
+					CWebPage::debug("Get data from cache {$key}");
 
-					$sModContent = $sCache->get();						
+					$sModContent = $sCache->get();
 				}
-
 			}
 			
-			if (empty($sModContent)) {
+			if (!isset($sModContent)) {
 				$hMod = new CModule(
 			    	$value['name'],
 			    	$value['param1'],
@@ -263,7 +261,10 @@ class CWebPage
 	    			$sModContent = $aData[0];
 	    		}
 	    		
-// if ($value['name'] == 'UnitMod') {
+	    		if (!isset($sModContent))
+	    			$sModContent = '';
+	    		
+// if ($value['view'] == 'unit_comments.xsl') {
 // 	d($aData);
 // 	d($sXml);
 // 	d($sModContent);
@@ -271,7 +272,7 @@ class CWebPage
 // }
 			    
 			    if (CACHE_ON && ($value['duration'] > 0)) {
-					CWebPage::debug("Write to cache {$key} on {$duration} minutes");
+					CWebPage::debug("Write to cache {$key} on {$value['duration']} minutes");
 				
 					$sCache
 						->set($sModContent)
@@ -328,9 +329,17 @@ class CWebPage
     	return $this->_aUnits[$id];
     }
     
-    static function debug($message, $priority = LOG_INFO) {
+    static function debug($message = NULL) {
     	if (DEBUG_MODE) {
-			syslog($priority, $message);
+	    	if ($message)
+	    		$msg = $message;
+	    	else {
+		    	$degTrace = debug_backtrace();
+		    	$msg = "{$degTrace[1]['class']}::{$degTrace[1]['function']}(";
+		    	$msg .= implode(',',$degTrace[1]['args']);
+		    	$msg .= ")";
+	    	}
+			syslog(LOG_INFO, $msg);
     	}
     }
     
@@ -423,7 +432,7 @@ class CWebPage
      * @return resource resized image resource
      */
     private function _resizeImage($file, $w, $h, $crop=FALSE) {
-        CWebPage::debug("CWebPage::_resizeImage({$file}, {$w}, {$h}, {$crop})");
+        CWebPage::debug();
 
         // get image type
         $src = null;
@@ -524,7 +533,7 @@ class CWebPage
      * @return bool
      */
     private function isAuth() {
-        CWebPage::debug('CWebPage::isAuth()');
+        CWebPage::debug();
 
         if(isset($_SESSION['username'])) {
             return TRUE;
@@ -547,7 +556,7 @@ class CWebPage
      * @return void
      */
     private function oauth($type) {
-        CWebPage::debug("CWebPage::oauth({$type})");
+        CWebPage::debug();
         
         list($realHost,)=explode(':',$_SERVER['HTTP_HOST']);
 
@@ -684,7 +693,7 @@ class CWebPage
     }
     
     private function userLogout() {
-        CWebPage::debug('CWebPage::userLogout()');
+        CWebPage::debug();
 
 		$this->resetCache();
         
@@ -694,7 +703,7 @@ class CWebPage
     
     // generator of sitexml.xml
     private function _sitemap() {
-        CWebPage::debug('CWebPage::sitemap()');
+        CWebPage::debug();
         
         $hDbConn = CDataBase::getInstance();
         
@@ -913,7 +922,7 @@ class CWebPage
     }
     
     private function fillUnit($mode) {
-        CWebPage::debug("CWebPage::fillUnit({$mode})");
+        CWebPage::debug();
 
     	$unit = new CUnit($this->hDbConn);
     	$unit->cat_id = $_POST['category'];
@@ -941,41 +950,67 @@ class CWebPage
     }
 
     private function commentAdd() {
-        CWebPage::debug('CWebPage::commentAdd()');
-        if (isset($_POST['user_id'])) {
-            if (!filter_var($_POST['unit_id'], FILTER_VALIDATE_INT)) {
-                echo 'Wrong parameters were passed!';
-            }
-            else {        
-                $stmt = CDataBase::getInstance()->prepare("
-                		INSERT 
-                		INTO comments (
-                			unit_id,
-                			user_id,
-                			p_com_id,
-                			type,
-                			name,
-                			comment
-                		) 
-                		VALUES (:id, :uid, :p_com_id, :type, :name, :comment)");
-                $stmt->bindValue(':id', $_POST['unit_id'], \PDO::PARAM_INT);
-                $stmt->bindValue(':uid', $_POST['user_id'], \PDO::PARAM_INT);
-                $stmt->bindValue(
-                	':p_com_id',
-                	isset($_POST['p_com_id']) ? $_POST['p_com_id'] : NULL, 
-                	\PDO::PARAM_INT
-                );
-                $stmt->bindValue(':type', $_POST['type'], \PDO::PARAM_STR);
-                $stmt->bindValue(
-            		':name', 
-            		$_SESSION['user']['name'], 
-            		\PDO::PARAM_STR
-            	);
-                $stmt->bindValue(':comment', $_POST['comment'], \PDO::PARAM_STR);
-                $stmt->execute();
-            }
-        }
+        CWebPage::debug();
         
+        $hDbConn = CDataBase::getInstance();
+        if ((isset($_POST['unit_id'])) && 
+        		(!filter_var($_POST['unit_id'], FILTER_VALIDATE_INT))) {
+            throw new \Exception('Wrong unit_id parameter was passed!');
+        };
+
+		$aConfig = array(
+		    'tb_name' => 'comments_tree'
+		);
+        $commentsTree = new CCommentsTree($hDbConn, $aConfig);
+		if (isset($_POST['p_com_id']))
+			$cmnt_tree_id = $_POST['p_com_id'];
+		else {
+			$unit = $this->getUnit($_POST['unit_id']);
+			$cmnt_tree_id = $unit->cmnt_tree_id;
+/*
+	        $stmt = $hDbConn->prepare('
+        		SELECT cmnt_tree_id
+        		FROM units
+        		WHERE id=:unit_id
+        	');
+        	$stmt->bindValue(':unit_id', $_POST['unit_id'], \PDO::PARAM_INT);
+	    	$stmt->execute();
+	    	$cmnt_tree_id = $stmt
+	    		->fetchAll(\PDO::FETCH_ASSOC)[0]['cmnt_tree_id'];
+*/
+		}
+		$commentsTree->addComment(
+			$cmnt_tree_id,
+			$_POST['user_id'],
+			$_POST['type'],
+			$_SESSION['user']['name'],
+			$_POST['comment']
+		);
+
+/*
+		$com_id = $commentsTree->addChild($commentsTree, array());
+
+        $stmt = $hDbConn->prepare("
+        		INSERT 
+        		INTO comments (
+        			node_id,
+        			user_id,
+        			type,
+        			name,
+        			comment
+        		) 
+        		VALUES (:node_id, :uid, :type, :name, :comment)");
+        $stmt->bindValue(':node_id', $com_id, \PDO::PARAM_INT);
+        $stmt->bindValue(':uid', $_POST['user_id'], \PDO::PARAM_INT);
+        $stmt->bindValue(':type', $_POST['type'], \PDO::PARAM_STR);
+        $stmt->bindValue(
+    		':name', 
+    		$_SESSION['user']['name'], 
+    		\PDO::PARAM_STR
+    	);
+        $stmt->bindValue(':comment', $_POST['comment'], \PDO::PARAM_STR);
+        $stmt->execute();
+*/
 		$this->resetCache();
 
         header('Location: ' . $_SERVER['HTTP_REFERER'].'#comment_form');
@@ -1026,7 +1061,7 @@ class CWebPage
     // Ajax page functionality
     //-----------------------------------------------------    
     private function _ajaxPage($mode) {
-        CWebPage::debug("CWebPage::ajaxPage({$mode})");
+        CWebPage::debug();
 
         switch ($mode) {
             case 'city':
@@ -1105,9 +1140,8 @@ class CWebPage
 	                );
 	                
 	                if ($res = $hDbConn->query($q)) {
-	                	$i = 0;
-	                    while ($r = $res->fetch(\PDO::FETCH_ASSOC)) {
-	                    	$i++;
+	                	$aRes = $res->fetchAll(\PDO::FETCH_ASSOC);
+	                	for ($i=0;$i<count($aRes);$i++) {
 							$photos["file{$i}"] = new \CURLFile(
 								realpath(
 									$_SERVER["DOCUMENT_ROOT"].
@@ -1115,7 +1149,7 @@ class CWebPage
 									$r['img']
 								)
 							);
-	                    }
+	                	}
 	                }
 	                
 				    $ch = curl_init();

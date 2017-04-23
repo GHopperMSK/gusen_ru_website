@@ -886,3 +886,23 @@ UL.pagination.gusen-pag {
 .unit_sold_out {
 	text-decoration: line-through;
 }
+
+.pull-left1 {
+	padding-left: 20px;
+}
+
+.pull-left2 {
+	padding-left: 40px;
+}
+
+.pull-left3 {
+	padding-left: 60px;
+}
+
+.pull-left4 {
+	padding-left: 80px;
+}
+
+.pull-left-max {
+	padding-left: 100px;
+}

@@ -36,13 +36,13 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
                 <xsl:value-of select="@id"/>
             </xsl:attribute>
         </input>
-        <a target="_blank">
-            <xsl:attribute name="href"><xsl:value-of select="link" />
-            </xsl:attribute>
-            <xsl:call-template name="break">
-                <xsl:with-param name="text" select="text" />
-            </xsl:call-template><br />
-        </a>
+        <!--<a target="_blank">-->
+        <!--    <xsl:attribute name="href"><xsl:value-of select="link" />-->
+        <!--    </xsl:attribute>-->
+        <xsl:call-template name="break">
+            <xsl:with-param name="text" select="text" />
+        </xsl:call-template><br />
+        <!--</a>-->
     </div>
 </xsl:template>
 

@@ -29,7 +29,7 @@ class CDataBase extends \PDO
     static private $_instance = NULL;
 
     function __construct($host, $user, $pass, $db) {
-    	CWebPage::debug("CDataBase::__construct({$host},{$user},PASS,{$db})");
+    	CWebPage::debug();
     	
     	$this->_host = $host;
     	$this->_user = $user;

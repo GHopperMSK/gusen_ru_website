@@ -40,6 +40,17 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 		<xsl:for-each select="/root/comments/comment">
 			<li class="media">
 				<div class="pull-left">
+	                <xsl:attribute name="class">pull-left 
+		                <xsl:choose>
+			                <xsl:when test="depth=0">
+			            	</xsl:when>
+			                <xsl:when test="depth &lt; 5">
+			                	pull-left<xsl:value-of select="depth" />
+			            	</xsl:when>
+			                <xsl:otherwise>pull-left-max</xsl:otherwise>
+			            </xsl:choose>
+	                </xsl:attribute>
+					
 					<img class="media-object" src="/img/anon_user.png" alt="">
 	                	<xsl:attribute name="data-user_id">
 		                	<xsl:value-of select="@type" />
@@ -56,7 +67,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 			                </xsl:attribute>
 			                <xsl:choose>
 				                <xsl:when test="@type='fb'">
-				                	<xsl:value-of select="@name" />
+				                	<xsl:value-of select="name" />
 				            	</xsl:when>
 				                <xsl:otherwise>unknown name</xsl:otherwise>
 				            </xsl:choose>
@@ -78,7 +89,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 	                    	<p class="hidden-txt">{текст скрыт}</p>
 	                    </xsl:when>                    
 	                </xsl:choose>
-		
+<!--		
 		            <xsl:for-each select="comment">
 						<div class="media">
 							<div class="pull-left">
@@ -112,6 +123,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 					        </div>
 						</div>
 		            </xsl:for-each>
+-->
 				</div>
 			</li>
 		</xsl:for-each>

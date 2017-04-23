@@ -25,6 +25,7 @@ class CUnit
 	private $cat_id;
 	private $category;
 	private $manuf_id;
+	private $cmnt_tree_id;
 	private $manufacturer;
 	private $img = array();
 	
@@ -39,7 +40,7 @@ class CUnit
 	private $_catLink;
 	
 	function __construct($id=NULL) {
-		CWebPage::debug("CUnit::__construct({$id})");
+		CWebPage::debug();
 
         if (!empty($id)) 
         	$this->_fillUnitData($id);
@@ -120,6 +121,7 @@ class CUnit
         	SELECT
 				u.id AS id,
 				u.owner_id,
+				u.cmnt_tree_id,
 				u.name AS name,
 				u.description AS description,
 				u.price AS price,
@@ -189,6 +191,7 @@ class CUnit
 			$ur['manufacturer_id']: NULL;
 		$this->manufacturer= isset($ur['manufacturer']) ? 
 			$ur['manufacturer'] : NULL;
+		$this->cmnt_tree_id = $ur['cmnt_tree_id'];
 		$this->is_arch = $ur['is_arch'];
 
 		$this->city['id'] = $ur['city_id'];
@@ -302,6 +305,14 @@ class CUnit
     
     function addUnit() {
     	$hDbConn = CDataBase::getInstance();
+
+		// TODO: cover into transaction
+		$aConfig = array(
+		    'tb_name' => 'comments_tree'
+		);
+		$commentsTree = new CCommentsTree($hDbConn, $aConfig);
+		$this->cmnt_tree_id = $commentsTree->addRootChild();
+
         $stmt = $hDbConn->prepare('
         	INSERT 
 			INTO units(
@@ -309,6 +320,7 @@ class CUnit
 				cat_id,
 				city_id,
 				manufacturer_id,
+				cmnt_tree_id,
 				name,
 				description,
 				price,
@@ -321,6 +333,7 @@ class CUnit
 				:cat_id,
 				:city_id,
 				:manufacturer_id,
+				:cmnt_tree_id,
 				:name,
 				:description,
 				:price,
@@ -332,7 +345,8 @@ class CUnit
         $stmt->bindValue(':owner_id', $this->owner->_id, \PDO::PARAM_INT);
         $stmt->bindValue(':cat_id', $this->cat_id, \PDO::PARAM_INT);
         $stmt->bindValue(':city_id', $this->city['id'], \PDO::PARAM_INT);    
-        $stmt->bindValue(':manufacturer_id', $this->manuf_id, \PDO::PARAM_INT);    
+        $stmt->bindValue(':manufacturer_id', $this->manuf_id, \PDO::PARAM_INT);
+        $stmt->bindValue(':cmnt_tree_id', $this->cmnt_tree_id, \PDO::PARAM_INT);
         $stmt->bindValue(':name', $this->name, \PDO::PARAM_STR);
         $stmt->bindValue(':description', $this->description, \PDO::PARAM_STR);
         $stmt->bindValue(':price', $this->price, \PDO::PARAM_INT);
@@ -470,6 +484,29 @@ class CUnit
     
     static function deleteUnit($uid) {
     	$hDbConn = CDataBase::getInstance();
+
+		// TODO: transactions
+        $stmt = $hDbConn->prepare('
+			SELECT cmnt_tree_id
+			FROM units
+			WHERE id=:unit_id
+    	');
+    	$stmt->bindValue(':unit_id', $uid, \PDO::PARAM_INT);
+    	$stmt->execute();
+    	$cmnt_tree_id = $stmt->fetchAll(\PDO::FETCH_ASSOC)[0]['cmnt_tree_id'];
+
+		$aConfig = array(
+		    'tb_name' => 'comments_tree'
+		);
+		$commentsTree = new CCommentsTree($hDbConn, $aConfig);
+		$commentsTree->deleteComments($cmnt_tree_id);
+
+        $q = sprintf('SELECT img 
+        				FROM images 
+        				WHERE unit_id=%d',
+        				$u_id);
+        $res = $hDbConn->query($q);
+    	
         $q = sprintf('SELECT img 
         				FROM images 
         				WHERE unit_id=%d',

@@ -14,19 +14,11 @@ class CMod implements iModDriver
 	protected $_param2;
 
     function __construct($param1, $param2) {
-    	CWebPage::debug('CMod::__construct('.
-    		(empty($param1) ? '' : ','.$param1).
-    		(empty($param2) ? '' : ','.$param2).
-    		')'
-    	);
-
         $this->_param1 = $param1;
         $this->_param2 = $param2;
     }
     
     function __destruct () {
-    	CWebPage::debug('CModule::__destruct()');
-    	
         $this->_aContent = NULL;
     }
     
